@@ -1,0 +1,364 @@
+syntax = "proto3";
+
+package api;
+
+import "errors.proto";
+
+service IscsiCSIProxyService {
+    // MountISCSILun mounts a remote LUN over iSCSI and returns the OS disk device number.
+    rpc MountISCSILun(MountISCSILunRequest) returns (MountISCSILunResponse) {}
+
+    // ReportIScsiSendTargetPortals retrieves a list of static target portals that the iSCSI initiator
+    // service uses to perform automatic discovery with SendTarget requests.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-reportiscsisendtargetportalsexw
+    rpc ReportIScsiSendTargetPortals(ReportIScsiSendTargetPortalsRequest) returns (ReportIScsiSendTargetPortalsResponse) {}
+
+    // AddIScsiSendTargetPortal adds a static target portal to the list of target portals to which the iSCSI initiator service transmits SendTargets requests.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-addiscsisendtargetportalw
+    rpc AddIScsiSendTargetPortal(AddIScsiSendTargetPortalRequest) returns (AddIScsiSendTargetPortalResponse) {}
+
+    // RemoveIScsiSendTargetPortal removes a portal from the list of portals to which the iSCSI initiator service sends
+    // SendTargets requests for target discovery.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-removeiscsisendtargetportalw
+    rpc RemoveIScsiSendTargetPortal(RemoveIScsiSendTargetPortalRequest) returns (RemoveIScsiSendTargetPortalResponse) {}
+
+    // ReportIScsiTargets retrieves the list of targets that the iSCSI initiator service has discovered.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-reportiscsitargetsw
+    rpc ReportIScsiTargets(ReportIScsiTargetsRequest) returns (ReportIScsiTargetsResponse) {}
+
+    // LoginIscsiTarget establishes a full featured login session with the indicated target.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-loginiscsitargetw
+    rpc LoginIscsiTarget(LoginIscsiTargetRequest) returns (LoginIscsiTargetResponse) {}
+
+    // LogoutIScsiTarget closes the specified login session.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-logoutiscsitarget
+    rpc LogoutIScsiTarget(LogoutIScsiTargetRequest) returns (LogoutIScsiTargetResponse) {}
+
+    // GetIScsiSessionList retrieves the list of active iSCSI sessions.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-getiscsisessionlistw
+    rpc GetIScsiSessionList(GetIScsiSessionListRequest) returns (GetIScsiSessionListResponse) {}
+
+    // GetDevicesForIScsiSession retrieves information about the devices associated with an existing session.
+    // see https://docs.microsoft.com/en-us/windows/win32/api/iscsidsc/nf-iscsidsc-getdevicesforiscsisessionw
+    rpc GetDevicesForIScsiSession(GetDevicesForIScsiSessionRequest) returns (GetDevicesForIScsiSessionResponse) {}
+}
+
+
+enum IscsiAuthType {
+    NoAuth = 0;
+    OneWayCHAP = 1;
+    // Windows only supports system-wide (as opposed to per connection) mutual CHAP
+    // so we don't support it here
+}
+
+message MountISCSILunRequest {
+    // IQN address
+    // follows IQN format: iqn.yyyy-mm.naming-authority:unique name
+    string node_iqn = 1;
+
+    // Authentication Type
+    IscsiAuthType discovery_auth_type = 2;
+
+    // Discovery CHAP username
+    string discovery_chap_username = 3;
+
+    // Discovery CHAP secret
+    string discovery_chap_secret = 4;
+
+    IscsiAuthType session_auth_type = 5;
+
+    // Session CHAP username
+    string session_chap_username = 6;
+
+    // Session CHAP secret
+    string session_chap_secret = 7;
+
+    // TargetPortal address
+    string target_portal_address = 8;
+
+    // TargetPortal port
+    uint32 target_portal_port = 9;
+
+    // Readonly mount
+    bool readonly = 10;
+}
+
+message MountISCSILunResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    uint32 disk_number = 4;
+}
+
+message ReportIScsiSendTargetPortalsRequest {
+    // Intentionally empty
+}
+
+message IscsiPortal {
+    // Windows name.
+    string symbolic_name = 1;
+
+    // IP address or DNS name.
+    string address = 2;
+
+    // port number; should fit in a uint16.
+    // If left empty, defaults to 3260
+    uint32 socket = 3;
+}
+
+// see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/ne-iscsidsc-iscsi_digest_types
+enum IscsiDigestType {
+    NoDigest = 0;
+    CRC32C = 1;
+}
+
+// see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/ns-iscsidsc-iscsi_login_options
+message IscsiLoginOptions {
+    // see the "LoginFlags" section of https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/ns-iscsidsc-iscsi_login_options
+    uint32 login_flags = 1;
+
+    IscsiAuthType auth_type = 2;
+
+    IscsiDigestType header_digest = 3;
+
+    IscsiDigestType data_digest = 4;
+
+    uint32 maximum_connections = 5;
+
+    uint32 default_time_2_wait = 6;
+
+    uint32 default_time_2_retain = 7;
+
+    string username = 8;
+
+    string password = 9;
+}
+
+// see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/ns-iscsidsc-iscsi_target_portal_info_exw
+message IscsiPortalInfo {
+    IscsiPortal portal = 1;
+
+    string initiator_name = 2;
+
+    uint32 initiator_port_number = 3;
+
+    // see the "SecurityFlags" section of https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-addiscsisendtargetportalw
+    uint64 security_flags = 4;
+
+    IscsiLoginOptions login_options = 5;
+}
+
+message ReportIScsiSendTargetPortalsResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    repeated IscsiPortalInfo portal_infos = 4;
+}
+
+message AddIScsiSendTargetPortalRequest {
+    string initiator_instance = 1;
+
+    uint32 initiator_port_number = 2;
+
+    IscsiLoginOptions login_options = 3;
+
+    uint64 security_flags = 4;
+
+    IscsiPortal portal = 5;
+}
+
+message AddIScsiSendTargetPortalResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+}
+
+message RemoveIScsiSendTargetPortalRequest {
+    string initiator_instance = 1;
+
+    uint32 initiator_port_number = 2;
+
+    IscsiPortal portal = 3;
+}
+
+message RemoveIScsiSendTargetPortalResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+}
+
+message ReportIScsiTargetsRequest {
+    // if true,  the iSCSI initiator service updates the list of discovered targets before
+    // returning the target list data to the caller.
+    bool force_update = 1;
+}
+
+message ReportIScsiTargetsResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    repeated string target_names = 4;
+}
+
+message LoginIscsiTargetRequest {
+    string target_name = 1;
+
+    bool is_informational_session = 2;
+
+    string initiator_instance = 3;
+
+    uint32 initiator_port_number = 4;
+
+    IscsiPortal target_portal = 5;
+
+    uint64 security_flags = 6;
+
+    IscsiLoginOptions login_options = 7;
+
+    string key = 8;
+
+    bool is_persistent = 9;
+}
+
+message IscsiID {
+    uint64 adapter_unique = 1;
+    uint64 adapter_specific = 2;
+}
+
+message LoginIscsiTargetResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    IscsiID session_id = 4;
+    IscsiID connection_id = 5;
+}
+
+message LogoutIScsiTargetRequest {
+    IscsiID session_id = 1;
+}
+
+message LogoutIScsiTargetResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+}
+
+message GetIScsiSessionListRequest {
+    // Intentionally empty
+}
+
+message IscsiConnectionInfo {
+    IscsiID connection_id = 1;
+
+    string initiator_address = 2;
+
+    string target_address = 3;
+
+    uint32 initiator_socket = 4;
+
+    uint32 target_socket = 5;
+
+    bytes CID = 6;
+}
+
+// see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/ns-iscsidsc-iscsi_session_infow
+message IscsiSessionInfo {
+    IscsiID session_id = 1;
+
+    string initiator_name = 2;
+
+    string target_node_name = 3;
+
+    string target_name = 4;
+
+    bytes ISID = 5;
+
+    bytes TSID = 6;
+
+    repeated IscsiConnectionInfo connections = 7;
+}
+
+message GetIScsiSessionListResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    repeated IscsiSessionInfo session_infos = 4;
+}
+
+message GetDevicesForIScsiSessionRequest {
+    IscsiID session_id = 1;
+}
+
+// see https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/ntddscsi/ns-ntddscsi-_scsi_address
+message ScsiAddress {
+    uint32 port_number = 1;
+    uint32 path_id = 2;
+    uint32 target_id = 3;
+    uint32 lun = 4;
+}
+
+// see https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-_storage_device_number
+message IscsiStorageDeviceNumber {
+    uint32 device_type = 1;
+    uint32 device_number = 2;
+    uint32 partition_number = 3;
+}
+
+// see https://docs.microsoft.com/en-us/windows/win32/api/iscsidsc/ns-iscsidsc-iscsi_device_on_sessionw
+message IscsiDevice {
+    string initiator_name = 1;
+
+    string target_name = 2;
+
+    ScsiAddress scsi_address = 3;
+
+    string device_interface_type = 4;
+
+    string device_interface_name = 5;
+
+    string legacy_name = 6;
+
+    IscsiStorageDeviceNumber storage_device_number = 7;
+
+    uint32 device_instance = 8;
+}
+
+message GetDevicesForIScsiSessionResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    repeated IscsiDevice devices = 4;
+}

@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package api;
+
+import "errors.proto";
+
+service GeneralStorageCSIProxyService {
+    // Rescan refreshes the host storage cache.
+    rpc Rescan(RescanRequest) returns (RescanResponse) {}
+
+    // PartitionDisk initializes and partitions a disk device (if the disk has not
+    // been partitioned already) and returns the resulting volume object's GUID.
+    rpc PartitionDisk(PartitionDiskRequest) returns (PartitionDiskResponse) {}
+
+    // FormatVolume formats a volume with the provided file system.
+    // The resulting volume is mounted at the requested global staging path.
+    rpc FormatVolume(FormatVolumeRequest) returns (FormatVolumeResponse) {}
+
+    // ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all disk devices enumerated by Windows.
+    rpc ListDiskLocations(ListDiskLocationsRequest) returns (ListDiskLocationsResponse) {}
+
+    // ListDiskIDs returns all IDs (from IOCTL_STORAGE_QUERY_PROPERTY) of all disk devices enumerated by Windows.
+    rpc ListDiskIDs(ListDiskIDsRequest) returns (ListDiskIDsResponse) {}
+
+    // ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs
+    rpc ListDiskVolumeMappings(ListDiskVolumeMappingsRequest) returns (ListDiskVolumeMappingsResponse) {}
+
+    // ResizeVolume performs resizing of the partition and file system for a block based volume
+    rpc ResizeVolume(ResizeVolumeRequest) returns (ResizeVolumeResponse) {}
+
+    // DismountVolume gracefully dismounts a volume
+    rpc DismountVolume(DismountVolumeRequest) returns (DismountVolumeResponse) {}
+}
+
+message RescanRequest {
+    // Intentionally empty.
+}
+
+message RescanResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}
+
+message PartitionDiskRequest {
+    // The Windows disk device to partition and the paritioning mode: MBR/GPT.
+    // The whole disk will be partitioned.
+    //
+    // Restrictions:
+    // disk_number should be less than the maximum number drives allowed by Windows OS.
+    uint32 disk_number = 1;
+
+    // Disk partition type
+    enum PartitionType {
+        MBR = 0;
+        GPT = 1;
+    }
+    PartitionType type = 2;
+}
+
+message PartitionDiskResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+
+    // GUID of the volume device resulting from the partition.
+    string volume_device_guid = 4;
+}
+
+message FormatVolumeRequest {
+    // The GUID of the Windows volume device to format,
+    // typically volume_device_guid returned by PartitionDiskResponse.
+    string volume_device_guid = 1;
+
+    // FileSystem type
+    enum FileSystemType {
+        NTFS = 0;
+        FAT = 1;
+    }
+    FileSystemType type = 2;
+}
+
+message FormatVolumeResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}
+
+message ListDiskLocationsRequest {
+    // Intentionally empty
+}
+
+message DiskLocation {
+    string Adapter = 1;
+    string Bus = 2;
+    string Target = 3;
+    string LUNID = 4;
+}
+
+message ListDiskLocationsResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    // Map of disk device objects and <adapter, bus, target, lun ID> associated with each disk device
+    map <string, DiskLocation> disk_locations = 4;
+}
+
+message ListDiskIDsRequest {
+    // Intentionally empty
+}
+
+message DiskIDs {
+    // list of Disk IDs of ASCII characters associated with disk device.
+    repeated string IDs = 1;
+}
+
+message ListDiskIDsResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    // Map of disk device objects and IDs associated with each disk device.
+    map <string, DiskIDs> disk_id = 4;
+}
+
+message ListDiskVolumeMappingsRequest {
+    // Intentionally empty
+}
+
+message ListDiskVolumeMappingsResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+
+    // Map of disk devices and volume objects of the form \\?\volume\{GUID} on the disk.
+    map <string, string> disk_volume_pair = 4;
+}
+
+message ResizeVolumeRequest {
+    // The GUID of the Windows volume device to format,
+    // typically volume_device_guid returned by PartitionDiskResponse.
+    string volume_device_guid = 1;
+
+    // New size to resize FS to.
+    uint64 new_size = 2;
+}
+
+message ResizeVolumeResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}
+
+message DismountVolumeRequest {
+    // The GUID of the Windows volume device to format,
+    // typically volume_device_guid returned by PartitionDiskResponse.
+    string volume_device_guid = 1;
+}
+
+message DismountVolumeResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}

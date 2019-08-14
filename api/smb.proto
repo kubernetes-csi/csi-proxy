@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package api;
+
+import "errors.proto";
+
+service SmbCSIProxyService {
+    // MountSMBShare mounts a remote share over SMB on the host at the requested global staging path.
+    rpc MountSMBShare(MountSMBShareRequest) returns (MountSMBShareResponse) {}
+}
+
+message MountSMBShareRequest {
+    // A remote SMB share to mount
+    // All unicode characters allowed in SMB server name specifications are
+    // permitted except for restrictions below
+    //
+    // Restrictions:
+    // SMB share specified in the format: \\server-name\sharename, \\server.fqdn\sharename or \\a.b.c.d\sharename
+    // If not an IP address, server-name has to be a valid DNS name.
+    // UNC specifications to local paths or prefix: \\?\ is not allowed.
+    // Characters: + [ ] " / : ; | < > , ? * = $ are not allowed.
+    string remote_share = 1;
+
+    // Local path in the host to stage the SMB share.
+    // All special characters allowed by Windows in path names will be allowed
+    // except for restrictions noted below. For details, please check:
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    //
+    // Restrictions:
+    // If given an absolute path, it needs to be under kubelet-csi-plugins-path,
+    // and specified with drive letter prefix: "X:\".
+    // If given a relative path, it will be understood as being relative to
+    // kubelet-csi-plugins-path.
+    // Needs to already exist on host.
+    // UNC paths of the form "\\server\share\path\file" are not allowed.
+    // All directory separators need to be backslash character: "\".
+    // Characters: .. / : | ? * in the path are not allowed.
+    // Maximum path length will be capped to 260 characters (MAX_PATH).
+    string host_path = 2;
+
+    // Mount the share read-only.
+    bool readonly = 3;
+
+    // Username credential associated with the share.
+    string username = 4;
+
+    // Password credential associated with the share.
+    string password = 5;
+}
+
+message MountSMBShareResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}
+

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package api;
+
+// WindowsApiError details errors yielded by direct system calls to the Windows API.
+message WindowsApiError {
+    // Name of the Windows API procedure that errored out.
+    string procedure_name = 1;
+
+    // Error code that got returned.
+    uint32 code = 2;
+
+    // Windows API's documentation lists hexadecimal error codes; this is the hexadecimal
+    // representation of the error code.
+    string hexadecimal_code = 3;
+
+    // Human-readable error message - can be empty.
+    string message = 4;
+}
+
+// CommandError details errors yielded by cmdlet calls.
+message CmdletError {
+    // Name of the cmdlet that errored out.
+    string cmdlet_name = 1;
+
+    // Error code that got returned.
+    uint32 code = 2;
+
+    // Human-readable error message - can be empty.
+    string message = 4;
+}
