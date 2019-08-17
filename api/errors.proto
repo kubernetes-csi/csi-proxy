@@ -27,5 +27,5 @@ message CmdletError {
     uint32 code = 2;
 
     // Human-readable error message - can be empty.
-    string message = 4;
+    string message = 3;
 }

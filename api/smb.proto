@@ -7,6 +7,9 @@ import "errors.proto";
 service SmbCSIProxyService {
     // MountSMBShare mounts a remote share over SMB on the host at the requested global staging path.
     rpc MountSMBShare(MountSMBShareRequest) returns (MountSMBShareResponse) {}
+
+    // UnmountSMBShare unmounts a SMB remote share that was previously mounted with MountSMBShare.
+    rpc UnmountSMBShare(UnmountSMBShareRequest) returns (UnmountSMBShareResponse) {}
 }
 
 message MountSMBShareRequest {
@@ -57,3 +60,22 @@ message MountSMBShareResponse {
     }
 }
 
+message UnmountSMBShareRequest {
+    // Local host path at which the SMB share was previously staged.
+    //
+    // Restrictions:
+    // If given an absolute path, it needs to be under kubelet-csi-plugins-path,
+    // and specified with drive letter prefix: "X:\".
+    // If given a relative path, it will be understood as being relative to
+    // kubelet-csi-plugins-path.
+    string host_path = 1;
+}
+
+message UnmountSMBShareResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}
