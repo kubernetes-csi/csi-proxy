@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+// Deprecated: Do not use.
+// v1alpha1 is no longer maintained, and will be removed soon.
+package v1alpha1;
+
+service Dummy {
+    // ComputeDouble computes the double of the input. Real smart stuff!
+    rpc ComputeDouble(ComputeDoubleRequest) returns (ComputeDoubleResponse) {
+        option deprecated = true;
+    }
+}
+
+message ComputeDoubleRequest{
+    int32 input32 = 1 [deprecated=true];
+}
+
+message ComputeDoubleResponse{
+    int32 response32 = 1;
+}

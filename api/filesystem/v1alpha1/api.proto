@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package v1alpha1;
+
+import "github.com/kubernetes-csi/csi-proxy/api/errors.proto";
+
+// FIXME: this is just an almost empty service, not actually implemented; it's just
+// here as an example of what API group and versions will look like. It will actually
+// be implemented in a later patch.
+
+service FileSystem {
+    // PathExists checks if the given path exists on the host.
+    rpc PathExists(PathExistsRequest) returns (PathExistsResponse) {}
+}
+
+message PathExistsRequest {
+    // The path to check in the host filesystem.
+    string path = 1;
+}
+
+message PathExistsResponse {
+    bool success = 1;
+
+    // present iff success is false
+    api.CmdletError cmdlet_error = 2;
+
+    bool exists = 4;
+}
