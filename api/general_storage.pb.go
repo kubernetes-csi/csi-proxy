@@ -24,6 +24,34 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type DiskType int32
+
+const (
+	DiskType_Page0x80  DiskType = 0
+	DiskType_Page0x83  DiskType = 1
+	DiskType_WindowsOS DiskType = 3
+)
+
+var DiskType_name = map[int32]string{
+	0: "Page0x80",
+	1: "Page0x83",
+	3: "WindowsOS",
+}
+
+var DiskType_value = map[string]int32{
+	"Page0x80":  0,
+	"Page0x83":  1,
+	"WindowsOS": 3,
+}
+
+func (x DiskType) String() string {
+	return proto.EnumName(DiskType_name, int32(x))
+}
+
+func (DiskType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_23cf78355e34b894, []int{0}
+}
+
 // Disk partition type
 type PartitionDiskRequest_PartitionType int32
 
@@ -672,160 +700,217 @@ func (*ListDiskLocationsResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-type ListDiskIDsRequest struct {
+type ListDisksRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListDiskIDsRequest) Reset()         { *m = ListDiskIDsRequest{} }
-func (m *ListDiskIDsRequest) String() string { return proto.CompactTextString(m) }
-func (*ListDiskIDsRequest) ProtoMessage()    {}
-func (*ListDiskIDsRequest) Descriptor() ([]byte, []int) {
+func (m *ListDisksRequest) Reset()         { *m = ListDisksRequest{} }
+func (m *ListDisksRequest) String() string { return proto.CompactTextString(m) }
+func (*ListDisksRequest) ProtoMessage()    {}
+func (*ListDisksRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_23cf78355e34b894, []int{9}
 }
 
-func (m *ListDiskIDsRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListDiskIDsRequest.Unmarshal(m, b)
+func (m *ListDisksRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDisksRequest.Unmarshal(m, b)
 }
-func (m *ListDiskIDsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListDiskIDsRequest.Marshal(b, m, deterministic)
+func (m *ListDisksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDisksRequest.Marshal(b, m, deterministic)
 }
-func (m *ListDiskIDsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListDiskIDsRequest.Merge(m, src)
+func (m *ListDisksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDisksRequest.Merge(m, src)
 }
-func (m *ListDiskIDsRequest) XXX_Size() int {
-	return xxx_messageInfo_ListDiskIDsRequest.Size(m)
+func (m *ListDisksRequest) XXX_Size() int {
+	return xxx_messageInfo_ListDisksRequest.Size(m)
 }
-func (m *ListDiskIDsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListDiskIDsRequest.DiscardUnknown(m)
+func (m *ListDisksRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDisksRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListDiskIDsRequest proto.InternalMessageInfo
+var xxx_messageInfo_ListDisksRequest proto.InternalMessageInfo
 
-type DiskIDs struct {
-	// list of Disk IDs of ASCII characters associated with disk device.
-	IDs                  []string `protobuf:"bytes,1,rep,name=IDs,proto3" json:"IDs,omitempty"`
+type Disk struct {
+	ID   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Type DiskType `protobuf:"varint,2,opt,name=type,proto3,enum=api.DiskType" json:"type,omitempty"`
+	// metadata depends on the disk type:
+	//  * for Page0x83 disks, it's the VPD descriptor
+	//  * for other types, it's empty
+	Metadata             string   `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DiskIDs) Reset()         { *m = DiskIDs{} }
-func (m *DiskIDs) String() string { return proto.CompactTextString(m) }
-func (*DiskIDs) ProtoMessage()    {}
-func (*DiskIDs) Descriptor() ([]byte, []int) {
+func (m *Disk) Reset()         { *m = Disk{} }
+func (m *Disk) String() string { return proto.CompactTextString(m) }
+func (*Disk) ProtoMessage()    {}
+func (*Disk) Descriptor() ([]byte, []int) {
 	return fileDescriptor_23cf78355e34b894, []int{10}
 }
 
-func (m *DiskIDs) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DiskIDs.Unmarshal(m, b)
+func (m *Disk) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Disk.Unmarshal(m, b)
 }
-func (m *DiskIDs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DiskIDs.Marshal(b, m, deterministic)
+func (m *Disk) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Disk.Marshal(b, m, deterministic)
 }
-func (m *DiskIDs) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DiskIDs.Merge(m, src)
+func (m *Disk) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Disk.Merge(m, src)
 }
-func (m *DiskIDs) XXX_Size() int {
-	return xxx_messageInfo_DiskIDs.Size(m)
+func (m *Disk) XXX_Size() int {
+	return xxx_messageInfo_Disk.Size(m)
 }
-func (m *DiskIDs) XXX_DiscardUnknown() {
-	xxx_messageInfo_DiskIDs.DiscardUnknown(m)
+func (m *Disk) XXX_DiscardUnknown() {
+	xxx_messageInfo_Disk.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DiskIDs proto.InternalMessageInfo
+var xxx_messageInfo_Disk proto.InternalMessageInfo
 
-func (m *DiskIDs) GetIDs() []string {
+func (m *Disk) GetID() string {
 	if m != nil {
-		return m.IDs
+		return m.ID
+	}
+	return ""
+}
+
+func (m *Disk) GetType() DiskType {
+	if m != nil {
+		return m.Type
+	}
+	return DiskType_Page0x80
+}
+
+func (m *Disk) GetMetadata() string {
+	if m != nil {
+		return m.Metadata
+	}
+	return ""
+}
+
+type Disks struct {
+	Disks                []*Disk  `protobuf:"bytes,1,rep,name=disks,proto3" json:"disks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Disks) Reset()         { *m = Disks{} }
+func (m *Disks) String() string { return proto.CompactTextString(m) }
+func (*Disks) ProtoMessage()    {}
+func (*Disks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_23cf78355e34b894, []int{11}
+}
+
+func (m *Disks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Disks.Unmarshal(m, b)
+}
+func (m *Disks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Disks.Marshal(b, m, deterministic)
+}
+func (m *Disks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Disks.Merge(m, src)
+}
+func (m *Disks) XXX_Size() int {
+	return xxx_messageInfo_Disks.Size(m)
+}
+func (m *Disks) XXX_DiscardUnknown() {
+	xxx_messageInfo_Disks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Disks proto.InternalMessageInfo
+
+func (m *Disks) GetDisks() []*Disk {
+	if m != nil {
+		return m.Disks
 	}
 	return nil
 }
 
-type ListDiskIDsResponse struct {
+type ListDisksResponse struct {
 	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	// Types that are valid to be assigned to Error:
-	//	*ListDiskIDsResponse_WindowsApiError
-	//	*ListDiskIDsResponse_ErrorMessage
-	Error isListDiskIDsResponse_Error `protobuf_oneof:"error"`
-	// Map of disk device objects and IDs associated with each disk device.
-	DiskId               map[string]*DiskIDs `protobuf:"bytes,4,rep,name=disk_id,json=diskId,proto3" json:"disk_id,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	//	*ListDisksResponse_WindowsApiError
+	//	*ListDisksResponse_ErrorMessage
+	Error isListDisksResponse_Error `protobuf_oneof:"error"`
+	// Map of disk device objects and the data associated with each disk device.
+	DiskId               map[string]*Disks `protobuf:"bytes,4,rep,name=disk_id,json=diskId,proto3" json:"disk_id,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
-func (m *ListDiskIDsResponse) Reset()         { *m = ListDiskIDsResponse{} }
-func (m *ListDiskIDsResponse) String() string { return proto.CompactTextString(m) }
-func (*ListDiskIDsResponse) ProtoMessage()    {}
-func (*ListDiskIDsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{11}
+func (m *ListDisksResponse) Reset()         { *m = ListDisksResponse{} }
+func (m *ListDisksResponse) String() string { return proto.CompactTextString(m) }
+func (*ListDisksResponse) ProtoMessage()    {}
+func (*ListDisksResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_23cf78355e34b894, []int{12}
 }
 
-func (m *ListDiskIDsResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListDiskIDsResponse.Unmarshal(m, b)
+func (m *ListDisksResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListDisksResponse.Unmarshal(m, b)
 }
-func (m *ListDiskIDsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListDiskIDsResponse.Marshal(b, m, deterministic)
+func (m *ListDisksResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListDisksResponse.Marshal(b, m, deterministic)
 }
-func (m *ListDiskIDsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListDiskIDsResponse.Merge(m, src)
+func (m *ListDisksResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListDisksResponse.Merge(m, src)
 }
-func (m *ListDiskIDsResponse) XXX_Size() int {
-	return xxx_messageInfo_ListDiskIDsResponse.Size(m)
+func (m *ListDisksResponse) XXX_Size() int {
+	return xxx_messageInfo_ListDisksResponse.Size(m)
 }
-func (m *ListDiskIDsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListDiskIDsResponse.DiscardUnknown(m)
+func (m *ListDisksResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListDisksResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ListDiskIDsResponse proto.InternalMessageInfo
+var xxx_messageInfo_ListDisksResponse proto.InternalMessageInfo
 
-func (m *ListDiskIDsResponse) GetSuccess() bool {
+func (m *ListDisksResponse) GetSuccess() bool {
 	if m != nil {
 		return m.Success
 	}
 	return false
 }
 
-type isListDiskIDsResponse_Error interface {
-	isListDiskIDsResponse_Error()
+type isListDisksResponse_Error interface {
+	isListDisksResponse_Error()
 }
 
-type ListDiskIDsResponse_WindowsApiError struct {
+type ListDisksResponse_WindowsApiError struct {
 	WindowsApiError *WindowsApiError `protobuf:"bytes,2,opt,name=windows_api_error,json=windowsApiError,proto3,oneof"`
 }
 
-type ListDiskIDsResponse_ErrorMessage struct {
+type ListDisksResponse_ErrorMessage struct {
 	ErrorMessage string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3,oneof"`
 }
 
-func (*ListDiskIDsResponse_WindowsApiError) isListDiskIDsResponse_Error() {}
+func (*ListDisksResponse_WindowsApiError) isListDisksResponse_Error() {}
 
-func (*ListDiskIDsResponse_ErrorMessage) isListDiskIDsResponse_Error() {}
+func (*ListDisksResponse_ErrorMessage) isListDisksResponse_Error() {}
 
-func (m *ListDiskIDsResponse) GetError() isListDiskIDsResponse_Error {
+func (m *ListDisksResponse) GetError() isListDisksResponse_Error {
 	if m != nil {
 		return m.Error
 	}
 	return nil
 }
 
-func (m *ListDiskIDsResponse) GetWindowsApiError() *WindowsApiError {
-	if x, ok := m.GetError().(*ListDiskIDsResponse_WindowsApiError); ok {
+func (m *ListDisksResponse) GetWindowsApiError() *WindowsApiError {
+	if x, ok := m.GetError().(*ListDisksResponse_WindowsApiError); ok {
 		return x.WindowsApiError
 	}
 	return nil
 }
 
-func (m *ListDiskIDsResponse) GetErrorMessage() string {
-	if x, ok := m.GetError().(*ListDiskIDsResponse_ErrorMessage); ok {
+func (m *ListDisksResponse) GetErrorMessage() string {
+	if x, ok := m.GetError().(*ListDisksResponse_ErrorMessage); ok {
 		return x.ErrorMessage
 	}
 	return ""
 }
 
-func (m *ListDiskIDsResponse) GetDiskId() map[string]*DiskIDs {
+func (m *ListDisksResponse) GetDiskId() map[string]*Disks {
 	if m != nil {
 		return m.DiskId
 	}
@@ -833,10 +918,10 @@ func (m *ListDiskIDsResponse) GetDiskId() map[string]*DiskIDs {
 }
 
 // XXX_OneofWrappers is for the internal use of the proto package.
-func (*ListDiskIDsResponse) XXX_OneofWrappers() []interface{} {
+func (*ListDisksResponse) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*ListDiskIDsResponse_WindowsApiError)(nil),
-		(*ListDiskIDsResponse_ErrorMessage)(nil),
+		(*ListDisksResponse_WindowsApiError)(nil),
+		(*ListDisksResponse_ErrorMessage)(nil),
 	}
 }
 
@@ -850,7 +935,7 @@ func (m *ListDiskVolumeMappingsRequest) Reset()         { *m = ListDiskVolumeMap
 func (m *ListDiskVolumeMappingsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListDiskVolumeMappingsRequest) ProtoMessage()    {}
 func (*ListDiskVolumeMappingsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{12}
+	return fileDescriptor_23cf78355e34b894, []int{13}
 }
 
 func (m *ListDiskVolumeMappingsRequest) XXX_Unmarshal(b []byte) error {
@@ -888,7 +973,7 @@ func (m *ListDiskVolumeMappingsResponse) Reset()         { *m = ListDiskVolumeMa
 func (m *ListDiskVolumeMappingsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListDiskVolumeMappingsResponse) ProtoMessage()    {}
 func (*ListDiskVolumeMappingsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{13}
+	return fileDescriptor_23cf78355e34b894, []int{14}
 }
 
 func (m *ListDiskVolumeMappingsResponse) XXX_Unmarshal(b []byte) error {
@@ -983,7 +1068,7 @@ func (m *ResizeVolumeRequest) Reset()         { *m = ResizeVolumeRequest{} }
 func (m *ResizeVolumeRequest) String() string { return proto.CompactTextString(m) }
 func (*ResizeVolumeRequest) ProtoMessage()    {}
 func (*ResizeVolumeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{14}
+	return fileDescriptor_23cf78355e34b894, []int{15}
 }
 
 func (m *ResizeVolumeRequest) XXX_Unmarshal(b []byte) error {
@@ -1033,7 +1118,7 @@ func (m *ResizeVolumeResponse) Reset()         { *m = ResizeVolumeResponse{} }
 func (m *ResizeVolumeResponse) String() string { return proto.CompactTextString(m) }
 func (*ResizeVolumeResponse) ProtoMessage()    {}
 func (*ResizeVolumeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{15}
+	return fileDescriptor_23cf78355e34b894, []int{16}
 }
 
 func (m *ResizeVolumeResponse) XXX_Unmarshal(b []byte) error {
@@ -1106,6 +1191,165 @@ func (*ResizeVolumeResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+type MountVolumeRequest struct {
+	// The GUID of the Windows volume device to format,
+	// typically volume_device_guid returned by PartitionDiskResponse.
+	VolumeDeviceGuid string `protobuf:"bytes,1,opt,name=volume_device_guid,json=volumeDeviceGuid,proto3" json:"volume_device_guid,omitempty"`
+	// Local path in the host to stage the volume.
+	// All special characters allowed by Windows in path names will be allowed
+	// except for restrictions noted below. For details, please check:
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	//
+	// Restrictions:
+	// If given an absolute path, it needs to be under kubelet-csi-plugins-path,
+	// and specified with drive letter prefix: "C:\".
+	// If given a relative path, it will be understood as being relative to
+	// kubelet-csi-plugins-path.
+	// UNC paths of the form "\\server\share\path\file" are not allowed.
+	// All directory separators need to be backslash character: "\".
+	// Characters: .. / : | ? * in the path are not allowed.
+	// Maximum path length will be capped to 260 characters (MAX_PATH).
+	HostPath             string   `protobuf:"bytes,2,opt,name=host_path,json=hostPath,proto3" json:"host_path,omitempty"`
+	Readonly             bool     `protobuf:"varint,3,opt,name=readonly,proto3" json:"readonly,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *MountVolumeRequest) Reset()         { *m = MountVolumeRequest{} }
+func (m *MountVolumeRequest) String() string { return proto.CompactTextString(m) }
+func (*MountVolumeRequest) ProtoMessage()    {}
+func (*MountVolumeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_23cf78355e34b894, []int{17}
+}
+
+func (m *MountVolumeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MountVolumeRequest.Unmarshal(m, b)
+}
+func (m *MountVolumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MountVolumeRequest.Marshal(b, m, deterministic)
+}
+func (m *MountVolumeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MountVolumeRequest.Merge(m, src)
+}
+func (m *MountVolumeRequest) XXX_Size() int {
+	return xxx_messageInfo_MountVolumeRequest.Size(m)
+}
+func (m *MountVolumeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MountVolumeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MountVolumeRequest proto.InternalMessageInfo
+
+func (m *MountVolumeRequest) GetVolumeDeviceGuid() string {
+	if m != nil {
+		return m.VolumeDeviceGuid
+	}
+	return ""
+}
+
+func (m *MountVolumeRequest) GetHostPath() string {
+	if m != nil {
+		return m.HostPath
+	}
+	return ""
+}
+
+func (m *MountVolumeRequest) GetReadonly() bool {
+	if m != nil {
+		return m.Readonly
+	}
+	return false
+}
+
+type MountVolumeResponse struct {
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	// Types that are valid to be assigned to Error:
+	//	*MountVolumeResponse_CmdletError
+	//	*MountVolumeResponse_ErrorMessage
+	Error                isMountVolumeResponse_Error `protobuf_oneof:"error"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *MountVolumeResponse) Reset()         { *m = MountVolumeResponse{} }
+func (m *MountVolumeResponse) String() string { return proto.CompactTextString(m) }
+func (*MountVolumeResponse) ProtoMessage()    {}
+func (*MountVolumeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_23cf78355e34b894, []int{18}
+}
+
+func (m *MountVolumeResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MountVolumeResponse.Unmarshal(m, b)
+}
+func (m *MountVolumeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MountVolumeResponse.Marshal(b, m, deterministic)
+}
+func (m *MountVolumeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MountVolumeResponse.Merge(m, src)
+}
+func (m *MountVolumeResponse) XXX_Size() int {
+	return xxx_messageInfo_MountVolumeResponse.Size(m)
+}
+func (m *MountVolumeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MountVolumeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MountVolumeResponse proto.InternalMessageInfo
+
+func (m *MountVolumeResponse) GetSuccess() bool {
+	if m != nil {
+		return m.Success
+	}
+	return false
+}
+
+type isMountVolumeResponse_Error interface {
+	isMountVolumeResponse_Error()
+}
+
+type MountVolumeResponse_CmdletError struct {
+	CmdletError *CmdletError `protobuf:"bytes,2,opt,name=cmdlet_error,json=cmdletError,proto3,oneof"`
+}
+
+type MountVolumeResponse_ErrorMessage struct {
+	ErrorMessage string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3,oneof"`
+}
+
+func (*MountVolumeResponse_CmdletError) isMountVolumeResponse_Error() {}
+
+func (*MountVolumeResponse_ErrorMessage) isMountVolumeResponse_Error() {}
+
+func (m *MountVolumeResponse) GetError() isMountVolumeResponse_Error {
+	if m != nil {
+		return m.Error
+	}
+	return nil
+}
+
+func (m *MountVolumeResponse) GetCmdletError() *CmdletError {
+	if x, ok := m.GetError().(*MountVolumeResponse_CmdletError); ok {
+		return x.CmdletError
+	}
+	return nil
+}
+
+func (m *MountVolumeResponse) GetErrorMessage() string {
+	if x, ok := m.GetError().(*MountVolumeResponse_ErrorMessage); ok {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*MountVolumeResponse) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*MountVolumeResponse_CmdletError)(nil),
+		(*MountVolumeResponse_ErrorMessage)(nil),
+	}
+}
+
 type DismountVolumeRequest struct {
 	// The GUID of the Windows volume device to format,
 	// typically volume_device_guid returned by PartitionDiskResponse.
@@ -1119,7 +1363,7 @@ func (m *DismountVolumeRequest) Reset()         { *m = DismountVolumeRequest{} }
 func (m *DismountVolumeRequest) String() string { return proto.CompactTextString(m) }
 func (*DismountVolumeRequest) ProtoMessage()    {}
 func (*DismountVolumeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{16}
+	return fileDescriptor_23cf78355e34b894, []int{19}
 }
 
 func (m *DismountVolumeRequest) XXX_Unmarshal(b []byte) error {
@@ -1162,7 +1406,7 @@ func (m *DismountVolumeResponse) Reset()         { *m = DismountVolumeResponse{}
 func (m *DismountVolumeResponse) String() string { return proto.CompactTextString(m) }
 func (*DismountVolumeResponse) ProtoMessage()    {}
 func (*DismountVolumeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_23cf78355e34b894, []int{17}
+	return fileDescriptor_23cf78355e34b894, []int{20}
 }
 
 func (m *DismountVolumeResponse) XXX_Unmarshal(b []byte) error {
@@ -1236,6 +1480,7 @@ func (*DismountVolumeResponse) XXX_OneofWrappers() []interface{} {
 }
 
 func init() {
+	proto.RegisterEnum("api.DiskType", DiskType_name, DiskType_value)
 	proto.RegisterEnum("api.PartitionDiskRequest_PartitionType", PartitionDiskRequest_PartitionType_name, PartitionDiskRequest_PartitionType_value)
 	proto.RegisterEnum("api.FormatVolumeRequest_FileSystemType", FormatVolumeRequest_FileSystemType_name, FormatVolumeRequest_FileSystemType_value)
 	proto.RegisterType((*RescanRequest)(nil), "api.RescanRequest")
@@ -1248,15 +1493,18 @@ func init() {
 	proto.RegisterType((*DiskLocation)(nil), "api.DiskLocation")
 	proto.RegisterType((*ListDiskLocationsResponse)(nil), "api.ListDiskLocationsResponse")
 	proto.RegisterMapType((map[string]*DiskLocation)(nil), "api.ListDiskLocationsResponse.DiskLocationsEntry")
-	proto.RegisterType((*ListDiskIDsRequest)(nil), "api.ListDiskIDsRequest")
-	proto.RegisterType((*DiskIDs)(nil), "api.DiskIDs")
-	proto.RegisterType((*ListDiskIDsResponse)(nil), "api.ListDiskIDsResponse")
-	proto.RegisterMapType((map[string]*DiskIDs)(nil), "api.ListDiskIDsResponse.DiskIdEntry")
+	proto.RegisterType((*ListDisksRequest)(nil), "api.ListDisksRequest")
+	proto.RegisterType((*Disk)(nil), "api.Disk")
+	proto.RegisterType((*Disks)(nil), "api.Disks")
+	proto.RegisterType((*ListDisksResponse)(nil), "api.ListDisksResponse")
+	proto.RegisterMapType((map[string]*Disks)(nil), "api.ListDisksResponse.DiskIdEntry")
 	proto.RegisterType((*ListDiskVolumeMappingsRequest)(nil), "api.ListDiskVolumeMappingsRequest")
 	proto.RegisterType((*ListDiskVolumeMappingsResponse)(nil), "api.ListDiskVolumeMappingsResponse")
 	proto.RegisterMapType((map[string]string)(nil), "api.ListDiskVolumeMappingsResponse.DiskVolumePairEntry")
 	proto.RegisterType((*ResizeVolumeRequest)(nil), "api.ResizeVolumeRequest")
 	proto.RegisterType((*ResizeVolumeResponse)(nil), "api.ResizeVolumeResponse")
+	proto.RegisterType((*MountVolumeRequest)(nil), "api.MountVolumeRequest")
+	proto.RegisterType((*MountVolumeResponse)(nil), "api.MountVolumeResponse")
 	proto.RegisterType((*DismountVolumeRequest)(nil), "api.DismountVolumeRequest")
 	proto.RegisterType((*DismountVolumeResponse)(nil), "api.DismountVolumeResponse")
 }
@@ -1264,65 +1512,73 @@ func init() {
 func init() { proto.RegisterFile("general_storage.proto", fileDescriptor_23cf78355e34b894) }
 
 var fileDescriptor_23cf78355e34b894 = []byte{
-	// 927 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x97, 0xcd, 0x6e, 0xe3, 0x36,
-	0x10, 0xc7, 0x2d, 0xdb, 0x89, 0x93, 0xf1, 0xc7, 0x3a, 0xb4, 0x93, 0x2a, 0x5a, 0x64, 0x37, 0xd5,
-	0xb6, 0xd8, 0x1c, 0x0a, 0x03, 0xcd, 0xa2, 0x68, 0xd1, 0xa2, 0x87, 0x78, 0x9d, 0x0f, 0xa3, 0x49,
-	0x10, 0xd0, 0xee, 0xc7, 0xa9, 0x06, 0x57, 0x22, 0x5c, 0x22, 0xb6, 0xa4, 0x8a, 0x52, 0x5c, 0xef,
-	0x5b, 0xf4, 0x54, 0xf4, 0x01, 0x7a, 0xea, 0x7b, 0xb4, 0xaf, 0xd0, 0x47, 0xe9, 0xb1, 0x20, 0x29,
-	0xd9, 0xd2, 0x86, 0xde, 0x2e, 0xb0, 0x87, 0xf8, 0x66, 0xfe, 0x87, 0x1a, 0x0e, 0x7f, 0x9c, 0x19,
-	0xd2, 0xb0, 0x3b, 0xa6, 0x1e, 0x0d, 0xc9, 0x64, 0xc4, 0x23, 0x3f, 0x24, 0x63, 0xda, 0x09, 0x42,
-	0x3f, 0xf2, 0x51, 0x89, 0x04, 0xcc, 0xaa, 0xd1, 0x30, 0xf4, 0x43, 0xae, 0x24, 0xfb, 0x11, 0xd4,
-	0x31, 0xe5, 0x0e, 0xf1, 0x30, 0xfd, 0x39, 0xa6, 0x3c, 0xb2, 0x7f, 0x35, 0xa0, 0x91, 0x2a, 0x3c,
-	0xf0, 0x3d, 0x4e, 0x91, 0x09, 0x15, 0x1e, 0x3b, 0x0e, 0xe5, 0xdc, 0x34, 0x0e, 0x8d, 0xa3, 0x2d,
-	0x9c, 0x0e, 0xd1, 0x67, 0x50, 0x73, 0xa6, 0xee, 0x84, 0x46, 0x23, 0xe9, 0xd4, 0x2c, 0x1e, 0x1a,
-	0x47, 0xd5, 0xe3, 0x66, 0x87, 0x04, 0xac, 0xf3, 0x52, 0x1a, 0x4e, 0x85, 0x7e, 0x51, 0xc0, 0x55,
-	0x67, 0x39, 0x44, 0x1f, 0x43, 0x5d, 0xce, 0x1f, 0x4d, 0x29, 0xe7, 0x64, 0x4c, 0xcd, 0xd2, 0xa1,
-	0x71, 0xb4, 0x7d, 0x51, 0xc0, 0x2a, 0xb6, 0x2b, 0xa5, 0x76, 0x2b, 0xb0, 0x21, 0xc7, 0xf6, 0x6f,
-	0x06, 0xb4, 0x6f, 0x48, 0x18, 0xb1, 0x88, 0xf9, 0x5e, 0x8f, 0xf1, 0xdb, 0x24, 0x58, 0xf4, 0x14,
-	0xaa, 0x2e, 0xe3, 0xb7, 0x23, 0x2f, 0x9e, 0xbe, 0xa2, 0xa1, 0x8c, 0xae, 0x8e, 0x41, 0x48, 0xd7,
-	0x52, 0x41, 0x5f, 0x41, 0x39, 0x9a, 0x07, 0x54, 0x06, 0xd6, 0x38, 0x7e, 0x2e, 0x03, 0xd3, 0x79,
-	0x5a, 0x8a, 0xc3, 0x79, 0x40, 0xb1, 0xfc, 0xc8, 0xfe, 0x10, 0xea, 0x39, 0x19, 0x55, 0xa0, 0x74,
-	0xd5, 0xc5, 0xcd, 0x82, 0xf8, 0x71, 0x7e, 0x33, 0x6c, 0x1a, 0xf6, 0x5f, 0x06, 0xec, 0xbe, 0xe1,
-	0xef, 0x61, 0xa1, 0xa1, 0x4f, 0x00, 0xdd, 0xf9, 0x93, 0x78, 0x4a, 0x47, 0x2e, 0xbd, 0x63, 0x0e,
-	0x1d, 0x8d, 0x63, 0xe6, 0x9a, 0x65, 0x31, 0x17, 0x37, 0x95, 0xa5, 0x27, 0x0d, 0xe7, 0x31, 0x73,
-	0x97, 0x88, 0xff, 0x30, 0xa0, 0x75, 0xe6, 0x87, 0x53, 0x12, 0x7d, 0x27, 0xe7, 0xa4, 0x84, 0xf5,
-	0xee, 0x0c, 0xbd, 0x3b, 0x2d, 0x6e, 0x8d, 0xd7, 0xce, 0x19, 0x9b, 0xd0, 0xc1, 0x9c, 0x47, 0x74,
-	0x9a, 0xc1, 0xfd, 0x0c, 0x1a, 0x79, 0x1d, 0x6d, 0x41, 0xf9, 0x7a, 0x78, 0x36, 0x50, 0xc0, 0xcf,
-	0x4e, 0x04, 0x70, 0x91, 0x0a, 0x79, 0x8f, 0xeb, 0x92, 0xa4, 0x16, 0x98, 0x97, 0x8c, 0x47, 0x22,
-	0x09, 0x2e, 0x7d, 0x87, 0x88, 0x84, 0xe0, 0x69, 0x51, 0xfd, 0x04, 0xb5, 0xac, 0x2e, 0x82, 0x3d,
-	0x71, 0x49, 0x10, 0x25, 0x39, 0xbb, 0x8d, 0xd3, 0x21, 0x6a, 0x42, 0xa9, 0x1b, 0x73, 0x19, 0xe3,
-	0x36, 0x16, 0x3f, 0xd1, 0x1e, 0x6c, 0x0e, 0x49, 0x38, 0xa6, 0x91, 0x0a, 0x00, 0x27, 0x23, 0xd4,
-	0x86, 0x8d, 0xcb, 0x6f, 0xaf, 0xfb, 0xbd, 0xe4, 0x6c, 0xd5, 0xc0, 0xfe, 0xa7, 0x08, 0xfb, 0x9a,
-	0x30, 0xfe, 0x17, 0x52, 0x17, 0x76, 0x66, 0xcc, 0x73, 0xfd, 0x19, 0x1f, 0x91, 0x80, 0xe5, 0x48,
-	0xb5, 0x25, 0xa9, 0xef, 0x95, 0xf5, 0x24, 0x60, 0x29, 0xad, 0x47, 0xb3, 0xbc, 0xf4, 0xae, 0x19,
-	0xfa, 0x03, 0x34, 0x64, 0xd1, 0x4e, 0xd2, 0xf0, 0xcc, 0xf2, 0x61, 0xe9, 0xa8, 0x7a, 0xfc, 0xa9,
-	0x5c, 0x67, 0x65, 0xf0, 0x9d, 0x9c, 0x7a, 0xea, 0x45, 0xe1, 0x1c, 0xd7, 0xdd, 0xac, 0x66, 0x0d,
-	0x00, 0xdd, 0x9f, 0x24, 0x90, 0xde, 0xd2, 0x79, 0x02, 0x5a, 0xfc, 0x44, 0xcf, 0x61, 0xe3, 0x8e,
-	0x4c, 0x62, 0x9a, 0x6c, 0x70, 0x47, 0x2e, 0x9c, 0xfd, 0x12, 0x2b, 0xfb, 0x97, 0xc5, 0x2f, 0x8c,
-	0xe5, 0x01, 0xb7, 0x01, 0xa5, 0xc1, 0xf5, 0x7b, 0x8b, 0xa3, 0x7d, 0x0c, 0x95, 0x44, 0x11, 0x0b,
-	0xf5, 0x7b, 0x82, 0x6c, 0x49, 0x2c, 0xd4, 0xef, 0x71, 0xfb, 0xcf, 0x22, 0xb4, 0x72, 0xdf, 0xac,
-	0xd3, 0x39, 0x7c, 0x0d, 0x15, 0x79, 0x0e, 0xb2, 0x3d, 0x88, 0x03, 0xf8, 0x28, 0x77, 0x00, 0x99,
-	0x78, 0x25, 0x9b, 0xbe, 0xab, 0x98, 0x6f, 0xba, 0x72, 0x60, 0x9d, 0x43, 0x35, 0x23, 0x6b, 0x28,
-	0xdb, 0x79, 0xca, 0xb5, 0x05, 0x65, 0xe1, 0x59, 0x07, 0xf8, 0x29, 0x1c, 0xa4, 0x8b, 0xab, 0xe2,
-	0xbe, 0x22, 0x41, 0xc0, 0xbc, 0xf1, 0x82, 0xf5, 0xdf, 0x45, 0x78, 0xb2, 0x6a, 0xc6, 0x03, 0xb7,
-	0x5d, 0x02, 0x4d, 0x09, 0x33, 0x69, 0x96, 0x01, 0x61, 0x61, 0x42, 0xf5, 0xf3, 0x1c, 0x55, 0x7d,
-	0xd8, 0x9d, 0xa5, 0xe9, 0x86, 0xb0, 0x50, 0x81, 0x96, 0x55, 0xb2, 0x14, 0xad, 0x13, 0x68, 0x69,
-	0xa6, 0x69, 0xc0, 0xb7, 0xb3, 0xe0, 0xb7, 0xb5, 0xa8, 0x7f, 0x84, 0x16, 0xa6, 0x9c, 0xbd, 0xa6,
-	0xef, 0xd3, 0xed, 0xf7, 0x61, 0xcb, 0xa3, 0xb3, 0x91, 0x70, 0x23, 0x97, 0x2a, 0xe3, 0x8a, 0x47,
-	0x67, 0x03, 0xf6, 0x9a, 0xca, 0x36, 0x9d, 0x5f, 0x60, 0x5d, 0xda, 0xf4, 0x29, 0xec, 0xf6, 0x18,
-	0x9f, 0xfa, 0xb1, 0xf7, 0x3e, 0x37, 0x9d, 0xfd, 0xbb, 0x01, 0x7b, 0x6f, 0xfa, 0x59, 0x93, 0x2d,
-	0x1e, 0xff, 0x5b, 0x86, 0x83, 0x73, 0xf5, 0x00, 0x1c, 0xa8, 0xf7, 0xdf, 0xcb, 0x41, 0xff, 0x26,
-	0xf4, 0x7f, 0x99, 0x0f, 0x68, 0x28, 0x76, 0x80, 0x5e, 0xc0, 0xa6, 0x7a, 0xe3, 0x21, 0x24, 0x17,
-	0xcf, 0x3d, 0x01, 0xad, 0x56, 0x4e, 0x53, 0xbb, 0xb2, 0x0b, 0xe8, 0x22, 0xf3, 0x1c, 0x12, 0x89,
-	0x88, 0xf6, 0x57, 0x3e, 0xa7, 0x2c, 0x4b, 0x67, 0x5a, 0x78, 0x3a, 0x85, 0x5a, 0xf6, 0x0e, 0x47,
-	0xe6, 0xaa, 0x87, 0x82, 0xb5, 0xaf, 0xb1, 0x2c, 0xdc, 0x0c, 0x61, 0xe7, 0xde, 0x6d, 0x81, 0x0e,
-	0x56, 0xdd, 0x22, 0xca, 0xe1, 0x93, 0xb7, 0x5f, 0x32, 0x76, 0x01, 0x75, 0xa1, 0x9a, 0x69, 0x81,
-	0xe8, 0x83, 0xfb, 0x4d, 0x51, 0x79, 0x32, 0x57, 0x75, 0x4b, 0xbb, 0x80, 0x1c, 0xd8, 0xd3, 0x17,
-	0x3c, 0xb2, 0xdf, 0xda, 0x0d, 0x94, 0xe7, 0x67, 0xef, 0xd0, 0x31, 0x14, 0xc5, 0x6c, 0x89, 0x25,
-	0x14, 0x35, 0x65, 0x9d, 0x50, 0xd4, 0xd5, 0xa3, 0x5d, 0x40, 0xdf, 0x40, 0x23, 0x9f, 0xc8, 0xc8,
-	0x4a, 0x3b, 0xf5, 0xfd, 0x2a, 0xb1, 0x1e, 0x6b, 0x6d, 0xa9, 0xb3, 0x57, 0x9b, 0xf2, 0x5f, 0xc5,
-	0x8b, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x2a, 0x2d, 0x12, 0xd0, 0x81, 0x0c, 0x00, 0x00,
+	// 1056 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0x5d, 0x6e, 0xdb, 0x46,
+	0x10, 0x16, 0xf5, 0x63, 0x4b, 0xa3, 0x9f, 0xd0, 0x2b, 0xdb, 0x95, 0x19, 0x38, 0x56, 0x18, 0x14,
+	0x11, 0x8a, 0x42, 0x48, 0x6d, 0x04, 0x0d, 0x9a, 0xbe, 0x58, 0x91, 0x6c, 0x0b, 0xb5, 0x5d, 0x81,
+	0x52, 0xda, 0x3e, 0x55, 0xd8, 0x88, 0x0b, 0x79, 0x61, 0x89, 0x64, 0xb9, 0x94, 0x15, 0xa5, 0xa7,
+	0xe8, 0x4b, 0x8b, 0x1e, 0x20, 0x57, 0xe8, 0x11, 0xda, 0x2b, 0xf4, 0x38, 0xc5, 0xee, 0x92, 0x14,
+	0x69, 0x53, 0x69, 0x00, 0x3f, 0x44, 0x6f, 0x9c, 0x6f, 0x56, 0xb3, 0xdf, 0x7e, 0xb3, 0x3b, 0x33,
+	0x82, 0x9d, 0x31, 0xb1, 0x88, 0x8b, 0x27, 0x43, 0xe6, 0xd9, 0x2e, 0x1e, 0x93, 0xa6, 0xe3, 0xda,
+	0x9e, 0x8d, 0x32, 0xd8, 0xa1, 0x5a, 0x89, 0xb8, 0xae, 0xed, 0x32, 0x09, 0xe9, 0x0f, 0xa0, 0x6c,
+	0x10, 0x36, 0xc2, 0x96, 0x41, 0x7e, 0x99, 0x11, 0xe6, 0xe9, 0xbf, 0x29, 0x50, 0x09, 0x10, 0xe6,
+	0xd8, 0x16, 0x23, 0xa8, 0x06, 0x9b, 0x6c, 0x36, 0x1a, 0x11, 0xc6, 0x6a, 0x4a, 0x5d, 0x69, 0xe4,
+	0x8d, 0xc0, 0x44, 0xcf, 0xa1, 0x34, 0x9a, 0x9a, 0x13, 0xe2, 0x0d, 0x45, 0xd0, 0x5a, 0xba, 0xae,
+	0x34, 0x8a, 0x87, 0x6a, 0x13, 0x3b, 0xb4, 0xf9, 0x4a, 0x38, 0x3a, 0x1c, 0x3f, 0x4b, 0x19, 0xc5,
+	0xd1, 0xd2, 0x44, 0x9f, 0x43, 0x59, 0xac, 0x1f, 0x4e, 0x09, 0x63, 0x78, 0x4c, 0x6a, 0x99, 0xba,
+	0xd2, 0x28, 0x9c, 0xa5, 0x0c, 0xc9, 0xed, 0x42, 0xa2, 0xad, 0x4d, 0xc8, 0x09, 0x5b, 0xff, 0x43,
+	0x81, 0xed, 0x1e, 0x76, 0x3d, 0xea, 0x51, 0xdb, 0x6a, 0x53, 0x76, 0xed, 0x93, 0x45, 0x07, 0x50,
+	0x34, 0x29, 0xbb, 0x1e, 0x5a, 0xb3, 0xe9, 0x1b, 0xe2, 0x0a, 0x76, 0x65, 0x03, 0x38, 0x74, 0x29,
+	0x10, 0xf4, 0x12, 0xb2, 0xde, 0xc2, 0x21, 0x82, 0x58, 0xe5, 0xf0, 0xa9, 0x20, 0x96, 0x14, 0x69,
+	0x09, 0x0e, 0x16, 0x0e, 0x31, 0xc4, 0x8f, 0xf4, 0xc7, 0x50, 0x8e, 0xc1, 0x68, 0x13, 0x32, 0x17,
+	0x2d, 0x43, 0x4d, 0xf1, 0x8f, 0xd3, 0xde, 0x40, 0x55, 0xf4, 0xbf, 0x15, 0xd8, 0xb9, 0x15, 0xef,
+	0xd3, 0x8a, 0x86, 0xbe, 0x04, 0x74, 0x63, 0x4f, 0x66, 0x53, 0x32, 0x34, 0xc9, 0x0d, 0x1d, 0x91,
+	0xe1, 0x78, 0x46, 0xcd, 0x5a, 0x96, 0xaf, 0x35, 0x54, 0xe9, 0x69, 0x0b, 0xc7, 0xe9, 0x8c, 0x9a,
+	0x4b, 0x89, 0xdf, 0x2b, 0x50, 0x3d, 0xb1, 0xdd, 0x29, 0xf6, 0x7e, 0x10, 0x6b, 0x02, 0x85, 0x93,
+	0xc3, 0x29, 0xc9, 0xe1, 0x12, 0xe5, 0x4e, 0x88, 0xda, 0x3c, 0xa1, 0x13, 0xd2, 0x5f, 0x30, 0x8f,
+	0x4c, 0x23, 0x72, 0x3f, 0x81, 0x4a, 0x1c, 0x47, 0x79, 0xc8, 0x5e, 0x0e, 0x4e, 0xfa, 0x52, 0xf0,
+	0x93, 0x63, 0x2e, 0x38, 0xbf, 0x0a, 0xf1, 0x88, 0xeb, 0x72, 0x49, 0x35, 0xa8, 0x9d, 0x53, 0xe6,
+	0xf1, 0x4b, 0x70, 0x6e, 0x8f, 0x30, 0xbf, 0x10, 0x2c, 0x78, 0x54, 0x57, 0x50, 0x8a, 0xe2, 0x9c,
+	0xec, 0xb1, 0x89, 0x1d, 0xcf, 0xbf, 0xb3, 0x05, 0x23, 0x30, 0x91, 0x0a, 0x99, 0xd6, 0x8c, 0x09,
+	0x8e, 0x05, 0x83, 0x7f, 0xa2, 0x5d, 0xd8, 0x18, 0x60, 0x77, 0x4c, 0x3c, 0x49, 0xc0, 0xf0, 0x2d,
+	0xb4, 0x0d, 0xb9, 0xf3, 0xd7, 0x97, 0xdd, 0xb6, 0x9f, 0x5b, 0x69, 0xe8, 0xff, 0xa6, 0x61, 0x2f,
+	0x81, 0xc6, 0xff, 0x8a, 0xd4, 0x82, 0xad, 0x39, 0xb5, 0x4c, 0x7b, 0xce, 0x86, 0xd8, 0xa1, 0x31,
+	0xa5, 0xb6, 0x85, 0x52, 0x3f, 0x4a, 0xef, 0xb1, 0x43, 0x03, 0xb5, 0x1e, 0xcc, 0xe3, 0xd0, 0xc7,
+	0xde, 0xd0, 0x9f, 0xa0, 0x22, 0x1e, 0xed, 0x24, 0xa0, 0x57, 0xcb, 0xd6, 0x33, 0x8d, 0xe2, 0xe1,
+	0x57, 0x62, 0x9f, 0x95, 0xe4, 0x9b, 0x31, 0xb4, 0x63, 0x79, 0xee, 0xc2, 0x28, 0x9b, 0x51, 0x4c,
+	0xeb, 0x03, 0xba, 0xbb, 0x88, 0x4b, 0x7a, 0x4d, 0x16, 0xbe, 0xd0, 0xfc, 0x13, 0x3d, 0x85, 0xdc,
+	0x0d, 0x9e, 0xcc, 0x88, 0x7f, 0xc0, 0x2d, 0xb1, 0x71, 0xf4, 0x97, 0x86, 0xf4, 0x7f, 0x93, 0x7e,
+	0xa1, 0x2c, 0x13, 0x8c, 0x40, 0x0d, 0xc8, 0x85, 0x89, 0x7d, 0x0d, 0x59, 0x6e, 0xa3, 0x0a, 0xa4,
+	0xbb, 0x6d, 0x7f, 0x8b, 0x74, 0xb7, 0x8d, 0x1e, 0xc7, 0x1e, 0x42, 0x39, 0xdc, 0x60, 0x79, 0xdd,
+	0x91, 0x06, 0xf9, 0x29, 0xf1, 0xb0, 0x89, 0x3d, 0xec, 0x67, 0x36, 0xb4, 0xf5, 0x06, 0xe4, 0xc4,
+	0x36, 0xe8, 0x00, 0x72, 0xfc, 0x88, 0x3c, 0x5d, 0x5c, 0xa2, 0x42, 0x18, 0xc8, 0x90, 0xb8, 0xfe,
+	0x3e, 0x0d, 0x5b, 0x11, 0x56, 0xeb, 0x94, 0xe7, 0x97, 0xb0, 0x29, 0xf2, 0x2c, 0xca, 0x0f, 0x67,
+	0xaf, 0xc7, 0x12, 0x1c, 0x4f, 0x6c, 0xd7, 0x94, 0x19, 0xdd, 0x30, 0x85, 0xa1, 0x75, 0xa0, 0x18,
+	0x81, 0x13, 0x72, 0x58, 0x8f, 0xe7, 0x10, 0x42, 0x65, 0x58, 0x62, 0xf2, 0x0e, 0x60, 0x3f, 0xd8,
+	0x58, 0x16, 0x8e, 0x0b, 0xec, 0x38, 0xd4, 0x1a, 0x87, 0x99, 0xfc, 0x27, 0x0d, 0x8f, 0x56, 0xad,
+	0xf8, 0xc4, 0x25, 0x1d, 0x83, 0x2a, 0x84, 0xf4, 0x0b, 0xb1, 0x83, 0xa9, 0xeb, 0x2b, 0xfa, 0x75,
+	0x4c, 0xd1, 0x64, 0xda, 0xcd, 0xa5, 0xab, 0x87, 0xa9, 0x2b, 0x65, 0x16, 0x2f, 0x70, 0x09, 0x6a,
+	0xc7, 0x50, 0x4d, 0x58, 0x96, 0x20, 0xfb, 0x76, 0x54, 0xf6, 0x42, 0xa2, 0xd4, 0x3f, 0x43, 0xd5,
+	0x20, 0x8c, 0xbe, 0x23, 0xf7, 0xe9, 0x24, 0x7b, 0x90, 0xb7, 0xc8, 0x7c, 0xc8, 0xc3, 0x88, 0xad,
+	0xb2, 0xc6, 0xa6, 0x45, 0xe6, 0x7d, 0xfa, 0x8e, 0x88, 0x16, 0x10, 0xdf, 0x60, 0x5d, 0x5a, 0xc0,
+	0xaf, 0x80, 0x2e, 0xec, 0x99, 0x75, 0xaf, 0x16, 0xfa, 0x10, 0x0a, 0x57, 0x36, 0xf3, 0x86, 0x0e,
+	0xf6, 0xae, 0x7c, 0x91, 0xf3, 0x1c, 0xe8, 0x61, 0xef, 0x8a, 0xd7, 0x0c, 0x97, 0x60, 0xd3, 0xb6,
+	0x26, 0x0b, 0xc1, 0x25, 0x6f, 0x84, 0xb6, 0xfe, 0xbb, 0x02, 0xd5, 0xd8, 0xee, 0xeb, 0xa2, 0x4a,
+	0x07, 0x76, 0xda, 0x94, 0x4d, 0xef, 0x29, 0x8c, 0xfe, 0xa7, 0x02, 0xbb, 0xb7, 0xe3, 0xac, 0xc9,
+	0x11, 0xbf, 0x78, 0x0e, 0xf9, 0xa0, 0xba, 0xa3, 0x12, 0xe4, 0x7b, 0x78, 0x4c, 0x9e, 0xbd, 0x7d,
+	0xf1, 0x4c, 0x4d, 0x45, 0xac, 0x23, 0x55, 0x41, 0x65, 0x28, 0xf8, 0xf5, 0xf5, 0xfb, 0xbe, 0x9a,
+	0x39, 0xfc, 0x2b, 0x07, 0xfb, 0xa7, 0x72, 0x52, 0xef, 0xcb, 0x41, 0xfd, 0x55, 0xbf, 0xdb, 0x73,
+	0xed, 0xb7, 0x8b, 0x3e, 0x71, 0xf9, 0xc1, 0xd1, 0x11, 0x6c, 0xc8, 0x61, 0x1c, 0x21, 0xc1, 0x39,
+	0x36, 0xab, 0x6b, 0xd5, 0x18, 0x26, 0xc5, 0xd0, 0x53, 0xe8, 0x2c, 0x32, 0xb7, 0x8a, 0xee, 0xb4,
+	0xb7, 0x72, 0xee, 0xd5, 0xb4, 0x24, 0x57, 0x18, 0xa9, 0x03, 0xa5, 0xe8, 0xb0, 0x85, 0x6a, 0xab,
+	0x26, 0x3a, 0x6d, 0x2f, 0xc1, 0x13, 0x86, 0x19, 0x2c, 0x7b, 0x54, 0xd8, 0x9b, 0xd1, 0xfe, 0xaa,
+	0x76, 0x2f, 0x03, 0x3e, 0xfa, 0xf0, 0x34, 0xa0, 0xa7, 0xd0, 0xb7, 0x50, 0x08, 0x7b, 0x09, 0xda,
+	0xb9, 0xdd, 0x5b, 0x64, 0x94, 0xdd, 0xe4, 0x96, 0xa3, 0xa7, 0xd0, 0x08, 0x76, 0x93, 0xeb, 0x26,
+	0xd2, 0x3f, 0x58, 0x54, 0x65, 0xdc, 0x27, 0x1f, 0x51, 0x78, 0xa5, 0x7e, 0xd1, 0x4a, 0xe5, 0xeb,
+	0x97, 0x50, 0x1d, 0x7d, 0xfd, 0x92, 0xca, 0x9a, 0x9e, 0x42, 0x2d, 0x28, 0x46, 0x5e, 0x36, 0xfa,
+	0x4c, 0xac, 0xbd, 0x5b, 0x69, 0xb4, 0xda, 0x5d, 0x47, 0x18, 0xe3, 0x3b, 0xa8, 0xc4, 0x5f, 0x0f,
+	0xd2, 0x82, 0x96, 0x79, 0xf7, 0x69, 0x6a, 0x0f, 0x13, 0x7d, 0x41, 0xb0, 0x37, 0x1b, 0xe2, 0xcf,
+	0xe3, 0xd1, 0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x2b, 0x94, 0x19, 0x64, 0x68, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1346,14 +1602,27 @@ type GeneralStorageCSIProxyServiceClient interface {
 	// The resulting volume is mounted at the requested global staging path.
 	FormatVolume(ctx context.Context, in *FormatVolumeRequest, opts ...grpc.CallOption) (*FormatVolumeResponse, error)
 	// ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all disk devices enumerated by Windows.
+	// This maps to invoking the Get-Disk cmdlet and looking at standard disk fields as done at
+	// https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/azure_dd/azure_common_windows.go#L42
 	ListDiskLocations(ctx context.Context, in *ListDiskLocationsRequest, opts ...grpc.CallOption) (*ListDiskLocationsResponse, error)
-	// ListDiskIDs returns all IDs (from IOCTL_STORAGE_QUERY_PROPERTY) of all disk devices enumerated by Windows.
-	ListDiskIDs(ctx context.Context, in *ListDiskIDsRequest, opts ...grpc.CallOption) (*ListDiskIDsResponse, error)
-	// ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs
+	// ListDisks returns info (from IOCTL_STORAGE_QUERY_PROPERTY) about all disk devices enumerated by Windows.
+	// This maps to invoking scsi_id in Linux as done at
+	// https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/gcepd/gce_util.go#L232
+	// as well as what Get-GcePdName achieves internally when invoked through:
+	// https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/gcepd/attacher.go#L182.
+	// All SCSI Page 83 IDs (along with other IDs) for all disk devices will be returned here.
+	ListDisks(ctx context.Context, in *ListDisksRequest, opts ...grpc.CallOption) (*ListDisksResponse, error)
+	// ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs.
+	// This allows obtaining a mapping of volume device GUIDs as enumerated by Windows to the disk device
+	// objects backing the volumes. This information may be used by a block based CSI driver to enumerate
+	// the volume devices hosted on a disk (published by the CSI attacher). The volume device GUID for a
+	// volume can be passed to MountBlockVolume to mount the volume at the desired global staging path.
 	ListDiskVolumeMappings(ctx context.Context, in *ListDiskVolumeMappingsRequest, opts ...grpc.CallOption) (*ListDiskVolumeMappingsResponse, error)
 	// ResizeVolume performs resizing of the partition and file system for a block based volume
 	ResizeVolume(ctx context.Context, in *ResizeVolumeRequest, opts ...grpc.CallOption) (*ResizeVolumeResponse, error)
-	// DismountVolume gracefully dismounts a volume
+	// MountVolume mounts a volume.
+	MountVolume(ctx context.Context, in *MountVolumeRequest, opts ...grpc.CallOption) (*MountVolumeResponse, error)
+	// DismountVolume gracefully dismounts a volume.
 	DismountVolume(ctx context.Context, in *DismountVolumeRequest, opts ...grpc.CallOption) (*DismountVolumeResponse, error)
 }
 
@@ -1401,9 +1670,9 @@ func (c *generalStorageCSIProxyServiceClient) ListDiskLocations(ctx context.Cont
 	return out, nil
 }
 
-func (c *generalStorageCSIProxyServiceClient) ListDiskIDs(ctx context.Context, in *ListDiskIDsRequest, opts ...grpc.CallOption) (*ListDiskIDsResponse, error) {
-	out := new(ListDiskIDsResponse)
-	err := c.cc.Invoke(ctx, "/api.GeneralStorageCSIProxyService/ListDiskIDs", in, out, opts...)
+func (c *generalStorageCSIProxyServiceClient) ListDisks(ctx context.Context, in *ListDisksRequest, opts ...grpc.CallOption) (*ListDisksResponse, error) {
+	out := new(ListDisksResponse)
+	err := c.cc.Invoke(ctx, "/api.GeneralStorageCSIProxyService/ListDisks", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1422,6 +1691,15 @@ func (c *generalStorageCSIProxyServiceClient) ListDiskVolumeMappings(ctx context
 func (c *generalStorageCSIProxyServiceClient) ResizeVolume(ctx context.Context, in *ResizeVolumeRequest, opts ...grpc.CallOption) (*ResizeVolumeResponse, error) {
 	out := new(ResizeVolumeResponse)
 	err := c.cc.Invoke(ctx, "/api.GeneralStorageCSIProxyService/ResizeVolume", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generalStorageCSIProxyServiceClient) MountVolume(ctx context.Context, in *MountVolumeRequest, opts ...grpc.CallOption) (*MountVolumeResponse, error) {
+	out := new(MountVolumeResponse)
+	err := c.cc.Invoke(ctx, "/api.GeneralStorageCSIProxyService/MountVolume", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1448,14 +1726,27 @@ type GeneralStorageCSIProxyServiceServer interface {
 	// The resulting volume is mounted at the requested global staging path.
 	FormatVolume(context.Context, *FormatVolumeRequest) (*FormatVolumeResponse, error)
 	// ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all disk devices enumerated by Windows.
+	// This maps to invoking the Get-Disk cmdlet and looking at standard disk fields as done at
+	// https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/azure_dd/azure_common_windows.go#L42
 	ListDiskLocations(context.Context, *ListDiskLocationsRequest) (*ListDiskLocationsResponse, error)
-	// ListDiskIDs returns all IDs (from IOCTL_STORAGE_QUERY_PROPERTY) of all disk devices enumerated by Windows.
-	ListDiskIDs(context.Context, *ListDiskIDsRequest) (*ListDiskIDsResponse, error)
-	// ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs
+	// ListDisks returns info (from IOCTL_STORAGE_QUERY_PROPERTY) about all disk devices enumerated by Windows.
+	// This maps to invoking scsi_id in Linux as done at
+	// https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/gcepd/gce_util.go#L232
+	// as well as what Get-GcePdName achieves internally when invoked through:
+	// https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/gcepd/attacher.go#L182.
+	// All SCSI Page 83 IDs (along with other IDs) for all disk devices will be returned here.
+	ListDisks(context.Context, *ListDisksRequest) (*ListDisksResponse, error)
+	// ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs.
+	// This allows obtaining a mapping of volume device GUIDs as enumerated by Windows to the disk device
+	// objects backing the volumes. This information may be used by a block based CSI driver to enumerate
+	// the volume devices hosted on a disk (published by the CSI attacher). The volume device GUID for a
+	// volume can be passed to MountBlockVolume to mount the volume at the desired global staging path.
 	ListDiskVolumeMappings(context.Context, *ListDiskVolumeMappingsRequest) (*ListDiskVolumeMappingsResponse, error)
 	// ResizeVolume performs resizing of the partition and file system for a block based volume
 	ResizeVolume(context.Context, *ResizeVolumeRequest) (*ResizeVolumeResponse, error)
-	// DismountVolume gracefully dismounts a volume
+	// MountVolume mounts a volume.
+	MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error)
+	// DismountVolume gracefully dismounts a volume.
 	DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error)
 }
 
@@ -1475,14 +1766,17 @@ func (*UnimplementedGeneralStorageCSIProxyServiceServer) FormatVolume(ctx contex
 func (*UnimplementedGeneralStorageCSIProxyServiceServer) ListDiskLocations(ctx context.Context, req *ListDiskLocationsRequest) (*ListDiskLocationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDiskLocations not implemented")
 }
-func (*UnimplementedGeneralStorageCSIProxyServiceServer) ListDiskIDs(ctx context.Context, req *ListDiskIDsRequest) (*ListDiskIDsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListDiskIDs not implemented")
+func (*UnimplementedGeneralStorageCSIProxyServiceServer) ListDisks(ctx context.Context, req *ListDisksRequest) (*ListDisksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDisks not implemented")
 }
 func (*UnimplementedGeneralStorageCSIProxyServiceServer) ListDiskVolumeMappings(ctx context.Context, req *ListDiskVolumeMappingsRequest) (*ListDiskVolumeMappingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDiskVolumeMappings not implemented")
 }
 func (*UnimplementedGeneralStorageCSIProxyServiceServer) ResizeVolume(ctx context.Context, req *ResizeVolumeRequest) (*ResizeVolumeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResizeVolume not implemented")
+}
+func (*UnimplementedGeneralStorageCSIProxyServiceServer) MountVolume(ctx context.Context, req *MountVolumeRequest) (*MountVolumeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MountVolume not implemented")
 }
 func (*UnimplementedGeneralStorageCSIProxyServiceServer) DismountVolume(ctx context.Context, req *DismountVolumeRequest) (*DismountVolumeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DismountVolume not implemented")
@@ -1564,20 +1858,20 @@ func _GeneralStorageCSIProxyService_ListDiskLocations_Handler(srv interface{}, c
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GeneralStorageCSIProxyService_ListDiskIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListDiskIDsRequest)
+func _GeneralStorageCSIProxyService_ListDisks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDisksRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GeneralStorageCSIProxyServiceServer).ListDiskIDs(ctx, in)
+		return srv.(GeneralStorageCSIProxyServiceServer).ListDisks(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.GeneralStorageCSIProxyService/ListDiskIDs",
+		FullMethod: "/api.GeneralStorageCSIProxyService/ListDisks",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GeneralStorageCSIProxyServiceServer).ListDiskIDs(ctx, req.(*ListDiskIDsRequest))
+		return srv.(GeneralStorageCSIProxyServiceServer).ListDisks(ctx, req.(*ListDisksRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1614,6 +1908,24 @@ func _GeneralStorageCSIProxyService_ResizeVolume_Handler(srv interface{}, ctx co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GeneralStorageCSIProxyServiceServer).ResizeVolume(ctx, req.(*ResizeVolumeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GeneralStorageCSIProxyService_MountVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MountVolumeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GeneralStorageCSIProxyServiceServer).MountVolume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.GeneralStorageCSIProxyService/MountVolume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GeneralStorageCSIProxyServiceServer).MountVolume(ctx, req.(*MountVolumeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1657,8 +1969,8 @@ var _GeneralStorageCSIProxyService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _GeneralStorageCSIProxyService_ListDiskLocations_Handler,
 		},
 		{
-			MethodName: "ListDiskIDs",
-			Handler:    _GeneralStorageCSIProxyService_ListDiskIDs_Handler,
+			MethodName: "ListDisks",
+			Handler:    _GeneralStorageCSIProxyService_ListDisks_Handler,
 		},
 		{
 			MethodName: "ListDiskVolumeMappings",
@@ -1667,6 +1979,10 @@ var _GeneralStorageCSIProxyService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResizeVolume",
 			Handler:    _GeneralStorageCSIProxyService_ResizeVolume_Handler,
+		},
+		{
+			MethodName: "MountVolume",
+			Handler:    _GeneralStorageCSIProxyService_MountVolume_Handler,
 		},
 		{
 			MethodName: "DismountVolume",

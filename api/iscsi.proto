@@ -5,9 +5,6 @@ package api;
 import "errors.proto";
 
 service IscsiCSIProxyService {
-    // MountISCSILun mounts a remote LUN over iSCSI and returns the OS disk device number.
-    rpc MountISCSILun(MountISCSILunRequest) returns (MountISCSILunResponse) {}
-
     // ReportIScsiSendTargetPortals retrieves a list of static target portals that the iSCSI initiator
     // service uses to perform automatic discovery with SendTarget requests.
     // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-reportiscsisendtargetportalsexw
@@ -30,6 +27,11 @@ service IscsiCSIProxyService {
     // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-loginiscsitargetw
     rpc LoginIscsiTarget(LoginIscsiTargetRequest) returns (LoginIscsiTargetResponse) {}
 
+    // AddIScsiConnection adds a new iSCSI connection to an existing session.
+    // Only the session ID and the targetPortal are required.
+    // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-addiscsiconnectionw
+    rpc AddIScsiConnection(AddIScsiConnectionRequest) returns (AddIScsiConnectionResponse) {}
+
     // LogoutIScsiTarget closes the specified login session.
     // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-logoutiscsitarget
     rpc LogoutIScsiTarget(LogoutIScsiTargetRequest) returns (LogoutIScsiTargetResponse) {}
@@ -41,57 +43,6 @@ service IscsiCSIProxyService {
     // GetDevicesForIScsiSession retrieves information about the devices associated with an existing session.
     // see https://docs.microsoft.com/en-us/windows/win32/api/iscsidsc/nf-iscsidsc-getdevicesforiscsisessionw
     rpc GetDevicesForIScsiSession(GetDevicesForIScsiSessionRequest) returns (GetDevicesForIScsiSessionResponse) {}
-}
-
-
-enum IscsiAuthType {
-    NoAuth = 0;
-    OneWayCHAP = 1;
-    // Windows only supports system-wide (as opposed to per connection) mutual CHAP
-    // so we don't support it here
-}
-
-message MountISCSILunRequest {
-    // IQN address
-    // follows IQN format: iqn.yyyy-mm.naming-authority:unique name
-    string node_iqn = 1;
-
-    // Authentication Type
-    IscsiAuthType discovery_auth_type = 2;
-
-    // Discovery CHAP username
-    string discovery_chap_username = 3;
-
-    // Discovery CHAP secret
-    string discovery_chap_secret = 4;
-
-    IscsiAuthType session_auth_type = 5;
-
-    // Session CHAP username
-    string session_chap_username = 6;
-
-    // Session CHAP secret
-    string session_chap_secret = 7;
-
-    // TargetPortal address
-    string target_portal_address = 8;
-
-    // TargetPortal port
-    uint32 target_portal_port = 9;
-
-    // Readonly mount
-    bool readonly = 10;
-}
-
-message MountISCSILunResponse {
-    bool success = 1;
-
-    oneof error {
-        WindowsApiError windows_api_error = 2;
-        string error_message = 3;
-    }
-
-    uint32 disk_number = 4;
 }
 
 message ReportIScsiSendTargetPortalsRequest {
@@ -108,6 +59,14 @@ message IscsiPortal {
     // port number; should fit in a uint16.
     // If left empty, defaults to 3260
     uint32 socket = 3;
+}
+
+// see https://docs.microsoft.com/en-us/windows/win32/api/iscsidsc/ne-iscsidsc-iscsi_auth_types
+enum IscsiAuthType {
+    NoAuth = 0;
+    OneWayCHAP = 1;
+    // Windows only supports system-wide (as opposed to per connection) mutual CHAP
+    // so we don't support it here
 }
 
 // see https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/ne-iscsidsc-iscsi_digest_types
@@ -266,6 +225,32 @@ message LogoutIScsiTargetResponse {
         WindowsApiError windows_api_error = 2;
         string error_message = 3;
     }
+}
+
+message AddIScsiConnectionRequest {
+    IscsiID session_id = 1;
+
+    uint32 initiator_port_number = 2;
+
+    IscsiPortal target_portal = 3;
+
+    // see the "SecurityFlags" section of https://docs.microsoft.com/en-us/windows/desktop/api/iscsidsc/nf-iscsidsc-addiscsisendtargetportalw
+    uint64 security_flags = 4;
+
+    IscsiLoginOptions login_options = 5;
+
+    string key = 6;
+}
+
+message AddIScsiConnectionResponse {
+    bool success = 1;
+
+    oneof error {
+        WindowsApiError windows_api_error = 2;
+        string error_message = 3;
+    }
+
+    IscsiID connection_id = 4;
 }
 
 message GetIScsiSessionListRequest {

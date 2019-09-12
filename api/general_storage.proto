@@ -17,18 +17,32 @@ service GeneralStorageCSIProxyService {
     rpc FormatVolume(FormatVolumeRequest) returns (FormatVolumeResponse) {}
 
     // ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all disk devices enumerated by Windows.
+    // This maps to invoking the Get-Disk cmdlet and looking at standard disk fields as done at
+    // https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/azure_dd/azure_common_windows.go#L42
     rpc ListDiskLocations(ListDiskLocationsRequest) returns (ListDiskLocationsResponse) {}
 
-    // ListDiskIDs returns all IDs (from IOCTL_STORAGE_QUERY_PROPERTY) of all disk devices enumerated by Windows.
-    rpc ListDiskIDs(ListDiskIDsRequest) returns (ListDiskIDsResponse) {}
+    // ListDisks returns info (from IOCTL_STORAGE_QUERY_PROPERTY) about all disk devices enumerated by Windows.
+    // This maps to invoking scsi_id in Linux as done at
+    // https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/gcepd/gce_util.go#L232
+    // as well as what Get-GcePdName achieves internally when invoked through:
+    // https://github.com/kubernetes/kubernetes/blob/v1.16.0-rc.1/pkg/volume/gcepd/attacher.go#L182.
+    // All SCSI Page 83 IDs (along with other IDs) for all disk devices will be returned here.
+    rpc ListDisks(ListDisksRequest) returns (ListDisksResponse) {}
 
-    // ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs
+    // ListDiskVolumeMappings returns a map of all disk devices and volumes GUIDs.
+    // This allows obtaining a mapping of volume device GUIDs as enumerated by Windows to the disk device
+    // objects backing the volumes. This information may be used by a block based CSI driver to enumerate
+    // the volume devices hosted on a disk (published by the CSI attacher). The volume device GUID for a
+    // volume can be passed to MountBlockVolume to mount the volume at the desired global staging path.
     rpc ListDiskVolumeMappings(ListDiskVolumeMappingsRequest) returns (ListDiskVolumeMappingsResponse) {}
 
     // ResizeVolume performs resizing of the partition and file system for a block based volume
     rpc ResizeVolume(ResizeVolumeRequest) returns (ResizeVolumeResponse) {}
 
-    // DismountVolume gracefully dismounts a volume
+    // MountVolume mounts a volume.
+    rpc MountVolume(MountVolumeRequest) returns (MountVolumeResponse) {}
+
+    // DismountVolume gracefully dismounts a volume.
     rpc DismountVolume(DismountVolumeRequest) returns (DismountVolumeResponse) {}
 }
 
@@ -118,16 +132,32 @@ message ListDiskLocationsResponse {
     map <string, DiskLocation> disk_locations = 4;
 }
 
-message ListDiskIDsRequest {
+message ListDisksRequest {
     // Intentionally empty
 }
 
-message DiskIDs {
-    // list of Disk IDs of ASCII characters associated with disk device.
-    repeated string IDs = 1;
+enum DiskType {
+    Page0x80 = 0;
+    Page0x83 = 1;
+    WindowsOS = 3;
 }
 
-message ListDiskIDsResponse {
+message Disk {
+    string ID = 1;
+
+    DiskType type = 2;
+
+    // metadata depends on the disk type:
+    //  * for Page0x83 disks, it's the VPD descriptor
+    //  * for other types, it's empty
+    string metadata = 3;
+}
+
+message Disks {
+    repeated Disk disks = 1;
+}
+
+message ListDisksResponse {
     bool success = 1;
 
     oneof error {
@@ -135,8 +165,8 @@ message ListDiskIDsResponse {
         string error_message = 3;
     }
 
-    // Map of disk device objects and IDs associated with each disk device.
-    map <string, DiskIDs> disk_id = 4;
+    // Map of disk device objects and the data associated with each disk device.
+    map <string, Disks> disk_id = 4;
 }
 
 message ListDiskVolumeMappingsRequest {
@@ -165,6 +195,39 @@ message ResizeVolumeRequest {
 }
 
 message ResizeVolumeResponse {
+    bool success = 1;
+
+    oneof error {
+        CmdletError cmdlet_error = 2;
+        string error_message = 3;
+    }
+}
+
+message MountVolumeRequest {
+    // The GUID of the Windows volume device to format,
+    // typically volume_device_guid returned by PartitionDiskResponse.
+    string volume_device_guid = 1;
+
+    // Local path in the host to stage the volume.
+    // All special characters allowed by Windows in path names will be allowed
+    // except for restrictions noted below. For details, please check:
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    //
+    // Restrictions:
+    // If given an absolute path, it needs to be under kubelet-csi-plugins-path,
+    // and specified with drive letter prefix: "C:\".
+    // If given a relative path, it will be understood as being relative to
+    // kubelet-csi-plugins-path.
+    // UNC paths of the form "\\server\share\path\file" are not allowed.
+    // All directory separators need to be backslash character: "\".
+    // Characters: .. / : | ? * in the path are not allowed.
+    // Maximum path length will be capped to 260 characters (MAX_PATH).
+    string host_path = 2;
+
+    bool readonly = 3;
+}
+
+message MountVolumeResponse {
     bool success = 1;
 
     oneof error {

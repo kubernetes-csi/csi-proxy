@@ -42,10 +42,9 @@ type MountSMBShareRequest struct {
 	//
 	// Restrictions:
 	// If given an absolute path, it needs to be under kubelet-csi-plugins-path,
-	// and specified with drive letter prefix: "X:\".
+	// and specified with drive letter prefix: "C:\".
 	// If given a relative path, it will be understood as being relative to
 	// kubelet-csi-plugins-path.
-	// Needs to already exist on host.
 	// UNC paths of the form "\\server\share\path\file" are not allowed.
 	// All directory separators need to be backslash character: "\".
 	// Characters: .. / : | ? * in the path are not allowed.
