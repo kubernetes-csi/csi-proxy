@@ -15,7 +15,7 @@ func convert_pb_ComputeDoubleRequest_To_internal_ComputeDoubleRequest(in *pb.Com
 
 func convert_internal_ComputeDoubleResponse_To_pb_ComputeDoubleResponse(in *internal.ComputeDoubleResponse, out *pb.ComputeDoubleResponse) error {
 	i := in.Response
-	if i > math.MaxInt32 || i < math.MinInt64 {
+	if i > math.MaxInt32 || i < math.MinInt32 {
 		return fmt.Errorf("int32 overflow for %d", i)
 	}
 	out.Response32 = int32(i)

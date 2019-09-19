@@ -23,7 +23,7 @@ type wrapper struct {
 	connection *grpc.ClientConn
 }
 
-// NewClient returns a client to make calls to the dummy API group version v1.
+// NewClient returns a client to make calls to the filesystem API group version v1alpha1.
 // It's the caller's responsibility to Close the client when done.
 func NewClient() (*wrapper, error) {
 	pipePath := client.PipePath(groupName, version)
