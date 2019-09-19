@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kubernetes-csi/csi-proxy/api/filesystem/v1alpha1"
-	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/filesystem/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1alpha1"
+	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1"
 	filesystem "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 )
 

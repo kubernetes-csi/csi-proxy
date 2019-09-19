@@ -7,8 +7,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/kubernetes-csi/csi-proxy/api/filesystem/v1alpha1"
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
+	pb "github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 )
 

@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/kubernetes-csi/csi-proxy/api"
+	"github.com/kubernetes-csi/csi-proxy/client/api"
 )
 
 type PathExistsRequest struct {

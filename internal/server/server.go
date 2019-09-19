@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
-	"github.com/kubernetes-csi/csi-proxy/internal"
+	"github.com/kubernetes-csi/csi-proxy/client"
 )
 
 type Server struct {
@@ -72,7 +72,7 @@ func (s *Server) createListeners() (listeners []net.Listener, errors []error) {
 	listeners = make([]net.Listener, len(s.versionedAPIs))
 
 	for i, versionedAPI := range s.versionedAPIs {
-		pipePath := internal.PipePath(versionedAPI.Group, versionedAPI.Version)
+		pipePath := client.PipePath(versionedAPI.Group, versionedAPI.Version)
 
 		listener, err := winio.ListenPipe(pipePath, nil)
 		if err == nil {

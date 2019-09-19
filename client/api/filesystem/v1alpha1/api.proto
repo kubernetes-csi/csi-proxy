@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package v1alpha1;
 
-import "github.com/kubernetes-csi/csi-proxy/api/errors.proto";
+import "github.com/kubernetes-csi/csi-proxy/client/api/errors.proto";
 
 // FIXME: this is just an almost empty service, not actually implemented; it's just
 // here as an example of what API group and versions will look like. It will actually

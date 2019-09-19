@@ -7,9 +7,9 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	pb "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy/v1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
 )
 
 var version = apiversion.NewVersionOrPanic("v1")

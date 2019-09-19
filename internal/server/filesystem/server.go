@@ -3,8 +3,8 @@ package dummy
 import (
 	"context"
 
-	"github.com/kubernetes-csi/csi-proxy/api"
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/client/api"
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 )
 

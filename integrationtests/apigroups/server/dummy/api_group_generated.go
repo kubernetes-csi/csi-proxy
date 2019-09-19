@@ -3,11 +3,11 @@
 package dummy
 
 import (
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1alpha2"
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
 )
 

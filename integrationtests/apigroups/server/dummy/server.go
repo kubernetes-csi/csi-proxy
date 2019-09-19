@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	internal "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
 )
 
 type Server struct{}

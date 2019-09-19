@@ -9,9 +9,9 @@ import (
 	"github.com/Microsoft/go-winio"
 	"google.golang.org/grpc"
 
-	pb "github.com/kubernetes-csi/csi-proxy/api/filesystem/v1alpha1"
-	"github.com/kubernetes-csi/csi-proxy/internal"
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/client"
+	pb "github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 )
 
 const groupName = "filesystem"
@@ -26,7 +26,7 @@ type wrapper struct {
 // NewClient returns a client to make calls to the dummy API group version v1.
 // It's the caller's responsibility to Close the client when done.
 func NewClient() (*wrapper, error) {
-	pipePath := internal.PipePath(groupName, version)
+	pipePath := client.PipePath(groupName, version)
 
 	connection, err := grpc.Dial(pipePath,
 		grpc.WithContextDialer(func(context context.Context, s string) (net.Conn, error) {

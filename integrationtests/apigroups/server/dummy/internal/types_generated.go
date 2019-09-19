@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/kubernetes-csi/csi-proxy/internal/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 )
 
 type VersionedAPI interface {
