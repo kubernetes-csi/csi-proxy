@@ -204,19 +204,19 @@ service Dummy {
     ...
 }
 ```
-then regenerate the protobuf code, and run `csi-proxy-gen`: it will also mark the version's server (``) and client (``) packages as deprecated.
+then regenerate the protobuf code, and run `csi-proxy-api-gen`: it will also mark the version's server (``) and client (``) packages as deprecated.
 
-For removal, remove the whole `client/api/<api_group_name>/<version>` directory, and run `csi-proxy-gen`, it will remove all references to the removed version.
+For removal, remove the whole `client/api/<api_group_name>/<version>` directory, and run `csi-proxy-api-gen`, it will remove all references to the removed version.
 
 #### An API group
 
-Deprecate and remove all its versions as explained in the previous version; then remove the entire `client/api/<api_group_name>` directory, and run `csi-proxy-gen`, it will remove all references to the removed API group.
+Deprecate and remove all its versions as explained in the previous version; then remove the entire `client/api/<api_group_name>` directory, and run `csi-proxy-api-gen`, it will remove all references to the removed API group.
 
 ## Detailed breakdown of generated files
 
-This section details how `csi-proxy-gen` works, and what files it generates; `csi-proxy-gen` is built on top of [gengo](https://github.com/kubernetes/gengo), and re-uses part of [k8s' code-generator](https://github.com/kubernetes/code-generator), notably to generate conversion functions.
+This section details how `csi-proxy-api-gen` works, and what files it generates; `csi-proxy-api-gen` is built on top of [gengo](https://github.com/kubernetes/gengo), and re-uses part of [k8s' code-generator](https://github.com/kubernetes/code-generator), notably to generate conversion functions.
 
-First, it looks for all API group definitions, which are either subdirectories of `client/api/`, or any go package that contains a `doc.go` file containing a `// +csi-proxy-gen` comment.
+First, it looks for all API group definitions, which are either subdirectories of `client/api/`, or any go package whose `doc.go` file contains a `// +csi-proxy-api-gen` comment.
 
 Then for each API group it finds:
 1. it iterates through each version subpackage, and in each looks for the `<ApiGroupName>Server` interface, and compiles the list of callbacks that the group's `Server` needs to implement as well as the list of top-level `struct`s (`*Request`s and `*Response`s)
@@ -230,9 +230,9 @@ Then for each API group it finds:
     2. it generates missing conversion functions to `internal/server/<api_group_name>/internal/<version>/conversion_generated.go`
     3. it generates `internal/server/<api_group_name>/internal/<version>/server_generated.go`
 6. it generates `internal/server/<api_group_name>/internal/api_group_generated.go` to list all the versioned servers it's just created
-7. and finally, it generates `client/groups/<api_group_name>/<version>/client_generated.go`
+7. and finally, it generates `client/groups/<api_group_name>/<version>/client_generated.go` for each version
 
-When `csi-proxy-gen` has successfully run to completion, [our example API group's go package from earlier](#serverPkgTree) will look something like:
+When `csi-proxy-api-gen` has successfully run to completion, [our example API group's go package from earlier](#serverPkgTree) will look something like:
 ```
 internal/server/<api_group_name>
 ├── api_group_generated.go

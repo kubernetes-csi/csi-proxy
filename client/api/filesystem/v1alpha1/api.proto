@@ -14,7 +14,7 @@ service FileSystem {
 }
 
 message PathExistsRequest {
-    // The path to check in the host filesystem.
+    // The path to check in the host file system.
     string path = 1;
 }
 
