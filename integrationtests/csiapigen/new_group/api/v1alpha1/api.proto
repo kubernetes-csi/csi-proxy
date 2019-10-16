@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package v1alpha1;
+
+service NewGroup {
+    rpc Foo(FooRequest) returns (FooResponse) {}
+}
+
+message FooRequest{
+    FooRequestSubMessage subMessage = 1;
+    bytes blob = 2;
+}
+
+message FooRequestSubMessage {
+    int32 blah = 1;
+    repeated FooRequestSubSubMessage subSubMessage = 2;
+}
+
+message FooRequestSubSubMessage {
+    repeated bool bools = 1;
+}
+
+message FooResponse{
+    int32 response32 = 1;
+    FooRequestSubMessage subMessage = 2;
+}

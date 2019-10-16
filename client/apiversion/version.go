@@ -80,6 +80,11 @@ func NewVersionOrPanic(name string) Version {
 	return version
 }
 
+// IsValidVersion returns true iff the input is a valid version name.
+func IsValidVersion(name string) bool {
+	return nameRegex.MatchString(name)
+}
+
 func toUint(s, name string) (uint, error) {
 	i, err := strconv.ParseUint(s, 10, 0)
 	if err != nil {
