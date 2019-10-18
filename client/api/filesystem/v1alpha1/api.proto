@@ -8,7 +8,7 @@ import "github.com/kubernetes-csi/csi-proxy/client/api/errors.proto";
 // here as an example of what API group and versions will look like. It will actually
 // be implemented in a later patch.
 
-service FileSystem {
+service Filesystem {
     // PathExists checks if the given path exists on the host.
     rpc PathExists(PathExistsRequest) returns (PathExistsResponse) {}
 }

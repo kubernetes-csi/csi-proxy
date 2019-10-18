@@ -59,7 +59,7 @@ func recursiveDiff(t *testing.T, dir1, dir2 string, fileSuffixesToRemove ...stri
 				contents2 := readFile(t, filepath.Join(dir2, filePath))
 
 				differ := diffmatchpatch.New()
-				diffs := differ.DiffMain(string(contents1), string(contents2), true)
+				diffs := differ.DiffMain(contents1, contents2, true)
 				assert.Fail(t, fmt.Sprintf("File %q differs in %q and %q:\n", filePath, dir1, dir2), "Diff:\n%s", differ.DiffPrettyText(diffs))
 			}
 			delete(hashesDir2, filePath)
@@ -69,8 +69,6 @@ func recursiveDiff(t *testing.T, dir1, dir2 string, fileSuffixesToRemove ...stri
 	for filePath := range hashesDir2 {
 		assert.Fail(t, fmt.Sprintf("%q present in %q but not in %q", filePath, dir2, dir1))
 	}
-
-	return
 }
 
 // fileHashes walks through dir, and returns a map mapping file paths to MD5 hashes

@@ -1,0 +1,41 @@
+run:
+  skip-dirs:
+    - release-tools
+linters:
+  fast: false
+  enable:
+    - deadcode
+    - errcheck
+    - gocognit
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - govet
+    - gosec
+    - ineffassign
+    - misspell
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - varcheck
+    - whitespace
+
+linters-settings:
+  govet:
+    # report about shadowed variables
+    check-shadowing: true
+
+issues:
+  exclude:
+    # conversion function names use underscores, and may be unused
+    - "`convert_[a-z]+_[A-Z][a-zA-Z0-9]+_To_[a-z]+_[A-Z][a-zA-Z0-9]+` is unused"
+    - "(don't|should not) use underscores in Go names; func convert_[a-z]+_[A-Z][a-zA-Z0-9]+_To_[a-z]+_[A-Z][a-zA-Z0-9]+ should be"
+
+  exclude-rules:
+  # this file uses MD5 to compare files efficiently
+  - path: integrationtests/utils.go
+    text: "weak cryptographic primitive"
+    linters:
+    - gosec

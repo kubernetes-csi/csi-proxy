@@ -8,8 +8,10 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 )
 
+// Server is the internal server for the filesytem API group.
 type Server struct{}
 
+// PathExists checks if the given path exists on the host.
 func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsRequest, version apiversion.Version) (*internal.PathExistsResponse, error) {
 	// FIXME: actually implement this!
 	return &internal.PathExistsResponse{

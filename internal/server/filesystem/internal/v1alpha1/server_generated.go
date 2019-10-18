@@ -24,7 +24,7 @@ func NewVersionedServer(apiGroupServer internal.ServerInterface) internal.Versio
 }
 
 func (s *versionedAPI) Register(grpcServer *grpc.Server) {
-	v1alpha1.RegisterFileSystemServer(grpcServer, s)
+	v1alpha1.RegisterFilesystemServer(grpcServer, s)
 }
 
 func (s *versionedAPI) PathExists(context context.Context, versionedRequest *v1alpha1.PathExistsRequest) (*v1alpha1.PathExistsResponse, error) {
