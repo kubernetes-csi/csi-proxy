@@ -4,7 +4,7 @@ package filesystem
 
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/internal/server"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"	
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal/v1alpha1"
 )
@@ -14,10 +14,10 @@ const name = "filesystem"
 // ensure the server defines all the required methods
 var _ internal.ServerInterface = &Server{}
 
-func (s *Server) VersionedAPIs() []*server.VersionedAPI {
+func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 	v1alpha1Server := v1alpha1.NewVersionedServer(s)
 
-	return []*server.VersionedAPI{
+	return []*srvtypes.VersionedAPI{
 		{
 			Group:      name,
 			Version:    apiversion.NewVersionOrPanic("v1alpha1"),

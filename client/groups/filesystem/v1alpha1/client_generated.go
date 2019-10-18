@@ -51,6 +51,18 @@ func (w *Client) Close() error {
 // ensures we implement all the required methods
 var _ v1alpha1.FilesystemClient = &Client{}
 
+func (w *Client) LinkPath(context context.Context, request *v1alpha1.LinkPathRequest, opts ...grpc.CallOption) (*v1alpha1.LinkPathResponse, error) {
+	return w.client.LinkPath(context, request, opts...)
+}
+
+func (w *Client) Mkdir(context context.Context, request *v1alpha1.MkdirRequest, opts ...grpc.CallOption) (*v1alpha1.MkdirResponse, error) {
+	return w.client.Mkdir(context, request, opts...)
+}
+
 func (w *Client) PathExists(context context.Context, request *v1alpha1.PathExistsRequest, opts ...grpc.CallOption) (*v1alpha1.PathExistsResponse, error) {
 	return w.client.PathExists(context, request, opts...)
+}
+
+func (w *Client) Rmdir(context context.Context, request *v1alpha1.RmdirRequest, opts ...grpc.CallOption) (*v1alpha1.RmdirResponse, error) {
+	return w.client.Rmdir(context, request, opts...)
 }
