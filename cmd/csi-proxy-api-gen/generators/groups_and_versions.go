@@ -121,7 +121,7 @@ func (d *groupDefinition) addVersion(versionPkg *types.Package) {
 					}
 				}
 				errorMsg += fmt.Sprintf("\nYields 2 different signatures for the internal server callback:\n%s\nand\n%s",
-					previousCallback, namedServerCallback.callback)
+					previousCallback.callback, namedServerCallback.callback)
 				klog.Fatalf(errorMsg)
 			}
 		}

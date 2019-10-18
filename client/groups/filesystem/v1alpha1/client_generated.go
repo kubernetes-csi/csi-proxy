@@ -18,7 +18,7 @@ const groupName = "filesystem"
 var version = apiversion.NewVersionOrPanic("v1alpha1")
 
 type Client struct {
-	client     v1alpha1.FileSystemClient
+	client     v1alpha1.FilesystemClient
 	connection *grpc.ClientConn
 }
 
@@ -36,7 +36,7 @@ func NewClient() (*Client, error) {
 		return nil, err
 	}
 
-	client := v1alpha1.NewFileSystemClient(connection)
+	client := v1alpha1.NewFilesystemClient(connection)
 	return &Client{
 		client:     client,
 		connection: connection,
@@ -49,7 +49,7 @@ func (w *Client) Close() error {
 }
 
 // ensures we implement all the required methods
-var _ v1alpha1.FileSystemClient = &Client{}
+var _ v1alpha1.FilesystemClient = &Client{}
 
 func (w *Client) PathExists(context context.Context, request *v1alpha1.PathExistsRequest, opts ...grpc.CallOption) (*v1alpha1.PathExistsResponse, error) {
 	return w.client.PathExists(context, request, opts...)

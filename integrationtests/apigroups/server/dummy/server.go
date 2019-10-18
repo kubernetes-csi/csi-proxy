@@ -8,8 +8,10 @@ import (
 	internal "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
 )
 
+// Server is the internal server for the dummy API group.
 type Server struct{}
 
+// ComputeDouble computes the double of the input. Real smart stuff!
 func (s *Server) ComputeDouble(ctx context.Context, request *internal.ComputeDoubleRequest, version apiversion.Version) (*internal.ComputeDoubleResponse, error) {
 	in := request.Input64
 	out := 2 * in
@@ -35,6 +37,7 @@ func sign(x int64) int {
 	}
 }
 
+// TellMeAPoem returns a very poetic response.
 func (s *Server) TellMeAPoem(ctx context.Context, request *internal.TellMeAPoemRequest, version apiversion.Version) (*internal.TellMeAPoemResponse, error) {
 	lines := []string{
 		`Not like the brazen giant of Greek fame,`,

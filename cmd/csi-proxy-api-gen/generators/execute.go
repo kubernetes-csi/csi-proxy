@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	goflag "flag"
+
 	"github.com/spf13/pflag"
 	"k8s.io/gengo/args"
 	"k8s.io/klog"
@@ -32,7 +33,9 @@ func buildArgs(executableName string, cliArgs []string) *args.GeneratorArgs {
 	pflagFlagSet := pflag.NewFlagSet(executableName, pflag.ExitOnError)
 	genericArgs.AddFlags(pflagFlagSet)
 	pflagFlagSet.AddGoFlagSet(goFlagSet)
-	pflagFlagSet.Parse(cliArgs)
+	if err := pflagFlagSet.Parse(cliArgs); err != nil {
+		klog.Fatalf("Unable to parse CLI args: %v", err)
+	}
 
 	klog.Infof("Verbosity level set to %d", verbosityLevel())
 

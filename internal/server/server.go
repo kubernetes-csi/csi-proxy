@@ -12,6 +12,8 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client"
 )
 
+// Server aggregates a number of API groups and versions,
+// and serves requests for all of them.
 type Server struct {
 	versionedAPIs []*VersionedAPI
 	started       bool
@@ -19,6 +21,7 @@ type Server struct {
 	grpcServers   []*grpc.Server
 }
 
+// NewServer creates a new Server for the given API groups.
 func NewServer(apiGroups ...APIGroup) *Server {
 	versionedAPIs := make([]*VersionedAPI, 0, len(apiGroups))
 	for _, apiGroup := range apiGroups {
@@ -116,7 +119,7 @@ func (s *Server) createAndStartGRPCServers(listeners []net.Listener) chan *versi
 			err := grpcServer.Serve(listeners[index])
 
 			doneChan <- &versionedAPIDone{
-				index: i,
+				index: index,
 				err:   err,
 			}
 		}()
@@ -138,7 +141,10 @@ func (s *Server) waitForGRPCServersToStop(doneChan chan *versionedAPIDone) (errs
 	processServerDoneEvent(<-doneChan)
 
 	// let's stop all other servers
-	s.Stop()
+	if err := s.Stop(); err != nil {
+		// cannot happen, as the only error Stop can return is if the server hasn't been started yet
+		panic(err)
+	}
 
 	// and wait for them to stop
 	// TODO: do we want a timeout here?
