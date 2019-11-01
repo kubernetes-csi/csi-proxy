@@ -1,10 +1,10 @@
 package filesystem
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
-	"os/exec"
-	"runtime"
+	// "os/exec"
+	// "runtime"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
@@ -26,25 +26,20 @@ func (APIImplementor) PathExists(path string) (bool, error) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
-	return true, err
+	return false, err
 }
 
 func (APIImplementor) Mkdir(path string) error {
-	err := os.MkdirAll(path, 0755)
-	return err
+	return os.MkdirAll(path, 0755)
 }
 
-func (APIImplementor) Rmdir(path string) error {
-	err := os.RemoveAll(path)
-	return err
+func (APIImplementor) Rmdir(path string, force bool) error {
+	if force {
+		return os.RemoveAll(path)
+	}
+	return os.Remove(path)
 }
 
 func (APIImplementor) LinkPath(tgt string, src string) error {
-	var err error
-	if runtime.GOOS == "windows" {
-		_, err = exec.Command("cmd", "/c", "mklink", "/D", tgt, src).CombinedOutput()
-	} else {
-		err = fmt.Errorf("LinkPath not implemented for %s", runtime.GOOS)
-	}
-	return err
+	return os.Symlink(tgt, src)
 }

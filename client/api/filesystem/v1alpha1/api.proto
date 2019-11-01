@@ -20,10 +20,16 @@ service Filesystem {
 
 // Context of the paths used for path prefix validation
 enum PathContext {
-    // Indicates the kubelet-csi-plugins-path parameter of csi-proxy be used as the path context
+    // Indicates the kubelet-csi-plugins-path parameter of csi-proxy be used as
+    // the path context. This may be used while handling NodeStageVolume where
+    // a volume may need to be mounted at a plugin-specific path like:
+    // kubelet\plugins\kubernetes.io\csi\pv\<pv-name>\globalmount
     PLUGIN = 0;
-    // Indicates the kubelet-pod-path parameter of csi-proxy be used as the path context
-    CONTAINER = 1;
+    // Indicates the kubelet-pod-path parameter of csi-proxy be used as the path
+    // context. This may be used while handling NodePublishVolume where a staged
+    // volume may be need to be symlinked to a pod-specific path like:
+    // kubelet\pods\<pod-uuid>\volumes\kubernetes.io~csi\<pvc-name>\mount
+    POD = 1;
 }
 
 message PathExistsRequest {
@@ -31,7 +37,7 @@ message PathExistsRequest {
     string path = 1;
 
     // Context of the path parameter.
-    // This is used to determine the root for relative path parameters
+    // This is used to validate prefix for absolute paths passed
     PathContext context = 2;
 }
 
@@ -53,14 +59,11 @@ message MkdirRequest {
     // User account under which csi-proxy is started (typically LocalSystem).
     //
     // Restrictions:
-    // If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-    // depending on the context parameter of this function, the path prefix needs 
+    // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+    // Depending on the context parameter of this function, the path prefix needs 
     // to match the paths specified either as kubelet-csi-plugins-path
     // or as kubelet-pod-path parameters of csi-proxy.
-    // If a relative path is passed, depending on the context parameter of this 
-    // function, the path will be considered relative to the path specified either as 
-    // kubelet-csi-plugins-path or as kubelet-pod-path parameters of csi-proxy.
-    // The path parameter cannot already exist on host filesystem.
+    // The path parameter cannot already exist in the host's filesystem.
     // UNC paths of the form "\\server\share\path\file" are not allowed.
     // All directory separators need to be backslash character: "\".
     // Characters: .. / : | ? * in the path are not allowed.
@@ -68,9 +71,7 @@ message MkdirRequest {
     string path = 1;
 
     // Context of the path parameter.
-    // This is used to [1] determine the root for relative path parameters
-    // or [2] validate prefix for absolute paths (indicated by a drive letter 
-    // prefix: e.g. "C:\")
+    // This is used to validate prefix for absolute paths passed
     PathContext context = 2;
 }
 
@@ -86,13 +87,10 @@ message RmdirRequest {
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     //
     // Restrictions:
-    // If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-    // depending on the context parameter of this function, the path prefix needs 
+    // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+    // Depending on the context parameter of this function, the path prefix needs 
     // to match the paths specified either as kubelet-csi-plugins-path
     // or as kubelet-pod-path parameters of csi-proxy.
-    // If a relative path is passed, depending on the context parameter of this 
-    // function, the path will be considered relative to the path specified either as 
-    // kubelet-csi-plugins-path or as kubelet-pod-path parameters of csi-proxy.
     // UNC paths of the form "\\server\share\path\file" are not allowed.
     // All directory separators need to be backslash character: "\".
     // Characters: .. / : | ? * in the path are not allowed.
@@ -100,11 +98,12 @@ message RmdirRequest {
     // Maximum path length will be capped to 260 characters.
     string path = 1;
 
-    // Context of the path creation used for path prefix validation
-    // This is used to [1] determine the root for relative path parameters
-    // or [2] validate prefix for absolute paths (indicated by a drive letter 
-    // prefix: e.g. "C:\")
+    // Context of the path parameter.
+    // This is used to validate prefix for absolute paths passed
     PathContext context = 2;
+
+    // Force remove all contents under path (if any).
+    bool force = 3;
 }
 
 message RmdirResponse {
@@ -119,11 +118,9 @@ message LinkPathRequest {
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     //
     // Restrictions:
-    // If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-    // the path prefix needs to match the path specified as kubelet-csi-plugins-path
-    // parameter of csi-proxy.
-    // If a relative path is passed, the path will be considered relative to the
-    // path specified as kubelet-csi-plugins-path parameter of csi-proxy.
+    // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+    // The path prefix needs needs to match the paths specified as 
+    // kubelet-csi-plugins-path parameter of csi-proxy.
     // UNC paths of the form "\\server\share\path\file" are not allowed.
     // All directory separators need to be backslash character: "\".
     // Characters: .. / : | ? * in the path are not allowed.
@@ -137,11 +134,9 @@ message LinkPathRequest {
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     //
     // Restrictions:
-    // If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-    // the path prefix needs to match the path specified as kubelet-pod-path
-    // parameter of csi-proxy.
-    // If a relative path is passed, the path will be considered relative to the
-    // path specified as kubelet-pod-path parameter of csi-proxy.
+    // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+    // The path prefix needs to match the paths specified as
+    // kubelet-pod-path parameter of csi-proxy.
     // UNC paths of the form "\\server\share\path\file" are not allowed.
     // All directory separators need to be backslash character: "\".
     // Characters: .. / : | ? * in the path are not allowed.

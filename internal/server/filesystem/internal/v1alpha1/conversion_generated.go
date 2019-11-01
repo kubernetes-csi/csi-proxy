@@ -137,6 +137,7 @@ func Convert_internal_PathExistsResponse_To_v1alpha1_PathExistsResponse(in *inte
 
 func autoConvert_v1alpha1_RmdirRequest_To_internal_RmdirRequest(in *v1alpha1.RmdirRequest, out *internal.RmdirRequest) error {
 	out.Path = in.Path
+	out.Force = in.Force
 	out.Context = internal.PathContext(in.Context)
 	return nil
 }
@@ -148,6 +149,7 @@ func Convert_v1alpha1_RmdirRequest_To_internal_RmdirRequest(in *v1alpha1.RmdirRe
 
 func autoConvert_internal_RmdirRequest_To_v1alpha1_RmdirRequest(in *internal.RmdirRequest, out *v1alpha1.RmdirRequest) error {
 	out.Path = in.Path
+	out.Force = in.Force
 	out.Context = v1alpha1.PathContext(in.Context)
 	return nil
 }

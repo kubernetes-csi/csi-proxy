@@ -6,7 +6,7 @@ const (
 	// Indicates the kubelet-csi-plugins-path parameter of csi-proxy be used as the path context
 	PLUGIN PathContext = iota
 	// Indicates the kubelet-pod-path parameter of csi-proxy be used as the path context
-	CONTAINER
+	POD
 )
 
 // PathExistsRequest is the internal representation of requests to the PathExists endpoint.
@@ -36,13 +36,10 @@ type MkdirRequest struct {
 	// User account under which csi-proxy is started (typically LocalSystem).
 	//
 	// Restrictions:
-	// If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-	// depending on the context parameter of this function, the path prefix needs
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+	// Depending on the context parameter of this function, the path prefix needs
 	// to match the paths specified either as kubelet-csi-plugins-path
 	// or as kubelet-pod-path parameters of csi-proxy.
-	// If a relative path is passed, depending on the context parameter of this
-	// function, the path will be considered relative to the path specified either as
-	// kubelet-csi-plugins-path or as kubelet-pod-path parameters of csi-proxy.
 	// The path parameter cannot already exist on host filesystem.
 	// UNC paths of the form "\\server\share\path\file" are not allowed.
 	// All directory separators need to be backslash character: "\".
@@ -68,13 +65,10 @@ type RmdirRequest struct {
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 	//
 	// Restrictions:
-	// If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-	// depending on the context parameter of this function, the path prefix needs
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+	// Depending on the context parameter of this function, the path prefix needs
 	// to match the paths specified either as kubelet-csi-plugins-path
 	// or as kubelet-pod-path parameters of csi-proxy.
-	// If a relative path is passed, depending on the context parameter of this
-	// function, the path will be considered relative to the path specified either as
-	// kubelet-csi-plugins-path or as kubelet-pod-path parameters of csi-proxy.
 	// UNC paths of the form "\\server\share\path\file" are not allowed.
 	// All directory separators need to be backslash character: "\".
 	// Characters: .. / : | ? * in the path are not allowed.
@@ -86,6 +80,8 @@ type RmdirRequest struct {
 	// or [2] validate prefix for absolute paths (indicated by a drive letter
 	// prefix: e.g. "C:\")
 	Context PathContext
+	// Force remove all contents under path (if any).
+	Force bool
 }
 
 type RmdirResponse struct {
@@ -100,11 +96,7 @@ type LinkPathRequest struct {
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 	//
 	// Restrictions:
-	// If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-	// the path prefix needs to match the path specified as kubelet-csi-plugins-path
-	// parameter of csi-proxy.
-	// If a relative path is passed, the path will be considered relative to the
-	// path specified as kubelet-csi-plugins-path parameter of csi-proxy.
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
 	// UNC paths of the form "\\server\share\path\file" are not allowed.
 	// All directory separators need to be backslash character: "\".
 	// Characters: .. / : | ? * in the path are not allowed.
@@ -117,11 +109,7 @@ type LinkPathRequest struct {
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 	//
 	// Restrictions:
-	// If an absolute path (indicated by a drive letter prefix: e.g. "C:\") is passed,
-	// the path prefix needs to match the path specified as kubelet-pod-path
-	// parameter of csi-proxy.
-	// If a relative path is passed, the path will be considered relative to the
-	// path specified as kubelet-pod-path parameter of csi-proxy.
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
 	// UNC paths of the form "\\server\share\path\file" are not allowed.
 	// All directory separators need to be backslash character: "\".
 	// Characters: .. / : | ? * in the path are not allowed.

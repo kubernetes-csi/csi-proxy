@@ -4,7 +4,7 @@ package filesystem
 
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"	
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal/v1alpha1"
 )

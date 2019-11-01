@@ -8,6 +8,7 @@ import (
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
+	"github.com/kubernetes-csi/csi-proxy/internal/utils"
 )
 
 type Server struct {
@@ -16,30 +17,22 @@ type Server struct {
 	hostAPI               API
 }
 
-const MAX_PATH_LENGTH_WINDOWS = 260
-
 var invalidPathCharsRegexWindows = regexp.MustCompile(`["/\:\?\*|]`)
+var absPathRegexWindows = regexp.MustCompile(`^[a-zA-Z]:\\`)
 
 type API interface {
 	PathExists(path string) (bool, error)
 	Mkdir(path string) error
-	Rmdir(path string) error
+	Rmdir(path string, force bool) error
 	LinkPath(tgt string, src string) error
 }
 
-func NewServer(hostOS string, kubeletCSIPluginsPath string, kubeletPodPath string, hostAPI API) (*Server, error) {
-	if hostOS != "windows" {
-		return nil, fmt.Errorf("Unsupported OS for FileSystem API server: %s", hostOS)
-	}
+func NewServer(kubeletCSIPluginsPath string, kubeletPodPath string, hostAPI API) (*Server, error) {
 	return &Server{
 		kubeletCSIPluginsPath: kubeletCSIPluginsPath,
 		kubeletPodPath:        kubeletPodPath,
 		hostAPI:               hostAPI,
 	}, nil
-}
-
-func isDriveLetterWindows(c uint8) bool {
-	return ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')
 }
 
 func containsInvalidCharactersWindows(path string) bool {
@@ -70,27 +63,17 @@ func isAbsWindows(path string) bool {
 	// for Windows check for C:\\.. prefix only
 	// UNC prefixes of the form \\ are not considered
 	// absolute in the context of CSI proxy
-	if len(path) < 3 {
-		return false
+	if absPathRegexWindows.MatchString(path) {
+		return true
 	}
-	c := path[0]
-	if !isDriveLetterWindows(c) {
-		return false
-	}
-	if path[1] != ':' {
-		return false
-	}
-	if path[2] != '\\' && path[2] != '/' {
-		return false
-	}
-	return true
+	return false
 }
 
 func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) error {
 	prefix := ""
 	if pathCtx == internal.PLUGIN {
 		prefix = s.kubeletCSIPluginsPath
-	} else if pathCtx == internal.CONTAINER {
+	} else if pathCtx == internal.POD {
 		prefix = s.kubeletPodPath
 	} else {
 		return fmt.Errorf("Invalid PathContext: %v", pathCtx)
@@ -98,11 +81,11 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 
 	pathlen := len(path)
 
-	if pathlen > MAX_PATH_LENGTH_WINDOWS {
-		return fmt.Errorf("Path length %d exceeds maximum characters: %d", pathlen, MAX_PATH_LENGTH_WINDOWS)
+	if pathlen > utils.MAX_PATH_LENGTH_WINDOWS {
+		return fmt.Errorf("Path length %d exceeds maximum characters: %d", pathlen, utils.MAX_PATH_LENGTH_WINDOWS)
 	}
 
-	if len(path) > 0 && (path[0] == '\\') {
+	if pathlen > 0 && (path[0] == '\\') {
 		return fmt.Errorf("Invalid character \\ at begining of path: %s", path)
 	}
 
@@ -114,8 +97,12 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 		return fmt.Errorf("Path contains invalid characters: %s", path)
 	}
 
-	if isAbsWindows(path) && !strings.HasPrefix(path, prefix) {
-		return fmt.Errorf("Absolute path: %s is not within context path: %s", path, prefix)
+	if !isAbsWindows(path) {
+		return fmt.Errorf("Not an absolute Windows path: %s", path)
+	}
+
+	if !strings.HasPrefix(path, prefix) {
+		return fmt.Errorf("Path: %s is not within context path: %s", path, prefix)
 	}
 
 	return nil
@@ -128,7 +115,7 @@ func (s *Server) abs(pathCtx internal.PathContext, path string) (string, error) 
 	prefix := ""
 	if pathCtx == internal.PLUGIN {
 		prefix = s.kubeletCSIPluginsPath
-	} else if pathCtx == internal.CONTAINER {
+	} else if pathCtx == internal.POD {
 		prefix = s.kubeletPodPath
 	} else {
 		return "", fmt.Errorf("Invalid PathContext: %v", pathCtx)
@@ -144,17 +131,14 @@ func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsReq
 			Error: err.Error(),
 		}, nil
 	}
-
-	path, err := s.abs(request.Context, request.Path)
+	exists, err := s.hostAPI.PathExists(request.Path)
 	if err != nil {
 		return &internal.PathExistsResponse{
 			Error: err.Error(),
 		}, nil
 	}
-
-	exists, err := s.hostAPI.PathExists(path)
 	return &internal.PathExistsResponse{
-		Error:  err.Error(),
+		Error:  "",
 		Exists: exists,
 	}, nil
 }
@@ -164,17 +148,9 @@ func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, vers
 	if err != nil {
 		return &internal.MkdirResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
-
-	path, err := s.abs(request.Context, request.Path)
-	if err != nil {
-		return &internal.MkdirResponse{
-			Error: err.Error(),
-		}, nil
-	}
-
-	err = s.hostAPI.Mkdir(path)
+	err = s.hostAPI.Mkdir(request.Path)
 	if err != nil {
 		return &internal.MkdirResponse{
 			Error: err.Error(),
@@ -193,7 +169,7 @@ func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, vers
 			Error: err.Error(),
 		}, nil
 	}
-	err = s.hostAPI.Rmdir(request.Path)
+	err = s.hostAPI.Rmdir(request.Path, request.Force)
 	if err != nil {
 		return &internal.RmdirResponse{
 			Error: err.Error(),
@@ -205,7 +181,7 @@ func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, vers
 }
 
 func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest, version apiversion.Version) (*internal.LinkPathResponse, error) {
-	err := s.validatePathWindows(internal.CONTAINER, request.SourcePath)
+	err := s.validatePathWindows(internal.POD, request.SourcePath)
 	if err != nil {
 		return &internal.LinkPathResponse{
 			Error: err.Error(),

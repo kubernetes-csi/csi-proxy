@@ -1,12 +1,10 @@
 package main
 
 import (
-	"runtime"
-
 	filesystemapi "github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
-	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	filesystemsrv "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	flag "github.com/spf13/pflag"
 )
 
@@ -29,7 +27,7 @@ func main() {
 
 // apiGroups returns the list of enabled API groups.
 func apiGroups() ([]srvtypes.APIGroup, error) {
-	fssrv, err := filesystemsrv.NewServer(runtime.GOOS, *kubeletCSIPluginsPath, *kubeletPodPath, filesystemapi.New())
+	fssrv, err := filesystemsrv.NewServer(*kubeletCSIPluginsPath, *kubeletPodPath, filesystemapi.New())
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
