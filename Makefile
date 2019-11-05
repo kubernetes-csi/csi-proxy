@@ -22,7 +22,7 @@ compile: compile-client compile-server compile-csi-proxy-api-gen
 
 .PHONY: compile-client
 compile-client:
-	$(GO_ENV_VARS) go build ./client/...
+	cd client && $(GO_ENV_VARS) go build ./...
 
 .PHONY: compile-server
 compile-server:
