@@ -27,6 +27,44 @@ func (s *versionedAPI) Register(grpcServer *grpc.Server) {
 	v1alpha1.RegisterFilesystemServer(grpcServer, s)
 }
 
+func (s *versionedAPI) LinkPath(context context.Context, versionedRequest *v1alpha1.LinkPathRequest) (*v1alpha1.LinkPathResponse, error) {
+	request := &internal.LinkPathRequest{}
+	if err := Convert_v1alpha1_LinkPathRequest_To_internal_LinkPathRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.LinkPath(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.LinkPathResponse{}
+	if err := Convert_internal_LinkPathResponse_To_v1alpha1_LinkPathResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) Mkdir(context context.Context, versionedRequest *v1alpha1.MkdirRequest) (*v1alpha1.MkdirResponse, error) {
+	request := &internal.MkdirRequest{}
+	if err := Convert_v1alpha1_MkdirRequest_To_internal_MkdirRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.Mkdir(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.MkdirResponse{}
+	if err := Convert_internal_MkdirResponse_To_v1alpha1_MkdirResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) PathExists(context context.Context, versionedRequest *v1alpha1.PathExistsRequest) (*v1alpha1.PathExistsResponse, error) {
 	request := &internal.PathExistsRequest{}
 	if err := Convert_v1alpha1_PathExistsRequest_To_internal_PathExistsRequest(versionedRequest, request); err != nil {
@@ -40,6 +78,25 @@ func (s *versionedAPI) PathExists(context context.Context, versionedRequest *v1a
 
 	versionedResponse := &v1alpha1.PathExistsResponse{}
 	if err := Convert_internal_PathExistsResponse_To_v1alpha1_PathExistsResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) Rmdir(context context.Context, versionedRequest *v1alpha1.RmdirRequest) (*v1alpha1.RmdirResponse, error) {
+	request := &internal.RmdirRequest{}
+	if err := Convert_v1alpha1_RmdirRequest_To_internal_RmdirRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.Rmdir(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.RmdirResponse{}
+	if err := Convert_internal_RmdirResponse_To_v1alpha1_RmdirResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 

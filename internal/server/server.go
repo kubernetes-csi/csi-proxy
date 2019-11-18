@@ -10,20 +10,21 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/kubernetes-csi/csi-proxy/client"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 )
 
 // Server aggregates a number of API groups and versions,
 // and serves requests for all of them.
 type Server struct {
-	versionedAPIs []*VersionedAPI
+	versionedAPIs []*srvtypes.VersionedAPI
 	started       bool
 	mutex         *sync.Mutex
 	grpcServers   []*grpc.Server
 }
 
 // NewServer creates a new Server for the given API groups.
-func NewServer(apiGroups ...APIGroup) *Server {
-	versionedAPIs := make([]*VersionedAPI, 0, len(apiGroups))
+func NewServer(apiGroups ...srvtypes.APIGroup) *Server {
+	versionedAPIs := make([]*srvtypes.VersionedAPI, 0, len(apiGroups))
 	for _, apiGroup := range apiGroups {
 		versionedAPIs = append(versionedAPIs, apiGroup.VersionedAPIs()...)
 	}
