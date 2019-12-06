@@ -18,10 +18,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 )
 
 // startServer starts the proxy's GRPC servers, and returns a function to shut them down when done with testing
-func startServer(t *testing.T, apiGroups ...server.APIGroup) func() {
+func startServer(t *testing.T, apiGroups ...srvtypes.APIGroup) func() {
 	s := server.NewServer(apiGroups...)
 
 	listeningChan := make(chan interface{})
