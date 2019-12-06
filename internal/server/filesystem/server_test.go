@@ -25,6 +25,9 @@ func (fakeFileSystemAPI) LinkPath(tgt string, src string) error {
 
 func TestMkdirWindows(t *testing.T) {
 	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	if err != nil {
+		t.Fatalf("New version error: %v", err)
+	}
 	testCases := []struct {
 		name        string
 		path        string
@@ -139,13 +142,16 @@ func TestMkdirWindows(t *testing.T) {
 
 func TestRmdirWindows(t *testing.T) {
 	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	if err != nil {
+		t.Fatalf("New version error: %v", err)
+	}
 	testCases := []struct {
 		name        string
 		path        string
 		pathCtx     internal.PathContext
 		version     apiversion.Version
 		expectError bool
-		force		bool
+		force       bool
 	}{
 		{
 			name:        "path outside of pod context with pod context set",
@@ -241,7 +247,7 @@ func TestRmdirWindows(t *testing.T) {
 		req := &internal.RmdirRequest{
 			Path:    tc.path,
 			Context: tc.pathCtx,
-			Force:	 tc.force,
+			Force:   tc.force,
 		}
 		rmdirResponse, _ := srv.Rmdir(context.TODO(), req, tc.version)
 		if tc.expectError && rmdirResponse.Error == "" {

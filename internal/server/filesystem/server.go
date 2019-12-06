@@ -63,10 +63,7 @@ func isAbsWindows(path string) bool {
 	// for Windows check for C:\\.. prefix only
 	// UNC prefixes of the form \\ are not considered
 	// absolute in the context of CSI proxy
-	if absPathRegexWindows.MatchString(path) {
-		return true
-	}
-	return false
+	return absPathRegexWindows.MatchString(path)
 }
 
 func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) error {
@@ -76,51 +73,36 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 	} else if pathCtx == internal.POD {
 		prefix = s.kubeletPodPath
 	} else {
-		return fmt.Errorf("Invalid PathContext: %v", pathCtx)
+		return fmt.Errorf("invalid PathContext: %v", pathCtx)
 	}
 
 	pathlen := len(path)
 
-	if pathlen > utils.MAX_PATH_LENGTH_WINDOWS {
-		return fmt.Errorf("Path length %d exceeds maximum characters: %d", pathlen, utils.MAX_PATH_LENGTH_WINDOWS)
+	if pathlen > utils.MaxPathLengthWindows {
+		return fmt.Errorf("path length %d exceeds maximum characters: %d", pathlen, utils.MaxPathLengthWindows)
 	}
 
 	if pathlen > 0 && (path[0] == '\\') {
-		return fmt.Errorf("Invalid character \\ at begining of path: %s", path)
+		return fmt.Errorf("invalid character \\ at beginning of path: %s", path)
 	}
 
 	if isUNCPathWindows(path) {
-		return fmt.Errorf("Unsupported UNC path prefix: %s", path)
+		return fmt.Errorf("unsupported UNC path prefix: %s", path)
 	}
 
 	if containsInvalidCharactersWindows(path) {
-		return fmt.Errorf("Path contains invalid characters: %s", path)
+		return fmt.Errorf("path contains invalid characters: %s", path)
 	}
 
 	if !isAbsWindows(path) {
-		return fmt.Errorf("Not an absolute Windows path: %s", path)
+		return fmt.Errorf("not an absolute Windows path: %s", path)
 	}
 
 	if !strings.HasPrefix(path, prefix) {
-		return fmt.Errorf("Path: %s is not within context path: %s", path, prefix)
+		return fmt.Errorf("path: %s is not within context path: %s", path, prefix)
 	}
 
 	return nil
-}
-
-func (s *Server) abs(pathCtx internal.PathContext, path string) (string, error) {
-	if isAbsWindows(path) {
-		return path, nil
-	}
-	prefix := ""
-	if pathCtx == internal.PLUGIN {
-		prefix = s.kubeletCSIPluginsPath
-	} else if pathCtx == internal.POD {
-		prefix = s.kubeletPodPath
-	} else {
-		return "", fmt.Errorf("Invalid PathContext: %v", pathCtx)
-	}
-	return prefix + "\\" + path, nil
 }
 
 // PathExists checks if the given path exists on the host.
