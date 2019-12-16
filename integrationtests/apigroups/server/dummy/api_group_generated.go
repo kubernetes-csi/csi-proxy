@@ -8,7 +8,7 @@ import (
 	v1 "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1alpha2"
-	"github.com/kubernetes-csi/csi-proxy/internal/server"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 )
 
 const name = "dummy"
@@ -16,12 +16,12 @@ const name = "dummy"
 // ensure the server defines all the required methods
 var _ internal.ServerInterface = &Server{}
 
-func (s *Server) VersionedAPIs() []*server.VersionedAPI {
+func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 	v1alpha1Server := v1alpha1.NewVersionedServer(s)
 	v1alpha2Server := v1alpha2.NewVersionedServer(s)
 	v1Server := v1.NewVersionedServer(s)
 
-	return []*server.VersionedAPI{
+	return []*srvtypes.VersionedAPI{
 		{
 			Group:      name,
 			Version:    apiversion.NewVersionOrPanic("v1alpha1"),

@@ -23,7 +23,7 @@ func (g *apiGroupGeneratedGenerator) Filter(*generator.Context, *types.Type) boo
 func (g *apiGroupGeneratedGenerator) Imports(*generator.Context) []string {
 	imports := []string{
 		"github.com/kubernetes-csi/csi-proxy/client/apiversion",
-		"github.com/kubernetes-csi/csi-proxy/internal/server",
+		"srvtypes \"github.com/kubernetes-csi/csi-proxy/internal/server/types\"",
 		g.groupDefinition.internalServerPkg(),
 	}
 
@@ -44,7 +44,7 @@ func (g *apiGroupGeneratedGenerator) Init(context *generator.Context, writer io.
 // ensure the server defines all the required methods
 var _ internal.ServerInterface = &Server{}
 
-func (s *Server) VersionedAPIs() []*server.VersionedAPI {
+func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 `, nil)
 
 	versions := make([]apiversion.Version, len(g.groupDefinition.versions))
@@ -59,7 +59,7 @@ func (s *Server) VersionedAPIs() []*server.VersionedAPI {
 		snippetWriter.Do("$.$Server := $.$.NewVersionedServer(s)\n", version)
 	}
 
-	snippetWriter.Do("\n\nreturn []*server.VersionedAPI{\n", nil)
+	snippetWriter.Do("\n\nreturn []*srvtypes.VersionedAPI{\n", nil)
 	for _, version := range versions {
 		snippetWriter.Do(`{
 				Group:      name,

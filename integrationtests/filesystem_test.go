@@ -98,6 +98,5 @@ func TestFilesystemAPIGroup(t *testing.T) {
 
 		exists, err = pathExists(stagepath)
 		assert.False(t, exists, err)
-
 	})
 }
