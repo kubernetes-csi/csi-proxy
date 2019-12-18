@@ -12,13 +12,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubernetes-csi/csi-proxy/internal/server"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	"github.com/pkg/errors"
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/kubernetes-csi/csi-proxy/internal/server"
-	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 )
 
 // startServer starts the proxy's GRPC servers, and returns a function to shut them down when done with testing
