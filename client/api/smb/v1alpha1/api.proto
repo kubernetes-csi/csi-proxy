@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package v1alpha1;
+
+service Smb {
+    // MountSmbShare mounts a remote share over SMB on the host at the requested global staging path.
+    rpc MountSmbShare(MountSmbShareRequest) returns (MountSmbShareResponse) {}
+
+    // UnmountSmbShare unmounts a remote share over SMB on the host at the requested global staging path.
+    rpc UnmountSmbShare(UnmountSmbShareRequest) returns (UnmountSmbShareResponse) {}
+}
+
+
+message MountSmbShareRequest {
+    // A remote SMB share to mount
+    // All unicode characters allowed in SMB server name specifications are
+    // permitted except for restrictions below
+    //
+    // Restrictions:
+    // SMB remote path specified in the format: \\server-name\sharename, \\server.fqdn\sharename or \\a.b.c.d\sharename
+    // If not an IP address, share name has to be a valid DNS name.
+    // UNC specifications to local paths or prefix: \\?\ is not allowed.
+    // Characters: + [ ] " / : ; | < > , ? * = $ are not allowed.
+    string remote_path = 1;
+
+    // Local path in the host to stage the SMB share.
+    // All special characters allowed by Windows in path names will be allowed
+    // except for restrictions noted below. For details, please check:
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    //
+    // Restrictions:
+    // Needs to be an absolute path under kubelet-csi-plugins-path.
+    // Needs to exist already in host
+    // Path needs to be specified with drive letter prefix: "X:\".
+    // UNC paths of the form "\\server\share\path\file" are not allowed.
+    // All directory separators need to be backslash character: "\".
+    // Characters: .. / : | ? * in the path are not allowed.
+    // Maximum path length will be capped to 260 characters (MAX_PATH).
+    string local_path = 2;
+
+    // Mount the share read-only
+    bool readonly = 3;
+
+    // Username credential associated with the share
+    string username = 4;
+
+    // Password credential associated with the share
+    string password = 5;
+}
+
+message MountSmbShareResponse {
+    // Windows error code
+    // Success is represented as 0
+    string error = 1;
+}
+
+
+message UnmountSmbShareRequest {
+    // A remote SMB share mapping to remove
+    // All unicode characters allowed in SMB server name specifications are
+    // permitted except for restrictions below
+    //
+    // Restrictions:
+    // SMB share specified in the format: \\server-name\sharename, \\server.fqdn\sharename or \\a.b.c.d\sharename
+    // If not an IP address, share name has to be a valid DNS name.
+    // UNC specifications to local paths or prefix: \\?\ is not allowed.
+    // Characters: + [ ] " / : ; | < > , ? * = $ are not allowed.
+    string remote_path = 1;
+
+    // Local path in the host to stage the SMB share.
+    // All special characters allowed by Windows in path names will be allowed
+    // except for restrictions noted below. For details, please check:
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    //
+    // Restrictions:
+    // Needs to be an absolute path under kubelet-csi-plugins-path.
+    // Needs to exist already in host
+    // Path needs to be specified with drive letter prefix: "X:\".
+    // UNC paths of the form "\\server\share\path\file" are not allowed.
+    // All directory separators need to be backslash character: "\".
+    // Characters: .. / : | ? * in the path are not allowed.
+    // Maximum path length will be capped to 260 characters (MAX_PATH).
+    string local_path = 2;
+}
+
+message UnmountSmbShareResponse {
+    // Windows error code
+    // Success is represented as 0
+    string error = 1;
+}

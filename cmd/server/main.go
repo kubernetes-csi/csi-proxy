@@ -2,8 +2,10 @@ package main
 
 import (
 	filesystemapi "github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
+	smbapi "github.com/kubernetes-csi/csi-proxy/internal/os/smb"
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
 	filesystemsrv "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
+	smbsrv "github.com/kubernetes-csi/csi-proxy/internal/server/smb"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	flag "github.com/spf13/pflag"
 )
@@ -31,7 +33,12 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
+    smbsrv, err := smbsrv.NewServer(smbapi.New())
+    if err != nil {
+            return []srvtypes.APIGroup{}, err
+	}
 	return []srvtypes.APIGroup{
 		fssrv,
+        smbsrv,
 	}, nil
 }
