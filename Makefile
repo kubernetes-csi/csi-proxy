@@ -43,12 +43,12 @@ generate-protobuf:
 	@ if ! which protoc > /dev/null 2>&1; then echo 'Unable to find protoc binary' ; exit 1; fi
 	@ generate_protobuf_for() { \
 		local FILE="$$1"; \
-		local FILE_DIR="$$(dirname "$$FILE")"; \
-		echo "Generating protobuf file from $$FILE"; \
-		protoc -I "$$FILE_DIR" -I "$$GOPATH/src" -I '$(REPO_ROOT)/client/api' "$$FILE" --go_out=plugins="grpc:$$FILE_DIR"; \
+		local FILE_DIR="$$(dirname "$$GOPATH/$$FILE")"; \
+		echo "Generating protobuf file from $$FILE in $$FILE_DIR"; \
+		protoc -I "$$GOPATH/src/" -I '$(REPO_ROOT)/client/api' "$$FILE" --go_out=plugins="grpc:$(GOPATH)/src"; \
 	} ; \
 	export -f generate_protobuf_for; \
-	find '$(REPO_ROOT)' -name '*.proto' -print0 | xargs -0 -n1 $(SHELL) -c 'generate_protobuf_for "$$0"'
+	find '$(REPO_ROOT)' -name '*.proto' | sed -e "s|$(GOPATH)/src/||g" | xargs -n1 $(SHELL) -c 'generate_protobuf_for "$$0"'
 
 .PHONY: generate-csi-proxy-api-gen
 generate-csi-proxy-api-gen: compile-csi-proxy-api-gen
