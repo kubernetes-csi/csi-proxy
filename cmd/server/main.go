@@ -1,11 +1,15 @@
 package main
 
 import (
+	"flag"
+
 	filesystemapi "github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/internal/os/volume"
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
 	filesystemsrv "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
-	flag "github.com/spf13/pflag"
+	volumesrv "github.com/kubernetes-csi/csi-proxy/internal/server/volume"
+	"k8s.io/klog"
 )
 
 var (
@@ -14,6 +18,9 @@ var (
 )
 
 func main() {
+	defer klog.Flush()
+	klog.InitFlags(nil)
+
 	flag.Parse()
 	apiGroups, err := apiGroups()
 	if err != nil {
@@ -31,7 +38,14 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
+
+	volumesrv, err := volumesrv.NewServer(volumeapi.New())
+	if err != nil {
+		return []srvtypes.APIGroup{}, err
+	}
+
 	return []srvtypes.APIGroup{
 		fssrv,
+		volumesrv,
 	}, nil
 }
