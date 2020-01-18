@@ -7,6 +7,4 @@
 
  . release-tools/prow.sh
 
-# TODO: Once we add windows build rules and a Makefile, we can enable
-# some basic unit testing
-# main
+main

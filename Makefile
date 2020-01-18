@@ -14,8 +14,9 @@ BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
 
 GO_ENV_VARS = GO111MODULE=on GOOS=windows
 
+# TODO: temporarily disable generate and lint because they are not working.
 .PHONY: all
-all: generate compile lint
+all: compile test
 
 .PHONY: compile
 compile: compile-client compile-server compile-csi-proxy-api-gen
@@ -73,6 +74,14 @@ GOLANGCI_LINT = $(BUILD_TOOLS_DIR)/golangci-lint/$(GOLANGCI_LINT_VERSION)/golang
 lint: $(GOLANGCI_LINT)
 	$(GO_ENV_VARS) $(GOLANGCI_LINT) run
 	git --no-pager diff --exit-code
+
+.PHONY: test-go
+test: test-go
+test-go:
+	@ echo; echo "### $@:"
+	# TODO: After issue https://github.com/microsoft/go-winio/pull/169 is resolved, remove the filter on the test path.
+	GO111MODULE=on go test `find ./internal/server/ -type d -not -name server`;\
+	cd client && GO111MODULE=on go test `go list ./... | grep -v group` && cd ../
 
 # see https://github.com/golangci/golangci-lint#binary-release
 $(GOLANGCI_LINT):
