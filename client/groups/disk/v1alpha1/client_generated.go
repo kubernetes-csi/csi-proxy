@@ -58,3 +58,7 @@ func (w *Client) ListDiskLocations(context context.Context, request *v1alpha1.Li
 func (w *Client) PartitionDisk(context context.Context, request *v1alpha1.PartitionDiskRequest, opts ...grpc.CallOption) (*v1alpha1.PartitionDiskResponse, error) {
 	return w.client.PartitionDisk(context, request, opts...)
 }
+
+func (w *Client) Rescan(context context.Context, request *v1alpha1.RescanRequest, opts ...grpc.CallOption) (*v1alpha1.RescanResponse, error) {
+	return w.client.Rescan(context, request, opts...)
+}

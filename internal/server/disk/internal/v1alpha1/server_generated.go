@@ -64,3 +64,22 @@ func (s *versionedAPI) PartitionDisk(context context.Context, versionedRequest *
 
 	return versionedResponse, err
 }
+
+func (s *versionedAPI) Rescan(context context.Context, versionedRequest *v1alpha1.RescanRequest) (*v1alpha1.RescanResponse, error) {
+	request := &internal.RescanRequest{}
+	if err := Convert_v1alpha1_RescanRequest_To_internal_RescanRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.Rescan(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.RescanResponse{}
+	if err := Convert_internal_RescanResponse_To_v1alpha1_RescanResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
