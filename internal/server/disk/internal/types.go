@@ -22,3 +22,9 @@ type PartitionDiskRequest struct {
 
 type PartitionDiskResponse struct {
 }
+
+type RescanRequest struct {
+}
+
+type RescanResponse struct {
+}

@@ -10,6 +10,9 @@ service Disk {
     // PartitionDisk initializes and partitions a disk device (if the disk has not
     // been partitioned already) and returns the resulting volume device ID
     rpc PartitionDisk(PartitionDiskRequest) returns (PartitionDiskResponse) {}
+
+    // Rescan refreshes the host's storage cache
+    rpc Rescan(RescanRequest) returns (RescanResponse) {}
 }
 
 message ListDiskLocationsRequest {
@@ -34,5 +37,13 @@ message PartitionDiskRequest {
 }
 
 message PartitionDiskResponse {
+    // Intentionally empty
+}
+
+message RescanRequest {
+    // Intentionally empty
+}
+
+message RescanResponse {
     // Intentionally empty
 }
