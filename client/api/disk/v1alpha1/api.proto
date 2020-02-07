@@ -33,7 +33,7 @@ message ListDiskLocationsResponse {
 
 message PartitionDiskRequest {
     // Disk device ID of the disk to partition
-    string disk_id = 1;
+    string diskID = 1;
 }
 
 message PartitionDiskResponse {

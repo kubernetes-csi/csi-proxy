@@ -86,7 +86,7 @@ func (APIImplementor) IsDiskInitialized(diskID string) (bool, error) {
 		return false, fmt.Errorf("error checking initialized status of disk %s: %v, %v", diskID, out, err)
 	}
 	if len(out) == 0 {
-		// disks with raw initializtion not detected
+		// disks with raw initialization not detected
 		return true, nil
 	}
 	return false, nil

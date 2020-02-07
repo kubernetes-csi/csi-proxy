@@ -50,7 +50,7 @@ func (s *Server) ListDiskLocations(context context.Context, request *internal.Li
 
 func (s *Server) PartitionDisk(context context.Context, request *internal.PartitionDiskRequest, version apiversion.Version) (*internal.PartitionDiskResponse, error) {
 	response := &internal.PartitionDiskResponse{}
-	diskID := request.DiskId
+	diskID := request.DiskID
 
 	klog.Infof("Checking if disk %s is initialized", diskID)
 	initialized, err := s.hostAPI.IsDiskInitialized(diskID)

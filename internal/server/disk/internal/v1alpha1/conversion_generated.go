@@ -91,7 +91,7 @@ func autoConvert_internal_ListDiskLocationsResponse_To_v1alpha1_ListDiskLocation
 }
 
 func autoConvert_v1alpha1_PartitionDiskRequest_To_internal_PartitionDiskRequest(in *v1alpha1.PartitionDiskRequest, out *internal.PartitionDiskRequest) error {
-	out.DiskId = in.DiskId
+	out.DiskID = in.DiskID
 	return nil
 }
 
@@ -101,7 +101,7 @@ func Convert_v1alpha1_PartitionDiskRequest_To_internal_PartitionDiskRequest(in *
 }
 
 func autoConvert_internal_PartitionDiskRequest_To_v1alpha1_PartitionDiskRequest(in *internal.PartitionDiskRequest, out *v1alpha1.PartitionDiskRequest) error {
-	out.DiskId = in.DiskId
+	out.DiskID = in.DiskID
 	return nil
 }
 

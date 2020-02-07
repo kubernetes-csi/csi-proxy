@@ -17,7 +17,7 @@ type ListDiskLocationsResponse struct {
 
 type PartitionDiskRequest struct {
 	// Disk device ID of the disk to partition
-	DiskId string
+	DiskID string
 }
 
 type PartitionDiskResponse struct {
