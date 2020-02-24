@@ -28,3 +28,13 @@ type RescanRequest struct {
 
 type RescanResponse struct {
 }
+
+
+type GetDiskNumberByNameRequest struct {
+	// Disk device ID of the disk to partition
+	DiskName string
+}
+
+type GetDiskNumberByNameResponse struct {
+	DiskNumber string
+}

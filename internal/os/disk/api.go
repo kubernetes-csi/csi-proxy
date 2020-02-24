@@ -122,3 +122,13 @@ func (APIImplementor) CreatePartition(diskID string) error {
 	}
 	return nil
 }
+
+
+func (APIImplementor) GetDiskNumberByName(diskName string) (string, error) {
+	out, err := exec.Command("DiskUtil.exe", "-GetDiskNumberWithId", diskName).CombinedOutput()
+	outString := string(out)
+	if err != nil {
+		return "", fmt.Errorf("error getting disk number. %v, output %v", err, out)
+	}
+	return strings.TrimSpace(outString), nil
+}
