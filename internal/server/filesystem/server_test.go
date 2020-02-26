@@ -23,6 +23,10 @@ func (fakeFileSystemAPI) LinkPath(tgt string, src string) error {
 	return nil
 }
 
+func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
+	return true, nil
+}
+
 func TestMkdirWindows(t *testing.T) {
 	v1alpha1, err := apiversion.NewVersion("v1alpha1")
 	if err != nil {

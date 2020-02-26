@@ -99,4 +99,70 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		exists, err = pathExists(stagepath)
 		assert.False(t, exists, err)
 	})
+	t.Run("IsMount", func(t *testing.T) {
+		client, err := v1alpha1client.NewClient()
+		require.Nil(t, err)
+		defer client.Close()
+
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		rand1 := r1.Intn(100)
+		rand2 := r1.Intn(100)
+
+		testDir := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io", rand1)
+		err = os.MkdirAll(testDir, os.ModeDir)
+		require.Nil(t, err)
+		defer os.RemoveAll(testDir)
+
+		// 1. Check the isMount on a path which does not exist. Failure scenario.
+		stagepath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d", rand1, rand2)
+		isMountRequest := &v1alpha1.IsMountPointRequest{
+			Path: stagepath,
+		}
+		isMountResponse, err := client.IsMountPoint(context.Background(), isMountRequest)
+		require.Nil(t, err)
+		require.Equal(t, isMountResponse.IsMountPoint, false)
+
+		// 2. Create the directory. This time its not a mount point. Failure scenario.
+		err = os.Mkdir(stagepath, os.ModeDir)
+		require.Nil(t, err)
+		defer os.Remove(stagepath)
+		isMountRequest = &v1alpha1.IsMountPointRequest{
+			Path: stagepath,
+		}
+		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
+		require.Nil(t, err)
+		require.Equal(t, isMountResponse.IsMountPoint, false)
+
+		err = os.Remove(stagepath)
+		require.Nil(t, err)
+		targetStagePath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2)
+		lnTargetStagePath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2)
+
+		// 3. Create soft link to the directory and make sure target exists. Success scenario.
+		os.Mkdir(targetStagePath, os.ModeDir)
+		require.Nil(t, err)
+		defer os.Remove(targetStagePath)
+		// Create a sym link
+		err = os.Symlink(targetStagePath, lnTargetStagePath)
+		require.Nil(t, err)
+		defer os.Remove(lnTargetStagePath)
+
+		isMountRequest = &v1alpha1.IsMountPointRequest{
+			Path: lnTargetStagePath,
+		}
+		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
+		require.Nil(t, err)
+		require.Equal(t, isMountResponse.IsMountPoint, true)
+
+		// 4. Remove the path. Failure scenario.
+		err = os.Remove(targetStagePath)
+		require.Nil(t, err)
+		isMountRequest = &v1alpha1.IsMountPointRequest{
+			Path: lnTargetStagePath,
+		}
+		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
+		require.Nil(t, err)
+		require.Equal(t, isMountResponse.IsMountPoint, false)
+	})
 }
