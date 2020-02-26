@@ -135,25 +135,27 @@ var fileDescriptor_07d739019a1ce9cc = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // DummyClient is the client API for Dummy service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DummyClient interface {
 	// ComputeDouble computes the double of the input. Real smart stuff!
+	//
+	// Deprecated: Do not use.
 	ComputeDouble(ctx context.Context, in *ComputeDoubleRequest, opts ...grpc.CallOption) (*ComputeDoubleResponse, error)
 }
 
 type dummyClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewDummyClient(cc *grpc.ClientConn) DummyClient {
+func NewDummyClient(cc grpc.ClientConnInterface) DummyClient {
 	return &dummyClient{cc}
 }
 
@@ -170,6 +172,8 @@ func (c *dummyClient) ComputeDouble(ctx context.Context, in *ComputeDoubleReques
 // DummyServer is the server API for Dummy service.
 type DummyServer interface {
 	// ComputeDouble computes the double of the input. Real smart stuff!
+	//
+	// Deprecated: Do not use.
 	ComputeDouble(context.Context, *ComputeDoubleRequest) (*ComputeDoubleResponse, error)
 }
 
