@@ -15,6 +15,7 @@ type VersionedAPI interface {
 
 // All the functions this group's server needs to define.
 type ServerInterface interface {
+	IsMountPoint(context.Context, *IsMountPointRequest, apiversion.Version) (*IsMountPointResponse, error)
 	LinkPath(context.Context, *LinkPathRequest, apiversion.Version) (*LinkPathResponse, error)
 	Mkdir(context.Context, *MkdirRequest, apiversion.Version) (*MkdirResponse, error)
 	PathExists(context.Context, *PathExistsRequest, apiversion.Version) (*PathExistsResponse, error)
