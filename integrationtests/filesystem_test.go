@@ -140,7 +140,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		lnTargetStagePath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2)
 
 		// 3. Create soft link to the directory and make sure target exists. Success scenario.
-		os.Mkdir(targetStagePath, os.ModeDir)
+		err = os.Mkdir(targetStagePath, os.ModeDir)
 		require.Nil(t, err)
 		defer os.Remove(targetStagePath)
 		// Create a sym link
