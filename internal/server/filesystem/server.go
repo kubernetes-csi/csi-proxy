@@ -99,7 +99,7 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 		return fmt.Errorf("not an absolute Windows path: %s", path)
 	}
 
-	if !strings.HasPrefix(path, prefix) {
+	if !strings.HasPrefix(strings.ToLower(path), strings.ToLower(prefix)) {
 		return fmt.Errorf("path: %s is not within context path: %s", path, prefix)
 	}
 
@@ -112,18 +112,18 @@ func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsReq
 	if err != nil {
 		return &internal.PathExistsResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
 	exists, err := s.hostAPI.PathExists(request.Path)
 	if err != nil {
 		return &internal.PathExistsResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
 	return &internal.PathExistsResponse{
 		Error:  "",
 		Exists: exists,
-	}, nil
+	}, err
 }
 
 func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, version apiversion.Version) (*internal.MkdirResponse, error) {
@@ -137,12 +137,12 @@ func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, vers
 	if err != nil {
 		return &internal.MkdirResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
 
 	return &internal.MkdirResponse{
 		Error: "",
-	}, nil
+	}, err
 }
 
 func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, version apiversion.Version) (*internal.RmdirResponse, error) {
@@ -150,40 +150,40 @@ func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, vers
 	if err != nil {
 		return &internal.RmdirResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
 	err = s.hostAPI.Rmdir(request.Path, request.Force)
 	if err != nil {
 		return &internal.RmdirResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
 	return &internal.RmdirResponse{
 		Error: "",
-	}, nil
+	}, err
 }
 
 func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest, version apiversion.Version) (*internal.LinkPathResponse, error) {
-	err := s.validatePathWindows(internal.POD, request.SourcePath)
+	err := s.validatePathWindows(internal.POD, request.TargetPath)
 	if err != nil {
 		return &internal.LinkPathResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
-	err = s.validatePathWindows(internal.PLUGIN, request.TargetPath)
+	err = s.validatePathWindows(internal.PLUGIN, request.SourcePath)
 	if err != nil {
 		return &internal.LinkPathResponse{
 			Error: err.Error(),
-		}, nil
+		}, err
 	}
-	err = s.hostAPI.LinkPath(request.TargetPath, request.SourcePath)
+	err = s.hostAPI.LinkPath(request.SourcePath, request.TargetPath)
 	errString := ""
 	if err != nil {
 		errString = err.Error()
 	}
 	return &internal.LinkPathResponse{
 		Error: errString,
-	}, nil
+	}, err
 }
 
 func (s *Server) IsMountPoint(ctx context.Context, request *internal.IsMountPointRequest, version apiversion.Version) (*internal.IsMountPointResponse, error) {
@@ -192,10 +192,10 @@ func (s *Server) IsMountPoint(ctx context.Context, request *internal.IsMountPoin
 		return &internal.IsMountPointResponse{
 			IsMountPoint: false,
 			Error:        err.Error(),
-		}, nil
+		}, err
 	}
 	return &internal.IsMountPointResponse{
 		Error:        "",
 		IsMountPoint: isMount,
-	}, nil
+	}, err
 }

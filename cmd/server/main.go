@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	kubeletCSIPluginsPath = flag.String("kubelet-csi-plugins-path", `C:\var\lib\kubelet\plugins`, "Absolute path of the Kubelet plugin directory in the host file system")
-	kubeletPodPath        = flag.String("kubelet-pod-path", `C:\var\lib\kubelet\pods`, "Absolute path of the kubelet pod directory in the host file system")
+	kubeletCSIPluginsPath = flag.String("kubelet-csi-plugins-path", `C:\var\lib\kubelet`, "Prefix path of the Kubelet plugin directory in the host file system")
+	kubeletPodPath        = flag.String("kubelet-pod-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet pod directory in the host file system")
 )
 
 func main() {
