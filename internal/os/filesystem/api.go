@@ -42,8 +42,8 @@ func (APIImplementor) Rmdir(path string, force bool) error {
 	return os.Remove(path)
 }
 
-func (APIImplementor) LinkPath(tgt string, src string) error {
-	return os.Symlink(tgt, src)
+func (APIImplementor) LinkPath(oldname, newname string) error {
+	return os.Symlink(oldname, newname)
 }
 
 // IsMountPoint - returns true if its a mount point.
