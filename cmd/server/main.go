@@ -5,10 +5,12 @@ import (
 
 	diskapi "github.com/kubernetes-csi/csi-proxy/internal/os/disk"
 	filesystemapi "github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
+	smbapi "github.com/kubernetes-csi/csi-proxy/internal/os/smb"
 	volumeapi "github.com/kubernetes-csi/csi-proxy/internal/os/volume"
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
 	disksrv "github.com/kubernetes-csi/csi-proxy/internal/server/disk"
 	filesystemsrv "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
+	smbsrv "github.com/kubernetes-csi/csi-proxy/internal/server/smb"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	volumesrv "github.com/kubernetes-csi/csi-proxy/internal/server/volume"
 	"k8s.io/klog"
@@ -51,9 +53,15 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 		return []srvtypes.APIGroup{}, err
 	}
 
+	smbsrv, err := smbsrv.NewServer(smbapi.New())
+	if err != nil {
+		return []srvtypes.APIGroup{}, err
+	}
+
 	return []srvtypes.APIGroup{
 		fssrv,
 		disksrv,
 		volumesrv,
+                smbsrv,
 	}, nil
 }
