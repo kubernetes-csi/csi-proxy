@@ -20,6 +20,9 @@ func (fakeSmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
 
 func TestNewSmbGlobalMapping(t *testing.T) {
 	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	if err != nil {
+		t.Fatalf("New version error: %v", err)
+	}
 	testCases := []struct {
 		remote      string
 		username    string
@@ -52,11 +55,11 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 			Username:   tc.username,
 			Password:   tc.password,
 		}
-		response, _ := srv.NewSmbGlobalMapping(context.TODO(), req, tc.version)
-		if tc.expectError && response.Error == "" {
+		response, err := srv.NewSmbGlobalMapping(context.TODO(), req, tc.version)
+		if tc.expectError && err == nil {
 			t.Errorf("Expected error but NewSmbGlobalMapping returned a nil error")
 		}
-		if !tc.expectError && response.Error != "" {
+		if !tc.expectError && err != nil {
 			t.Errorf("Expected no errors but NewSmbGlobalMapping returned error: %s", response.Error)
 		}
 	}

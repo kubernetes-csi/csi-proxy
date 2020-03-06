@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-        "strings"
+    "strings"
 	"time"
 
 	"testing"
@@ -48,15 +48,15 @@ func setupUser(username, password string) error {
 	return nil
 }
 
-func removeUser(username string) error {
+func removeUser(t *testing.T, username string) error {
 	cmdLine := fmt.Sprintf(`Remove-Localuser -name $Env:username`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("username=%s", username))
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("setupUser failed: %v, output: %q", err, string(output))
+		t.Fatalf("setupUser failed: %v, output: %q", err, string(output))
 	}
-	return nil
+	return
 }
 
 func setupSmbShare(shareName, localPath, username string) error {
@@ -76,15 +76,15 @@ func setupSmbShare(shareName, localPath, username string) error {
 	return nil
 }
 
-func removeSmbShare(shareName string) error {
+func removeSmbShare(t *testing.T, shareName string) {
 	cmdLine := fmt.Sprintf(`Remove-SMBShare -Name $Env:sharename -Force`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("sharename=%s", shareName))
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("setupSmbShare failed: %v, output: %q", err, string(output))
+		t.Fatalf("setupSmbShare failed: %v, output: %q", err, string(output))
 	}
-	return nil
+	return
 }
 
 func getSmbGlobalMapping(remotePath string) error {
@@ -113,9 +113,12 @@ func writeReadFile(path string) error {
 	}
 	defer f.Close()
 	fileContent := "Hello World"
-	_, err = f.WriteString(fileContent)
-	f.Sync()
-
+	if _, err = f.WriteString(fileContent); err != nil {
+		return fmt.Errorf("write to file %q failed: %v", fileName, err)
+	}
+	if err = f.Sync(); err != nil {
+		return fmt.Errorf("sync file %q failed: %v", fileName, err)
+	}
 	dat, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return fmt.Errorf("read file %q failed: %v", fileName, err)
@@ -123,9 +126,7 @@ func writeReadFile(path string) error {
 	if fileContent != string(dat) {
 		return fmt.Errorf("read content of file %q failed: expected %q, got %q", fileName, fileContent, string(dat))
 	}
-	fmt.Print(string(dat))
-
-	return err
+	return nil
 }
 
 func TestSmbAPIGroup(t *testing.T) {
@@ -143,15 +144,15 @@ func TestSmbAPIGroup(t *testing.T) {
 
 		localPath := fmt.Sprintf("C:\\localpath%s", randomString(5))
 
-		if err := setupUser(username, password); err != nil {
+		if err = setupUser(username, password); err != nil {
 			t.Fatalf("TestSmbAPIGroup %v", err)
 		}
-		defer removeUser(username)
+		defer removeUser(t, username)
 
-		if err := setupSmbShare(smbShare, sharePath, username); err != nil {
+		if err = setupSmbShare(smbShare, sharePath, username); err != nil {
 			t.Fatalf("TestSmbAPIGroup %v", err)
 		}
-		defer removeSmbShare(smbShare)
+		defer removeSmbShare(t, smbShare)
 
 		hostname, err := os.Hostname()
 		assert.Nil(t, err)
@@ -190,7 +191,6 @@ func TestSmbAPIGroup(t *testing.T) {
 		}
 		err = getSmbGlobalMapping(remotePath)
 		assert.NotNil(t, err)
-
 		err = writeReadFile(localPath)
 		assert.NotNil(t, err)
 
