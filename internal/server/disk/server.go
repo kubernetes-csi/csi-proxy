@@ -20,6 +20,7 @@ type API interface {
 	PartitionsExist(diskID string) (bool, error)
 	CreatePartition(diskID string) error
 	Rescan() error
+	GetDiskNumberByName(diskName string) (string, error) 
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -91,5 +92,17 @@ func (s *Server) Rescan(context context.Context, request *internal.RescanRequest
 	if err != nil {
 		return nil, err
 	}
+	return response, nil
+}
+
+func (s *Server) GetDiskNumberByName(context context.Context, request *internal.GetDiskNumberByNameRequest, version apiversion.Version) (*internal.GetDiskNumberByNameResponse, error) {
+	response := &internal.GetDiskNumberByNameResponse{}
+	diskName := request.DiskName
+	number, err := s.hostAPI.GetDiskNumberByName(diskName)
+	if err != nil {
+		return nil, err
+	}
+
+	response.DiskNumber = number
 	return response, nil
 }
