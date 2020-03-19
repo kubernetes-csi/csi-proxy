@@ -27,6 +27,25 @@ func (s *versionedAPI) Register(grpcServer *grpc.Server) {
 	v1alpha1.RegisterDiskServer(grpcServer, s)
 }
 
+func (s *versionedAPI) GetDiskNumberByName(context context.Context, versionedRequest *v1alpha1.GetDiskNumberByNameRequest) (*v1alpha1.GetDiskNumberByNameResponse, error) {
+	request := &internal.GetDiskNumberByNameRequest{}
+	if err := Convert_v1alpha1_GetDiskNumberByNameRequest_To_internal_GetDiskNumberByNameRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetDiskNumberByName(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.GetDiskNumberByNameResponse{}
+	if err := Convert_internal_GetDiskNumberByNameResponse_To_v1alpha1_GetDiskNumberByNameResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) ListDiskLocations(context context.Context, versionedRequest *v1alpha1.ListDiskLocationsRequest) (*v1alpha1.ListDiskLocationsResponse, error) {
 	request := &internal.ListDiskLocationsRequest{}
 	if err := Convert_v1alpha1_ListDiskLocationsRequest_To_internal_ListDiskLocationsRequest(versionedRequest, request); err != nil {
