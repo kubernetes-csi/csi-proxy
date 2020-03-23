@@ -31,6 +31,8 @@ func main() {
 		panic(err)
 	}
 	s := server.NewServer(apiGroups...)
+	klog.Infof("Starting CSI proxy server")
+	klog.Infof("Version: %s, Git commit: %s, Build date: %s", ServerVersion, GitCommit, BuildDate)
 	if err := s.Start(nil); err != nil {
 		panic(err)
 	}
@@ -62,6 +64,6 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 		fssrv,
 		disksrv,
 		volumesrv,
-                smbsrv,
+		smbsrv,
 	}, nil
 }

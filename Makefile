@@ -12,6 +12,10 @@ REPO_ROOT = $(CURDIR)
 BUILD_DIR = build
 BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
 
+GIT_COMMIT :=$$(git rev-parse --short HEAD)
+SERVER_VERSION ?=v1.0-alpha
+BUILDDATE := $$(date +%Y%m%d-%H:%M)
+GO_BUILD_OPTS := -ldflags "-X main.GitCommit=$(GIT_COMMIT) -X main.ServerVersion=$(SERVER_VERSION) -X main.BuildDate=$(BUILDDATE)"
 GO_ENV_VARS = GO111MODULE=on GOOS=windows
 
 # TODO: temporarily disable generate and lint because they are not working.
@@ -27,7 +31,7 @@ compile-client:
 
 .PHONY: compile-server
 compile-server:
-	$(GO_ENV_VARS) go build -o $(BUILD_DIR)/server.exe ./cmd/server
+	$(GO_ENV_VARS) go build $(GO_BUILD_OPTS) -o $(BUILD_DIR)/server.exe ./cmd/server 
 
 CSI_PROXY_API_GEN = $(BUILD_DIR)/csi-proxy-api-gen
 
