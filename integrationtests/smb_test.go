@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-    "strings"
+	"strings"
 	"time"
 
 	"testing"
@@ -101,7 +101,7 @@ func getSmbGlobalMapping(remotePath string) error {
 	}
 	if !strings.Contains(string(output), "OK") {
 		return fmt.Errorf("Get-SmbGlobalMapping return status %q instead of OK", string(output))
-        }
+	}
 	return nil
 }
 
