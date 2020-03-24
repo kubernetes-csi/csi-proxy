@@ -2,6 +2,7 @@ package internal
 
 type NewSmbGlobalMappingRequest struct {
 	RemotePath string
+	LocalPath  string
 	Username   string
 	Password   string
 }

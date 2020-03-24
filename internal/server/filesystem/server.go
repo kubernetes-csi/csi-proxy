@@ -67,6 +67,10 @@ func isAbsWindows(path string) bool {
 	return absPathRegexWindows.MatchString(path)
 }
 
+func (s *Server) ValidateSMBLinkPath(path string) error {
+	return s.validatePathWindows(internal.PLUGIN, path)
+}
+
 func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) error {
 	prefix := ""
 	if pathCtx == internal.PLUGIN {
