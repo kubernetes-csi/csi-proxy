@@ -67,8 +67,11 @@ endif
 # separated by semicolon. An empty variable or empty entry (= just a
 # semicolon) builds for the default platform of the current Go
 # toolchain.
+ifdef os
+BUILD_PLATFORMS=$(os)
+else
 BUILD_PLATFORMS =
-
+endif
 # This builds each command (= the sub-directories of ./cmd) for the target platform(s)
 # defined by BUILD_PLATFORMS.
 build-%: check-go-version-go

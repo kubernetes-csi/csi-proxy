@@ -1,8 +1,9 @@
-## This Makefile is meant to be run on Unix hosts - as such, it only supports the few
-## operations that don't require on a Windows host, mostly code generation and linting.
+os=windows
+CMDS=server
 
-.DEFAULT_GOAL := all
-SHELL := /bin/bash
+all: build test-go
+
+include release-tools/build.make
 
 ifeq ($(GOPATH),)
 $(error "GOPATH env variable not defined")
@@ -13,10 +14,6 @@ BUILD_DIR = build
 BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
 
 GO_ENV_VARS = GO111MODULE=on GOOS=windows
-
-# TODO: temporarily disable generate and lint because they are not working.
-.PHONY: all
-all: compile test
 
 .PHONY: compile
 compile: compile-client compile-server compile-csi-proxy-api-gen
@@ -83,6 +80,14 @@ test-go:
 	GO111MODULE=on go test `find ./internal/server/ -type d -not -name server`;\
 	cd client && GO111MODULE=on go test `go list ./... | grep -v group` && cd ../
 
+.PHONY: test-vet
+vet: test-vet
+test-vet:
+	@ echo; echo "### $@:"
+	# TODO: After issue https://github.com/microsoft/go-winio/pull/169 is resolved, remove the filter on the test path.
+	GO111MODULE=on go vet `find ./internal/server/ -type d -not -name server`;\
+	cd client && GO111MODULE=on go vet `go list ./... | grep -v group` && cd ../
+
 # see https://github.com/golangci/golangci-lint#binary-release
 $(GOLANGCI_LINT):
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(dirname '$(GOLANGCI_LINT)')" '$(GOLANGCI_LINT_VERSION)'
+curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(dirname '$(GOLANGCI_LINT)')" '$(GOLANGCI_LINT_VERSION)'
