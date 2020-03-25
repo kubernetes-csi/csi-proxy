@@ -11,7 +11,7 @@ import (
 
 type fakeSmbAPI struct{}
 
-func (fakeSmbAPI) NewSmbGlobalMapping(remotePath, localPath, username, password string) error {
+func (fakeSmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	return nil
 }
 
@@ -23,7 +23,7 @@ func (fakeSmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 	return false, nil
 }
 
-func (fakeSmbAPI) SMBLink(remotePath, localPath string) error {
+func (fakeSmbAPI) NewSmbLink(remotePath, localPath string) error {
 	return nil
 }
 

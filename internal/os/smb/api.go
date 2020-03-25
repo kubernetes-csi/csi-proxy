@@ -32,14 +32,14 @@ func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
 	return true, nil
 }
 
-// SMBLink - creates a direcotry symbolic link to the remote share.
+// NewSmbLink - creates a direcotry symbolic link to the remote share.
 // The os.Symlink was having issue for cases where the destination was an SMB share - the container
 // runtime would complain stating "Access Denied". Because of this, we had to perform
 // this operation with powershell commandlet creating an directory softlink.
 // Since os.Symlink is currently being used in working code paths, no attempt is made in
 // alpha to merge the paths.
 // TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
-func (APIImplementor) SMBLink(remotePath, localPath string) error {
+func (APIImplementor) NewSmbLink(remotePath, localPath string) error {
 	cmdLine := fmt.Sprintf(`New-Item -ItemType SymbolicLink $Env:smblocalPath -Target $Env:smbremotepath`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
@@ -54,8 +54,8 @@ func (APIImplementor) SMBLink(remotePath, localPath string) error {
 	return nil
 }
 
-func (APIImplementor) NewSmbGlobalMapping(remotePath, localPath, username, password string) error {
-	klog.V(4).Infof("NewSmbGlobalMapping: remotePath:%q, localPath:%q", remotePath, localPath)
+func (APIImplementor) NewSmbGlobalMapping(remotePath, username, password string) error {
+	klog.V(4).Infof("NewSmbGlobalMapping: remotePath:%q", remotePath)
 
 	// use PowerShell Environment Variables to store user input string to prevent command line injection
 	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1

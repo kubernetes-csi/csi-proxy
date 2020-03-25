@@ -17,8 +17,8 @@ type Server struct {
 
 type API interface {
 	IsSmbMapped(remotePath string) (bool, error)
-	SMBLink(remotePath, localPath string) error
-	NewSmbGlobalMapping(remotePath, localPath, username, password string) error
+	NewSmbLink(remotePath, localPath string) error
+	NewSmbGlobalMapping(remotePath, username, password string) error
 	RemoveSmbGlobalMapping(remotePath string) error
 }
 
@@ -45,7 +45,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 
 	if !isMapped {
 		klog.V(4).Infof("Remote %s not mapped. Mapping now!", remotePath)
-		err := s.hostAPI.NewSmbGlobalMapping(remotePath, localPath, request.Username, request.Password)
+		err := s.hostAPI.NewSmbGlobalMapping(remotePath, request.Username, request.Password)
 		if err != nil {
 			return response, err
 		}
@@ -56,7 +56,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 		if err != nil {
 			return response, err
 		}
-		err = s.hostAPI.SMBLink(remotePath, localPath)
+		err = s.hostAPI.NewSmbLink(remotePath, localPath)
 		if err != nil {
 			return response, fmt.Errorf("creating link %s to %s failed with error: %v", localPath, remotePath, err)
 		}
