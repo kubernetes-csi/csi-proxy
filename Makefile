@@ -1,34 +1,15 @@
-## This Makefile is meant to be run on Unix hosts - as such, it only supports the few
-## operations that don't require on a Windows host, mostly code generation and linting.
+CMDS=server
+BUILD_PLATFORM=win amd64 .exe
+all: build test
 
-.DEFAULT_GOAL := all
-SHELL := /bin/bash
+# include release tools for building binary and testing targets
+include release-tools/build.make
 
-ifeq ($(GOPATH),)
-$(error "GOPATH env variable not defined")
-endif
-
+GOPATH ?= $(shell go env GOPATH)
 REPO_ROOT = $(CURDIR)
 BUILD_DIR = build
 BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
-
 GO_ENV_VARS = GO111MODULE=on GOOS=windows
-
-# TODO: temporarily disable generate and lint because they are not working.
-.PHONY: all
-all: compile test
-
-.PHONY: compile
-compile: compile-client compile-server compile-csi-proxy-api-gen
-
-.PHONY: compile-client
-compile-client:
-	cd client && $(GO_ENV_VARS) go build ./...
-
-.PHONY: compile-server
-compile-server:
-	$(GO_ENV_VARS) go build -o $(BUILD_DIR)/server.exe ./cmd/server
-
 CSI_PROXY_API_GEN = $(BUILD_DIR)/csi-proxy-api-gen
 
 .PHONY: compile-csi-proxy-api-gen
@@ -44,12 +25,12 @@ generate-protobuf:
 	@ if ! which protoc > /dev/null 2>&1; then echo 'Unable to find protoc binary' ; exit 1; fi
 	@ generate_protobuf_for() { \
 		local FILE="$$1"; \
-		local FILE_DIR="$$(dirname "$$GOPATH/$$FILE")"; \
-		echo "Generating protobuf file from $$FILE in $$FILE_DIR"; \
-		protoc -I "$$GOPATH/src/" -I '$(REPO_ROOT)/client/api' "$$FILE" --go_out=plugins="grpc:$(GOPATH)/src"; \
-	} ; \
-	export -f generate_protobuf_for; \
-	find '$(REPO_ROOT)' -name '*.proto' | sed -e "s|$(GOPATH)/src/||g" | xargs -n1 $(SHELL) -c 'generate_protobuf_for "$$0"'
+		local FILE_DIR="$$(dirname "$(GOPATH)/$$FILE")"; \
+                echo "Generating protobuf file from $$FILE in $$FILE_DIR"; \
+                protoc -I "$(GOPATH)/src/" -I '$(REPO_ROOT)/client/api' "$$FILE" --go_out=plugins="grpc:$(GOPATH)/src"; \
+        } ; \
+        export -f generate_protobuf_for; \
+        find '$(REPO_ROOT)' -name '*.proto' | sed -e "s|$(GOPATH)/src/||g" | xargs -n1 $(SHELL) -c 'generate_protobuf_for "$$0"'
 
 .PHONY: generate-csi-proxy-api-gen
 generate-csi-proxy-api-gen: compile-csi-proxy-api-gen
@@ -81,8 +62,15 @@ test-go:
 	@ echo; echo "### $@:"
 	# TODO: After issue https://github.com/microsoft/go-winio/pull/169 is resolved, remove the filter on the test path.
 	GO111MODULE=on go test `find ./internal/server/ -type d -not -name server`;\
-	cd client && GO111MODULE=on go test `go list ./... | grep -v group` && cd ../
+        cd client && GO111MODULE=on go test `go list ./... | grep -v group` && cd ../
 
+.PHONY: test-vet
+test: test-vet
+test-vet:
+	@ echo; echo "### $@:"
+	# TODO: After issue https://github.com/microsoft/go-winio/pull/169 is resolved, remove the filter on the test path.
+	# GO111MODULE=on go vet `find ./internal/server/ -type d -not -name server`;\
+        cd client && GO111MODULE=on go vet `go list ./... | grep -v group` && cd ../
 # see https://github.com/golangci/golangci-lint#binary-release
 $(GOLANGCI_LINT):
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(dirname '$(GOLANGCI_LINT)')" '$(GOLANGCI_LINT_VERSION)'
+curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(dirname '$(GOLANGCI_LINT)')" '$(GOLANGCI_LINT_VERSION)'
