@@ -9,6 +9,7 @@ import (
 
 func autoConvert_v1alpha1_NewSmbGlobalMappingRequest_To_internal_NewSmbGlobalMappingRequest(in *v1alpha1.NewSmbGlobalMappingRequest, out *internal.NewSmbGlobalMappingRequest) error {
 	out.RemotePath = in.RemotePath
+	out.LocalPath = in.LocalPath
 	out.Username = in.Username
 	out.Password = in.Password
 	return nil
@@ -21,6 +22,7 @@ func Convert_v1alpha1_NewSmbGlobalMappingRequest_To_internal_NewSmbGlobalMapping
 
 func autoConvert_internal_NewSmbGlobalMappingRequest_To_v1alpha1_NewSmbGlobalMappingRequest(in *internal.NewSmbGlobalMappingRequest, out *v1alpha1.NewSmbGlobalMappingRequest) error {
 	out.RemotePath = in.RemotePath
+	out.LocalPath = in.LocalPath
 	out.Username = in.Username
 	out.Password = in.Password
 	return nil

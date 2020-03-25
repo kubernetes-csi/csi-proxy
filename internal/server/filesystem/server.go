@@ -67,6 +67,15 @@ func isAbsWindows(path string) bool {
 	return absPathRegexWindows.MatchString(path)
 }
 
+// ValidatePluginPath - Validates the path is compatible with the 'plugin path'
+// restrictions.
+// Note: The reason why we cannot reuse the validatePathWindows directly
+// from other parts of the library is that it seems internal.PLUGIN was not
+// usable from outside the internal path tree.
+func (s *Server) ValidatePluginPath(path string) error {
+	return s.validatePathWindows(internal.PLUGIN, path)
+}
+
 func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) error {
 	prefix := ""
 	if pathCtx == internal.PLUGIN {

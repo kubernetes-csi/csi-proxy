@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
+	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
 )
 
@@ -18,6 +19,33 @@ func (fakeSmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
 	return nil
 }
 
+func (fakeSmbAPI) IsSmbMapped(remotePath string) (bool, error) {
+	return false, nil
+}
+
+func (fakeSmbAPI) NewSmbLink(remotePath, localPath string) error {
+	return nil
+}
+
+type fakeFileSystemAPI struct{}
+
+func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
+	return true, nil
+}
+func (fakeFileSystemAPI) Mkdir(path string) error {
+	return nil
+}
+func (fakeFileSystemAPI) Rmdir(path string, force bool) error {
+	return nil
+}
+func (fakeFileSystemAPI) LinkPath(tgt string, src string) error {
+	return nil
+}
+
+func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
+	return true, nil
+}
+
 func TestNewSmbGlobalMapping(t *testing.T) {
 	v1alpha1, err := apiversion.NewVersion("v1alpha1")
 	if err != nil {
@@ -25,6 +53,7 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 	}
 	testCases := []struct {
 		remote      string
+		local       string
 		username    string
 		password    string
 		version     apiversion.Version
@@ -45,12 +74,18 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 			expectError: false,
 		},
 	}
-	srv, err := NewServer(&fakeSmbAPI{})
+	fsSrv, err := fsserver.NewServer(`C:\var\lib\kubelet\plugins`, `C:\var\lib\kubelet\pods`, &fakeFileSystemAPI{})
+	if err != nil {
+		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
+	}
+
+	srv, err := NewServer(&fakeSmbAPI{}, fsSrv)
 	if err != nil {
 		t.Fatalf("Smb Server could not be initialized for testing: %v", err)
 	}
 	for _, tc := range testCases {
 		req := &internal.NewSmbGlobalMappingRequest{
+			LocalPath:  tc.local,
 			RemotePath: tc.remote,
 			Username:   tc.username,
 			Password:   tc.password,

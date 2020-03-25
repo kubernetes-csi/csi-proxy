@@ -53,7 +53,7 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 		return []srvtypes.APIGroup{}, err
 	}
 
-	smbsrv, err := smbsrv.NewServer(smbapi.New())
+	smbsrv, err := smbsrv.NewServer(smbapi.New(), fssrv)
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
@@ -62,6 +62,6 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 		fssrv,
 		disksrv,
 		volumesrv,
-                smbsrv,
+		smbsrv,
 	}, nil
 }
