@@ -52,7 +52,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 	}
 
 	if len(localPath) != 0 {
-		err = s.fsServer.ValidateSMBLinkPath(localPath)
+		err = s.fsServer.ValidatePluginPath(localPath)
 		if err != nil {
 			return response, err
 		}

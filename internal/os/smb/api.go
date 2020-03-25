@@ -32,6 +32,13 @@ func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
 	return true, nil
 }
 
+// SMBLink - creates a direcotry symbolic link to the remote share.
+// The os.Symlink was having issue for cases where the destination was an SMB share - the container
+// runtime would complain stating "Access Denied". Because of this, we had to perform
+// this operation with powershell commandlet creating an directory softlink.
+// Since os.Symlink is currently being used in working code paths, no attempt is made in
+// alpha to merge the paths.
+// TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
 func (APIImplementor) SMBLink(remotePath, localPath string) error {
 	cmdLine := fmt.Sprintf(`New-Item -ItemType SymbolicLink $Env:smblocalPath -Target $Env:smbremotepath`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
