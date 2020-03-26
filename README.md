@@ -92,6 +92,13 @@ You can reach the maintainers of this project at:
 - [Slack channel](https://kubernetes.slack.com/messages/csi-windows)
 - [Mailing list](https://groups.google.com/forum/#!forum/kubernetes-sig-storage)
 
+## Supported CSI Drivers
+
+- [Azure Disk CSI Driver](https://github.com/kubernetes-sigs/azuredisk-csi-driver/tree/master/deploy/example/windows)
+
+- [Google Compute Engine Persistent Disk CSI Driver](https://github.com/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver)
+
+
 ### Code of conduct
 
 Participation in the Kubernetes community is governed by the [Kubernetes Code of Conduct](code-of-conduct.md).
