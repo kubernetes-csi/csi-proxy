@@ -20,7 +20,7 @@ type API interface {
 	PartitionsExist(diskID string) (bool, error)
 	CreatePartition(diskID string) error
 	Rescan() error
-	GetDiskNumberByName(diskName string) (string, error) 
+	GetDiskNumberByName(diskName string) (string, error)
 }
 
 func NewServer(hostAPI API) (*Server, error) {
