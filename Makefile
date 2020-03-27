@@ -1,10 +1,10 @@
 CMDS=server
-BUILD_PLATFORM=win amd64 .exe
 all: build test
 
 # include release tools for building binary and testing targets
 include release-tools/build.make
 
+BUILD_PLATFORMS=windows amd64 .exe
 GOPATH ?= $(shell go env GOPATH)
 REPO_ROOT = $(CURDIR)
 BUILD_DIR = build
