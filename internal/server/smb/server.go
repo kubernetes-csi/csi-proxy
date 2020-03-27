@@ -30,11 +30,13 @@ func NewServer(hostAPI API, fsServer *fsserver.Server) (*Server, error) {
 }
 
 func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.NewSmbGlobalMappingRequest, version apiversion.Version) (*internal.NewSmbGlobalMappingResponse, error) {
+	klog.V(4).Infof("calling NewSmbGlobalMapping with remote path %q", request.RemotePath)
 	response := &internal.NewSmbGlobalMappingResponse{}
 	remotePath := request.RemotePath
 	localPath := request.LocalPath
 
 	if remotePath == "" {
+		klog.Errorf("remote path is empty")
 		return response, fmt.Errorf("remote path is empty")
 	}
 
@@ -47,6 +49,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 		klog.V(4).Infof("Remote %s not mapped. Mapping now!", remotePath)
 		err := s.hostAPI.NewSmbGlobalMapping(remotePath, request.Username, request.Password)
 		if err != nil {
+			klog.Errorf("failed NewSmbGlobalMapping %v", err)
 			return response, err
 		}
 	}
@@ -54,10 +57,12 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 	if len(localPath) != 0 {
 		err = s.fsServer.ValidatePluginPath(localPath)
 		if err != nil {
+			klog.Errorf("failed validate plugin path %v", err)
 			return response, err
 		}
 		err = s.hostAPI.NewSmbLink(remotePath, localPath)
 		if err != nil {
+			klog.Errorf("failed NewSmbLink %v", err)
 			return response, fmt.Errorf("creating link %s to %s failed with error: %v", localPath, remotePath, err)
 		}
 	}
@@ -66,15 +71,18 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 }
 
 func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *internal.RemoveSmbGlobalMappingRequest, version apiversion.Version) (*internal.RemoveSmbGlobalMappingResponse, error) {
+	klog.V(4).Infof("calling RemoveSmbGlobalMapping with remote path %q", request.RemotePath)
 	response := &internal.RemoveSmbGlobalMappingResponse{}
 	remotePath := request.RemotePath
 
 	if remotePath == "" {
+		klog.Errorf("remote path is empty")
 		return response, fmt.Errorf("remote path is empty")
 	}
 
 	err := s.hostAPI.RemoveSmbGlobalMapping(remotePath)
 	if err != nil {
+		klog.Errorf("failed RemoveSmbGlobalMapping %v", err)
 		return response, err
 	}
 	return response, nil

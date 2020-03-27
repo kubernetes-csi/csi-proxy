@@ -6,11 +6,10 @@ import (
 	"sync"
 
 	"github.com/Microsoft/go-winio"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-
 	"github.com/kubernetes-csi/csi-proxy/client"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 // Server aggregates a number of API groups and versions,

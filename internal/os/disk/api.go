@@ -26,7 +26,7 @@ func (APIImplementor) ListDiskLocations() (map[string]shared.DiskLocation, error
 	cmd := fmt.Sprintf("Get-Disk | select number, location | ConvertTo-Json")
 	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list disk location. cmd: %q, output: %q, err %v", cmd, string(out), err)
 	}
 
 	var getDisk []map[string]interface{}
@@ -72,9 +72,9 @@ func (APIImplementor) ListDiskLocations() (map[string]shared.DiskLocation, error
 
 func (APIImplementor) Rescan() error {
 	cmd := "Update-HostStorageCache"
-	_, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error updating host storage cache %v", err)
+		return fmt.Errorf("error updating host storage cache output: %q, err: %v", string(out), err)
 	}
 	return nil
 }
@@ -127,7 +127,7 @@ func (APIImplementor) GetDiskNumberByName(diskName string) (string, error) {
 	out, err := exec.Command("DiskUtil.exe", "-GetDiskNumberWithId", diskName).CombinedOutput()
 	outString := string(out)
 	if err != nil {
-		return "", fmt.Errorf("error getting disk number. %v, output %v", err, out)
+		return "", fmt.Errorf("error getting disk number by name %s: %v, output %v", diskName, err, out)
 	}
 	return strings.TrimSpace(outString), nil
 }

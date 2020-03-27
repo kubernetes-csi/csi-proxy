@@ -5,8 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"k8s.io/klog"
 )
 
 type APIImplementor struct{}
@@ -23,7 +21,7 @@ func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("error checking smb mapping %s, err: %v", remotePath, err)
+		return false, fmt.Errorf("error checking smb mapping. cmd %s, output: %s, err: %v", remotePath, string(out), err)
 	}
 
 	if len(out) == 0 || !strings.EqualFold(strings.TrimSpace(string(out)), "OK") {
@@ -46,17 +44,15 @@ func (APIImplementor) NewSmbLink(remotePath, localPath string) error {
 		fmt.Sprintf("smbremotepath=%s", remotePath),
 		fmt.Sprintf("smblocalpath=%s", localPath),
 	)
-	_, err := cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error linking %s to %s, err: %v", remotePath, localPath, err)
+		return fmt.Errorf("error linking %s to %s. output: %s, err: %v", remotePath, localPath, string(output), err)
 	}
 
 	return nil
 }
 
 func (APIImplementor) NewSmbGlobalMapping(remotePath, username, password string) error {
-	klog.V(4).Infof("NewSmbGlobalMapping: remotePath:%q", remotePath)
-
 	// use PowerShell Environment Variables to store user input string to prevent command line injection
 	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1
 	cmdLine := fmt.Sprintf(`$PWord = ConvertTo-SecureString -String $Env:smbpassword -AsPlainText -Force` +
@@ -69,18 +65,16 @@ func (APIImplementor) NewSmbGlobalMapping(remotePath, username, password string)
 		fmt.Sprintf("smbpassword=%s", password),
 		fmt.Sprintf("smbremotepath=%s", remotePath))
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("NewSmbGlobalMapping failed: %v, output: %q", err, string(output))
+		return fmt.Errorf("NewSmbGlobalMapping failed. output: %q, err: %v", string(output), err)
 	}
 	return nil
 }
 
 func (APIImplementor) RemoveSmbGlobalMapping(remotePath string) error {
-	klog.V(4).Infof("RemoveSmbGlobalMapping remotePath (%q)", remotePath)
 	cmd := exec.Command("powershell", "/c", `Remove-SmbGlobalMapping -RemotePath $Env:smbremotepath -Force`)
 	cmd.Env = append(os.Environ(), fmt.Sprintf("smbremotepath=%s", remotePath))
 	if output, err := cmd.CombinedOutput(); err != nil {
-		klog.Errorf("Remove-SmbGlobalMapping failed: %v, output: %q", err, output)
-		return fmt.Errorf("UnmountSmbShare failed: %v, output: %q", err, output)
+		return fmt.Errorf("UnmountSmbShare failed. output: %q, err: %v", string(output), err)
 	}
 	return nil
 }

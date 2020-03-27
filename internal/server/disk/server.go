@@ -30,9 +30,11 @@ func NewServer(hostAPI API) (*Server, error) {
 }
 
 func (s *Server) ListDiskLocations(context context.Context, request *internal.ListDiskLocationsRequest, version apiversion.Version) (*internal.ListDiskLocationsResponse, error) {
+	klog.V(4).Infof("calling ListDiskLocations")
 	response := &internal.ListDiskLocationsResponse{}
 	m, err := s.hostAPI.ListDiskLocations()
 	if err != nil {
+		klog.Errorf("failed ListDiskLocations: %v", err)
 		return response, err
 	}
 
@@ -45,64 +47,69 @@ func (s *Server) ListDiskLocations(context context.Context, request *internal.Li
 		d.LUNID = v.LUNID
 		response.DiskLocations[k] = d
 	}
-
 	return response, nil
 }
 
 func (s *Server) PartitionDisk(context context.Context, request *internal.PartitionDiskRequest, version apiversion.Version) (*internal.PartitionDiskResponse, error) {
+	klog.V(4).Infof("calling PartitionDisk with diskID %q", request.DiskID)
 	response := &internal.PartitionDiskResponse{}
 	diskID := request.DiskID
 
-	klog.Infof("Checking if disk %s is initialized", diskID)
 	initialized, err := s.hostAPI.IsDiskInitialized(diskID)
 	if err != nil {
+		klog.Errorf("failed check IsDiskInitialized %v", err)
 		return response, err
 	}
 	if !initialized {
-		klog.Infof("Initializing disk %s", diskID)
+		klog.V(4).Infof("Initializing disk %s", diskID)
 		err = s.hostAPI.InitializeDisk(diskID)
 		if err != nil {
+			klog.Errorf("failed InitializeDisk %v", err)
 			return response, err
 		}
 	} else {
-		klog.Infof("Disk %s already initialized", diskID)
+		klog.V(4).Infof("Disk %s already initialized", diskID)
 	}
 
-	klog.Infof("Checking if disk %s is partitioned", diskID)
+	klog.V(4).Infof("Checking if disk %s is partitioned", diskID)
 	paritioned, err := s.hostAPI.PartitionsExist(diskID)
 	if err != nil {
+		klog.Errorf("failed check PartitionsExist %v", err)
 		return response, err
 	}
 	if !paritioned {
-		klog.Infof("Creating partition on disk %s", diskID)
+		klog.V(4).Infof("Creating partition on disk %s", diskID)
 		err = s.hostAPI.CreatePartition(diskID)
 		if err != nil {
+			klog.Errorf("failed CreatePartition %v", err)
 			return response, err
 		}
 	} else {
-		klog.Infof("Disk %s already partitioned", diskID)
+		klog.V(4).Infof("Disk %s already partitioned", diskID)
 	}
-
 	return response, nil
 }
 
 func (s *Server) Rescan(context context.Context, request *internal.RescanRequest, version apiversion.Version) (*internal.RescanResponse, error) {
+	klog.V(4).Infof("calling PartitionDisk")
 	response := &internal.RescanResponse{}
 	err := s.hostAPI.Rescan()
 	if err != nil {
+		klog.Errorf("failed Rescan %v", err)
 		return nil, err
 	}
 	return response, nil
 }
 
 func (s *Server) GetDiskNumberByName(context context.Context, request *internal.GetDiskNumberByNameRequest, version apiversion.Version) (*internal.GetDiskNumberByNameResponse, error) {
+	klog.V(4).Infof("calling GetDiskNumberByName with diskName %q", request.DiskName)
 	response := &internal.GetDiskNumberByNameResponse{}
 	diskName := request.DiskName
 	number, err := s.hostAPI.GetDiskNumberByName(diskName)
 	if err != nil {
+		klog.Errorf("failed GetDiskNumberByName %v", err)
 		return nil, err
 	}
-
 	response.DiskNumber = number
 	return response, nil
 }
