@@ -1,4 +1,4 @@
-CMDS=server
+CMDS=csi-proxy
 all: build test
 
 # include release tools for building binary and testing targets
