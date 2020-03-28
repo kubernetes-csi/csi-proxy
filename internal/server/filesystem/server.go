@@ -9,6 +9,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 	"github.com/kubernetes-csi/csi-proxy/internal/utils"
+	"k8s.io/klog"
 )
 
 type Server struct {
@@ -117,14 +118,17 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 
 // PathExists checks if the given path exists on the host.
 func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsRequest, version apiversion.Version) (*internal.PathExistsResponse, error) {
+	klog.V(4).Infof("calling PathExists with path %q", request.Path)
 	err := s.validatePathWindows(request.Context, request.Path)
 	if err != nil {
+		klog.Errorf("failed validatePathWindows %v", err)
 		return &internal.PathExistsResponse{
 			Error: err.Error(),
 		}, err
 	}
 	exists, err := s.hostAPI.PathExists(request.Path)
 	if err != nil {
+		klog.Errorf("failed check PathExists %v", err)
 		return &internal.PathExistsResponse{
 			Error: err.Error(),
 		}, err
@@ -136,14 +140,17 @@ func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsReq
 }
 
 func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, version apiversion.Version) (*internal.MkdirResponse, error) {
+	klog.V(4).Infof("calling Mkdir with path %q", request.Path)
 	err := s.validatePathWindows(request.Context, request.Path)
 	if err != nil {
+		klog.Errorf("failed validatePathWindows %v", err)
 		return &internal.MkdirResponse{
 			Error: err.Error(),
 		}, err
 	}
 	err = s.hostAPI.Mkdir(request.Path)
 	if err != nil {
+		klog.Errorf("failed Mkdir %v", err)
 		return &internal.MkdirResponse{
 			Error: err.Error(),
 		}, err
@@ -155,14 +162,17 @@ func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, vers
 }
 
 func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, version apiversion.Version) (*internal.RmdirResponse, error) {
+	klog.V(2).Infof("calling Rmdir with path %q", request.Path)
 	err := s.validatePathWindows(request.Context, request.Path)
 	if err != nil {
+		klog.Errorf("failed validatePathWindows %v", err)
 		return &internal.RmdirResponse{
 			Error: err.Error(),
 		}, err
 	}
 	err = s.hostAPI.Rmdir(request.Path, request.Force)
 	if err != nil {
+		klog.Errorf("failed Rmdir %v", err)
 		return &internal.RmdirResponse{
 			Error: err.Error(),
 		}, err
@@ -173,14 +183,17 @@ func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, vers
 }
 
 func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest, version apiversion.Version) (*internal.LinkPathResponse, error) {
+	klog.V(4).Infof("calling LinkPath with targetPath %q sourcePath %q", request.TargetPath, request.SourcePath)
 	err := s.validatePathWindows(internal.POD, request.TargetPath)
 	if err != nil {
+		klog.Errorf("failed validatePathWindows for target path %v", err)
 		return &internal.LinkPathResponse{
 			Error: err.Error(),
 		}, err
 	}
 	err = s.validatePathWindows(internal.PLUGIN, request.SourcePath)
 	if err != nil {
+		klog.Errorf("failed validatePathWindows for source path %v", err)
 		return &internal.LinkPathResponse{
 			Error: err.Error(),
 		}, err
@@ -188,6 +201,7 @@ func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest
 	err = s.hostAPI.LinkPath(request.SourcePath, request.TargetPath)
 	errString := ""
 	if err != nil {
+		klog.Errorf("failed LinkPath %v", err)
 		errString = err.Error()
 	}
 	return &internal.LinkPathResponse{
@@ -196,8 +210,10 @@ func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest
 }
 
 func (s *Server) IsMountPoint(ctx context.Context, request *internal.IsMountPointRequest, version apiversion.Version) (*internal.IsMountPointResponse, error) {
+	klog.V(4).Infof("calling IsMountPoint with path %q", request.Path)
 	isMount, err := s.hostAPI.IsMountPoint(request.Path)
 	if err != nil {
+		klog.Errorf("failed IsMountPoint %v", err)
 		return &internal.IsMountPointResponse{
 			IsMountPoint: false,
 			Error:        err.Error(),

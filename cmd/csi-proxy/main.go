@@ -31,6 +31,9 @@ func main() {
 		panic(err)
 	}
 	s := server.NewServer(apiGroups...)
+
+	klog.Info("Starting CSI-Proxy Server ...")
+	klog.Infof("Version: %s", version)
 	if err := s.Start(nil); err != nil {
 		panic(err)
 	}

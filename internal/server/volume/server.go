@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"k8s.io/klog"
-
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/volume/internal"
+	"k8s.io/klog"
 )
 
 type Server struct {
@@ -40,10 +39,12 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 
 	diskID := request.DiskId
 	if diskID == "" {
+		klog.Errorf("disk id empty")
 		return response, fmt.Errorf("disk id empty")
 	}
 	volumeIDs, err := s.hostAPI.ListVolumesOnDisk(diskID)
 	if err != nil {
+		klog.Errorf("failed ListVolumeOnDisk %v", err)
 		return response, err
 	}
 
@@ -57,15 +58,18 @@ func (s *Server) MountVolume(context context.Context, request *internal.MountVol
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
+		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
 	}
 	path := request.Path
 	if path == "" {
+		klog.Errorf("mount id empty")
 		return response, fmt.Errorf("mount path empty")
 	}
 
 	err := s.hostAPI.MountVolume(volumeID, path)
 	if err != nil {
+		klog.Errorf("failed MountVolume %v", err)
 		return response, err
 	}
 	return response, nil
@@ -77,29 +81,34 @@ func (s *Server) DismountVolume(context context.Context, request *internal.Dismo
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
+		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
 	}
 	path := request.Path
 	if path == "" {
+		klog.Errorf("mount path empty")
 		return response, fmt.Errorf("mount path empty")
 	}
 	err := s.hostAPI.DismountVolume(volumeID, path)
 	if err != nil {
+		klog.Errorf("failed DismountVolume %v", err)
 		return response, err
 	}
 	return response, nil
 }
 
 func (s *Server) IsVolumeFormatted(context context.Context, request *internal.IsVolumeFormattedRequest, version apiversion.Version) (*internal.IsVolumeFormattedResponse, error) {
-	klog.V(5).Infof("IsVolumeFormatted: Request: %+v", request)
+	klog.V(4).Infof("calling IsVolumeFormatted with request: %+v", request)
 	response := &internal.IsVolumeFormattedResponse{}
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
+		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
 	}
 	isFormatted, err := s.hostAPI.IsVolumeFormatted(volumeID)
 	if err != nil {
+		klog.Errorf("failed IsVolumeFormatted %v", err)
 		return response, err
 	}
 	klog.V(5).Infof("IsVolumeFormatted: return: %v", isFormatted)
@@ -108,16 +117,18 @@ func (s *Server) IsVolumeFormatted(context context.Context, request *internal.Is
 }
 
 func (s *Server) FormatVolume(context context.Context, request *internal.FormatVolumeRequest, version apiversion.Version) (*internal.FormatVolumeResponse, error) {
-	klog.V(5).Infof("FormatVolume: Request: %+v", request)
+	klog.V(4).Infof("calling FormatVolume with request: %+v", request)
 	response := &internal.FormatVolumeResponse{}
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
+		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
 	}
 
 	err := s.hostAPI.FormatVolume(volumeID)
 	if err != nil {
+		klog.Errorf("failed FormatVolume %v", err)
 		return response, err
 	}
 
@@ -125,11 +136,12 @@ func (s *Server) FormatVolume(context context.Context, request *internal.FormatV
 }
 
 func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeVolumeRequest, version apiversion.Version) (*internal.ResizeVolumeResponse, error) {
-	klog.V(5).Infof("ResizeVolume: Request: %+v", request)
+	klog.V(4).Infof("calling ResizeVolume with request: %+v", request)
 	response := &internal.ResizeVolumeResponse{}
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
+		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
 	}
 	size := request.Size
@@ -137,6 +149,7 @@ func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeV
 
 	err := s.hostAPI.ResizeVolume(volumeID, size)
 	if err != nil {
+		klog.Errorf("failed ResizeVolume %v", err)
 		return response, err
 	}
 
