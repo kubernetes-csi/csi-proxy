@@ -8,7 +8,7 @@ invoke the APIs.
 Each named pipe will support a specific version of an API (e.g. v1alpha1, v2beta1)
 that targets a specific area of storage (e.g. disk, volume, file, SMB, iSCSI).
 
-## Usage in a Kubernetes DaemonSet
+## Usage in a Kubernetes CSI Node Plugin DaemonSet
 
 Deploy and start csiproxy.exe on all Windows hosts in the cluster. Next, the named
 pipes can be mounted in a CSI node plugin DaemonSet YAML in the following manner:
@@ -62,12 +62,24 @@ spec:
               mountPath: C:\var\lib\kubelet
             - name: plugin-dir
               mountPath: C:\csi
-            - name: csi-proxy-pipe
-              mountPath: \\.\pipe\csi-proxy-v1alpha1
+            - name: csi-proxy-disk-pipe
+              mountPath: \\.\pipe\csi-proxy-disk-v1alpha1
+            - name: csi-proxy-volume-pipe
+              mountPath: \\.\pipe\csi-proxy-volume-v1alpha1
+            - name: csi-proxy-filesystem-pipe
+              mountPath: \\.\pipe\csi-proxy-filesystem-v1alpha1
       volumes:
-        - name: csi-proxy-pipe
+        - name: csi-proxy-disk-pipe
           hostPath:
-            path: \\.\pipe\csi-proxy-v1alpha1
+            path: \\.\pipe\csi-proxy-disk-v1alpha1
+            type: ""
+        - name: csi-proxy-volume-pipe
+          hostPath:
+            path: \\.\pipe\csi-proxy-volume-v1alpha1
+            type: ""
+        - name: csi-proxy-filesystem-pipe
+          hostPath:
+            path: \\.\pipe\csi-proxy-filesystem-v1alpha1
             type: ""
         - name: registration-dir
           hostPath:
