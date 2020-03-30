@@ -8,7 +8,27 @@ invoke the APIs.
 Each named pipe will support a specific version of an API (e.g. v1alpha1, v2beta1)
 that targets a specific area of storage (e.g. disk, volume, file, SMB, iSCSI).
 
-## Usage in a Kubernetes CSI Node Plugin DaemonSet
+## Overview
+
+CSI drivers are recommended to be deployed as containers. Node plugin containers need to run with privileges to perform storage related operations. However, Windows does not support privileged containers currently. With CSIProxy, the node plugins can now be deployed as unprivileged pods that use the proxy to perform privileged storage operations on the node. Kubernetes administrators will need to install and maintain csi-proxy.exe on all Windows nodes in a manner similar to kubelet.exe.
+
+## Compatibility
+
+Recommended K8s Version: 1.18
+
+## Feature status
+
+CSI-proxy is currently in Alpha status
+
+## Usage
+
+### Command line options
+
+* `--kubelet-csi-plugins-path`: This is the prefix path of the Kubelet plugin directory in the host file system (`C:\var\lib\kubelet` is used by default).
+
+* `--kubelet-pod-path`: This is the prefix path of the kubelet pod directory in the host file system (`C:\var\lib\kubelet` is used by default).
+
+### Setup for CSI Driver Deployment
 
 Deploy and start csiproxy.exe on all Windows hosts in the cluster. Next, the named
 pipes can be mounted in a CSI node plugin DaemonSet YAML in the following manner:
@@ -116,3 +136,6 @@ You can reach the maintainers of this project at:
 ### Code of conduct
 
 Participation in the Kubernetes community is governed by the [Kubernetes Code of Conduct](code-of-conduct.md).
+
+[owners]: https://git.k8s.io/community/contributors/guide/owners.md
+[Creative Commons 4.0]: https://git.k8s.io/website/LICENSE
