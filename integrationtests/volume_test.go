@@ -40,9 +40,11 @@ func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
 	if out, err = runPowershellCmd(cmd); err != nil {
 		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 	}
-	cmd = fmt.Sprintf("rmdir %s", testPluginPath)
-	if out, err = runPowershellCmd(cmd); err != nil {
-		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+	if testPluginPath != "" {
+		cmd = fmt.Sprintf("rmdir %s", testPluginPath)
+		if out, err = runPowershellCmd(cmd); err != nil {
+			t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+		}
 	}
 }
 

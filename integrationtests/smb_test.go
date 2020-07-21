@@ -48,7 +48,7 @@ func setupUser(username, password string) error {
 	return nil
 }
 
-func removeUser(t *testing.T, username string) error {
+func removeUser(t *testing.T, username string) {
 	cmdLine := fmt.Sprintf(`Remove-Localuser -name $Env:username`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
@@ -56,7 +56,6 @@ func removeUser(t *testing.T, username string) error {
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("setupUser failed: %v, output: %q", err, string(output))
 	}
-	return
 }
 
 func setupSmbShare(shareName, localPath, username string) error {
