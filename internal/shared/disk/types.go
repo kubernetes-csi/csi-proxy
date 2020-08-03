@@ -10,3 +10,9 @@ type DiskLocation struct {
 	Target  string
 	LUNID   string
 }
+
+// DiskID definition
+type DiskIDs struct {
+	// Map of Disk ID types and Disk ID values
+	Identifiers map[string]string
+}

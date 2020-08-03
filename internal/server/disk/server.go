@@ -2,6 +2,7 @@ package disk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
@@ -21,6 +22,7 @@ type API interface {
 	CreatePartition(diskID string) error
 	Rescan() error
 	GetDiskNumberByName(diskName string) (string, error)
+	ListDiskIDs() (map[string]shared.DiskIDs, error)
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -111,5 +113,33 @@ func (s *Server) GetDiskNumberByName(context context.Context, request *internal.
 		return nil, err
 	}
 	response.DiskNumber = number
+	return response, nil
+}
+
+func (s *Server) ListDiskIDs(context context.Context, request *internal.ListDiskIDsRequest, version apiversion.Version) (*internal.ListDiskIDsResponse, error) {
+	klog.V(4).Infof("calling ListDiskIDs")
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("ListDiskIDs requires CSI-Proxy API version v1beta1 or greater")
+	}
+
+	response := &internal.ListDiskIDsResponse{}
+	diskIDs, err := s.hostAPI.ListDiskIDs()
+
+	if err != nil {
+		klog.Errorf("failed ListDiskIDs %v", err)
+		return nil, err
+	}
+	responseDiskIDs := make(map[string]*internal.DiskIDs)
+
+	// Convert from shared to internal type
+	for k, v := range diskIDs {
+		diskIDs := internal.DiskIDs{Identifiers: make(map[string]string)}
+		for k1, v1 := range v.Identifiers {
+			diskIDs.Identifiers[k1] = v1
+		}
+		responseDiskIDs[k] = &diskIDs
+	}
+	response.DiskIDs = responseDiskIDs
 	return response, nil
 }

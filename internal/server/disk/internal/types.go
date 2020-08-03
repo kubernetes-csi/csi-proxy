@@ -37,3 +37,16 @@ type GetDiskNumberByNameRequest struct {
 type GetDiskNumberByNameResponse struct {
 	DiskNumber string
 }
+
+type DiskIDs struct {
+	// Map of Disk ID types and Disk ID values
+	Identifiers map[string]string
+}
+
+type ListDiskIDsRequest struct {
+}
+
+type ListDiskIDsResponse struct {
+	// Map of disk device numbers and IDs <page83> associated with each disk device
+	DiskIDs map[string]*DiskIDs
+}

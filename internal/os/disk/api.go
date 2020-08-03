@@ -142,7 +142,7 @@ func (imp APIImplementor) GetDiskNumberByName(diskName string) (string, error) {
 	return strconv.FormatUint(uint64(diskNumber), 10), err
 }
 
-func (APIImplementor) DiskNumber(disk syscall.Handle) (uint32, error) {
+func (APIImplementor) GetDiskNumber(disk syscall.Handle) (uint32, error) {
 	var bytes uint32
 	devNum := StorageDeviceNumber{}
 	buflen := uint32(unsafe.Sizeof(devNum.DeviceType)) + uint32(unsafe.Sizeof(devNum.DeviceNumber)) + uint32(unsafe.Sizeof(devNum.PartitionNumber))
@@ -193,6 +193,44 @@ func (APIImplementor) DiskHasPage83ID(disk syscall.Handle, matchID string) (bool
 	return false, nil
 }
 
+func (APIImplementor) GetDiskPage83ID(disk syscall.Handle) (string, error) {
+	query := StoragePropertyQuery{}
+
+	bufferSize := uint32(4 * 1024)
+	buffer := make([]byte, 4*1024)
+	var size uint32
+	var n uint32
+	var m uint16
+
+	query.QueryType = PropertyStandardQuery
+	query.PropertyID = StorageDeviceIDProperty
+
+	querySize := uint32(unsafe.Sizeof(query.PropertyID)) + uint32(unsafe.Sizeof(query.QueryType)) + uint32(unsafe.Sizeof(query.Byte))
+	querySize = uint32(unsafe.Sizeof(query))
+	err := syscall.DeviceIoControl(disk, IOCTL_STORAGE_QUERY_PROPERTY, (*byte)(unsafe.Pointer(&query)), querySize, (*byte)(unsafe.Pointer(&buffer[0])), bufferSize, &size, nil)
+	if err != nil {
+		return "", fmt.Errorf("IOCTL_STORAGE_QUERY_PROPERTY failed: %v", err)
+	}
+
+	devIDDesc := (*StorageDeviceIDDescriptor)(unsafe.Pointer(&buffer[0]))
+
+	pID := (*StorageIdentifier)(unsafe.Pointer(&devIDDesc.Identifiers[0]))
+
+	page83ID := []byte{}
+	byteSize := unsafe.Sizeof(byte(0))
+	for n = 0; n < devIDDesc.NumberOfIdentifiers; n++ {
+		if pID.CodeSet == StorageIDCodeSetASCII && pID.Association == StorageIDAssocDevice {
+			for m = 0; m < pID.IdentifierSize; m++ {
+				page83ID = append(page83ID, *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(&pID.Identifier[0])) + byteSize*uintptr(m))))
+			}
+
+			return string(page83ID), nil
+		}
+		pID = (*StorageIdentifier)(unsafe.Pointer(uintptr(unsafe.Pointer(pID)) + byteSize*uintptr(pID.NextOffset)))
+	}
+	return "", nil
+}
+
 func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
 	out, err := exec.Command("powershell.exe", "(get-disk | select Path) | ConvertTo-Json").CombinedOutput()
 	if err != nil {
@@ -211,9 +249,49 @@ func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
 
 		found, err := imp.DiskHasPage83ID(h, page83ID)
 		if found {
-			return imp.DiskNumber(h)
+			return imp.GetDiskNumber(h)
 		}
 	}
 
 	return 0, fmt.Errorf("Could not find disk with Page83 ID %s", page83ID)
+}
+
+// ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
+// as the value. The DiskID struct has a field for the page83 ID.
+func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
+	out, err := exec.Command("powershell.exe", "(get-disk | select Path) | ConvertTo-Json").CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("Could not query disk paths")
+	}
+
+	outString := string(out)
+	diskPaths := []DiskPath{}
+	json.Unmarshal([]byte(outString), &diskPaths)
+
+	m := make(map[string]shared.DiskIDs)
+
+	for i := range diskPaths {
+		h, err := syscall.Open(diskPaths[i].Path, syscall.O_RDONLY, 0)
+		if err != nil {
+			return nil, err
+		}
+
+		page83, err := imp.GetDiskPage83ID(h)
+		if err != nil {
+			return m, fmt.Errorf("Could not get page83 ID: %v", err)
+		}
+
+		diskNumber, err := imp.GetDiskNumber(h)
+		if err != nil {
+			return m, fmt.Errorf("Could not get disk number: %v", err)
+		}
+
+		diskNumString := strconv.FormatUint(uint64(diskNumber), 10)
+
+		diskIDs := make(map[string]string)
+		diskIDs["page83"] = page83
+		m[diskNumString] = shared.DiskIDs{Identifiers: diskIDs}
+	}
+
+	return m, nil
 }
