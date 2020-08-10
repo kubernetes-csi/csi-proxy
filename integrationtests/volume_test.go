@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1"
 	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1"
+	v1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1"
 )
 
 func runPowershellCmd(cmd string) (string, error) {
@@ -157,14 +159,31 @@ func runNegativeDismountVolumeRequest(t *testing.T, client *v1alpha1client.Clien
 	}
 }
 
+func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta1client.Client, volumeID string) {
+	// Get VolumeStats
+	volumeStatsRequest := &v1beta1.VolumeStatsRequest{
+		VolumeId: volumeID,
+	}
+	_, err := client.VolumeStats(context.TODO(), volumeStatsRequest)
+	if err == nil {
+		t.Errorf("Empty error. VolumeStats for id %s", volumeID)
+	}
+}
+
 func negativeVolumeTests(t *testing.T) {
 	var client *v1alpha1client.Client
+	var betaClient *v1beta1client.Client
 	var err error
 
 	if client, err = v1alpha1client.NewClient(); err != nil {
 		t.Fatalf("Client new error: %v", err)
 	}
 	defer client.Close()
+
+	if betaClient, err = v1beta1client.NewClient(); err != nil {
+		t.Fatalf("BetaClient new error: %v", err)
+	}
+	defer betaClient.Close()
 
 	// Empty volume test
 	runNegativeIsVolumeFormattedRequest(t, client, "")
@@ -186,6 +205,9 @@ func negativeVolumeTests(t *testing.T) {
 	// Dismount volume negative tests
 	runNegativeDismountVolumeRequest(t, client, "", "")
 	runNegativeDismountVolumeRequest(t, client, "-1", "")
+
+	runNegativeVolumeStatsRequest(t, betaClient, "")
+	runNegativeVolumeStatsRequest(t, betaClient, "-1")
 }
 
 func negativeDiskTests(t *testing.T) {
@@ -205,12 +227,18 @@ func negativeDiskTests(t *testing.T) {
 
 func simpleE2e(t *testing.T) {
 	var client *v1alpha1client.Client
+	var betaClient *v1beta1client.Client
 	var err error
 
 	if client, err = v1alpha1client.NewClient(); err != nil {
 		t.Fatalf("Client new error: %v", err)
 	}
 	defer client.Close()
+
+	if betaClient, err = v1beta1client.NewClient(); err != nil {
+		t.Fatalf("BetaClient new error: %v", err)
+	}
+	defer betaClient.Close()
 
 	s1 := rand.NewSource(time.Now().UTC().UnixNano())
 	r1 := rand.New(s1)
@@ -263,6 +291,22 @@ func simpleE2e(t *testing.T) {
 		t.Fatal("Volume should be formatted. Unexpected !!")
 	}
 
+	t.Logf("VolumeId %v", volumeID)
+	volumeStatsRequest := &v1beta1.VolumeStatsRequest{
+		VolumeId: volumeID,
+	}
+
+	volumeStatsResponse, err := betaClient.VolumeStats(context.TODO(), volumeStatsRequest)
+	if err != nil {
+		t.Fatalf("VolumeStats request error: %v", err)
+	}
+
+	if volumeStatsResponse.VolumeSize == -1 {
+		t.Fatalf("VolumeSize reported is not valid, it is %v", volumeStatsResponse.VolumeSize)
+	}
+
+	oldSize := volumeStatsResponse.VolumeSize
+
 	resizeVolumeRequest := &v1alpha1.ResizeVolumeRequest{
 		VolumeId: volumeID,
 		// Resize from 5G to 2G
@@ -272,6 +316,15 @@ func simpleE2e(t *testing.T) {
 	_, err = client.ResizeVolume(context.TODO(), resizeVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume resize request failed. Error: %v", err)
+	}
+
+	volumeStatsResponse, err = betaClient.VolumeStats(context.TODO(), volumeStatsRequest)
+	if err != nil {
+		t.Fatalf("VolumeStats request after resize error: %v", err)
+	}
+
+	if volumeStatsResponse.VolumeSize >= oldSize {
+		t.Fatalf("VolumeSize reported is not smaller after resize, it is %v", volumeStatsResponse.VolumeSize)
 	}
 
 	// Mount the volume

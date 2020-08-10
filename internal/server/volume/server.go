@@ -25,6 +25,8 @@ type API interface {
 	FormatVolume(volumeID string) error
 	// ResizeVolume performs resizing of the partition and file system for a block based volume
 	ResizeVolume(volumeID string, size int64) error
+	// VolumeStats gets the volume information
+	VolumeStats(volumeID string) (int64, int64, int64, error)
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -151,6 +153,35 @@ func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeV
 	if err != nil {
 		klog.Errorf("failed ResizeVolume %v", err)
 		return response, err
+	}
+	return response, nil
+}
+
+func (s *Server) VolumeStats(context context.Context, request *internal.VolumeStatsRequest, version apiversion.Version) (*internal.VolumeStatsResponse, error) {
+	klog.V(4).Infof("calling VolumeStats with request: %+v", request)
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("VolumeStats requires CSI-Proxy API version v1beta1 or greater")
+	}
+
+	volumeId := request.VolumeId
+	if volumeId == "" {
+		return nil, fmt.Errorf("volume id empty")
+	}
+
+	diskSize, volumeSize, volumeUsedSize, err := s.hostAPI.VolumeStats(request.VolumeId)
+
+	if err != nil {
+		klog.Errorf("failed VolumeStats %v", err)
+		return nil, err
+	}
+
+	klog.V(5).Infof("VolumeStats: returned: diskSize %v volumeSize %v volumeUsedSize %v", diskSize, volumeSize, volumeUsedSize)
+
+	response := &internal.VolumeStatsResponse{
+		DiskSize:       diskSize,
+		VolumeSize:     volumeSize,
+		VolumeUsedSize: volumeUsedSize,
 	}
 
 	return response, nil
