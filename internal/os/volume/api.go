@@ -1,8 +1,11 @@
 package volume
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -87,4 +90,49 @@ func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
 		return fmt.Errorf("error resizing volume. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
 	return nil
+}
+
+// VolumeStats - resize the volume to the size specified as parameter.
+func (VolAPIImplementor) VolumeStats(volumeID string) (int64, int64, int64, error) {
+
+	//first get the disk size where the volume resides
+	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Get-partition | Get-Disk).Size", volumeID)
+	out, err := runExec(cmd)
+	if err != nil || len(out) == 0 {
+		return -1, -1, -1, fmt.Errorf("error getting size of disk. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	reg, err := regexp.Compile("[^0-9]+")
+	if err != nil {
+		return -1, -1, -1, fmt.Errorf("error compiling regex. err: %v", err)
+	}
+	diskSizeOutput := reg.ReplaceAllString(string(out), "")
+
+	diskSize, err := strconv.ParseInt(diskSizeOutput, 10, 64)
+	if err != nil {
+		return -1, -1, -1, fmt.Errorf("error parsing size of disk. cmd: %s, output: %s, error: %v", cmd, diskSizeOutput, err)
+	}
+
+	// secondly, get the size and sizeRemaining for the volume
+	cmd = fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Select SizeRemaining,Size) | ConvertTo-Json", volumeID)
+	out, err = runExec(cmd)
+
+	if err != nil {
+		return -1, -1, -1, fmt.Errorf("error getting capacity and used size of volume. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	var getVolume map[string]int64
+	outString := string(out)
+	err = json.Unmarshal([]byte(outString), &getVolume)
+	if err != nil {
+		return -1, -1, -1, fmt.Errorf("out %v outstring %v err %v", out, outString, err)
+	}
+	var volumeSizeRemaining int64
+	var volumeSize int64
+
+	volumeSize = getVolume["Size"]
+	volumeSizeRemaining = getVolume["SizeRemaining"]
+
+	volumeUsedSize := volumeSize - volumeSizeRemaining
+	return diskSize, volumeSize, volumeUsedSize, nil
 }

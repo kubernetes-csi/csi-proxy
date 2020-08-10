@@ -46,3 +46,13 @@ type ResizeVolumeRequest struct {
 
 type ResizeVolumeResponse struct {
 }
+
+type VolumeStatsRequest struct {
+	VolumeId string
+}
+
+type VolumeStatsResponse struct {
+	DiskSize       int64
+	VolumeSize     int64
+	VolumeUsedSize int64
+}
