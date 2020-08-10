@@ -134,5 +134,5 @@ func (VolAPIImplementor) VolumeStats(volumeID string) (int64, int64, int64, erro
 	volumeSizeRemaining = getVolume["SizeRemaining"]
 
 	volumeUsedSize := volumeSize - volumeSizeRemaining
-	return diskSize, volumeSizeRemaining, volumeUsedSize, nil
+	return diskSize, volumeSize, volumeUsedSize, nil
 }
