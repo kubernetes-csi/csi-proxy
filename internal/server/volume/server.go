@@ -169,19 +169,19 @@ func (s *Server) VolumeStats(context context.Context, request *internal.VolumeSt
 		return nil, fmt.Errorf("volume id empty")
 	}
 
-	size, capacity, used, err := s.hostAPI.VolumeStats(request.VolumeId)
+	diskSize, volumeSize, volumeUsedSize, err := s.hostAPI.VolumeStats(request.VolumeId)
 
 	if err != nil {
 		klog.Errorf("failed VolumeStats %v", err)
 		return nil, err
 	}
 
-	klog.V(5).Infof("VolumeStats: returned: Size %v Capacity %v Used %v", size, capacity, used)
+	klog.V(5).Infof("VolumeStats: returned: diskSize %v volumeSize %v volumeUsedSize %v", diskSize, volumeSize, volumeUsedSize)
 
 	response := &internal.VolumeStatsResponse{
-		DiskSize:       size,
-		VolumeSize:     capacity,
-		VolumeUsedSize: used,
+		DiskSize:       diskSize,
+		VolumeSize:     volumeSize,
+		VolumeUsedSize: volumeUsedSize,
 	}
 
 	return response, nil
