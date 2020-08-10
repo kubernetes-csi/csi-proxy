@@ -21,4 +21,5 @@ type ServerInterface interface {
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest, apiversion.Version) (*ListVolumesOnDiskResponse, error)
 	MountVolume(context.Context, *MountVolumeRequest, apiversion.Version) (*MountVolumeResponse, error)
 	ResizeVolume(context.Context, *ResizeVolumeRequest, apiversion.Version) (*ResizeVolumeResponse, error)
+	VolumeStats(context.Context, *VolumeStatsRequest, apiversion.Version) (*VolumeStatsResponse, error)
 }
