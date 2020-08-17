@@ -44,6 +44,10 @@ func pathValid(path string) (bool, error) {
 	return strings.HasPrefix(strings.ToLower(string(output)), "true"), nil
 }
 
+// PathValid determines whether all elements of a path exist
+//   https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-path?view=powershell-7
+// for a remote path, determines whether connection is ok
+//   e.g. in a SMB server connection, if password is changed, connection will be lost, this func will return false
 func (APIImplementor) PathValid(path string) (bool, error) {
 	return pathValid(path)
 }
