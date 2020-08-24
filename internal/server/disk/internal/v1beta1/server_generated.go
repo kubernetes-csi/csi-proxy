@@ -27,6 +27,25 @@ func (s *versionedAPI) Register(grpcServer *grpc.Server) {
 	v1beta1.RegisterDiskServer(grpcServer, s)
 }
 
+func (s *versionedAPI) DiskStats(context context.Context, versionedRequest *v1beta1.DiskStatsRequest) (*v1beta1.DiskStatsResponse, error) {
+	request := &internal.DiskStatsRequest{}
+	if err := Convert_v1beta1_DiskStatsRequest_To_internal_DiskStatsRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.DiskStats(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta1.DiskStatsResponse{}
+	if err := Convert_internal_DiskStatsResponse_To_v1beta1_DiskStatsResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) ListDiskIDs(context context.Context, versionedRequest *v1beta1.ListDiskIDsRequest) (*v1beta1.ListDiskIDsResponse, error) {
 	request := &internal.ListDiskIDsRequest{}
 	if err := Convert_v1beta1_ListDiskIDsRequest_To_internal_ListDiskIDsRequest(versionedRequest, request); err != nil {

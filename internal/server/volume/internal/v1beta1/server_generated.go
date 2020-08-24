@@ -65,6 +65,44 @@ func (s *versionedAPI) FormatVolume(context context.Context, versionedRequest *v
 	return versionedResponse, err
 }
 
+func (s *versionedAPI) GetVolumeDiskNumber(context context.Context, versionedRequest *v1beta1.VolumeDiskNumberRequest) (*v1beta1.VolumeDiskNumberResponse, error) {
+	request := &internal.VolumeDiskNumberRequest{}
+	if err := Convert_v1beta1_VolumeDiskNumberRequest_To_internal_VolumeDiskNumberRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetVolumeDiskNumber(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta1.VolumeDiskNumberResponse{}
+	if err := Convert_internal_VolumeDiskNumberResponse_To_v1beta1_VolumeDiskNumberResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) GetVolumeIDFromMount(context context.Context, versionedRequest *v1beta1.VolumeIDFromMountRequest) (*v1beta1.VolumeIDFromMountResponse, error) {
+	request := &internal.VolumeIDFromMountRequest{}
+	if err := Convert_v1beta1_VolumeIDFromMountRequest_To_internal_VolumeIDFromMountRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetVolumeIDFromMount(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta1.VolumeIDFromMountResponse{}
+	if err := Convert_internal_VolumeIDFromMountResponse_To_v1beta1_VolumeIDFromMountResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) IsVolumeFormatted(context context.Context, versionedRequest *v1beta1.IsVolumeFormattedRequest) (*v1beta1.IsVolumeFormattedResponse, error) {
 	request := &internal.IsVolumeFormattedRequest{}
 	if err := Convert_v1beta1_IsVolumeFormattedRequest_To_internal_IsVolumeFormattedRequest(versionedRequest, request); err != nil {

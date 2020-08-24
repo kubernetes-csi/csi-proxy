@@ -59,6 +59,14 @@ func (w *Client) FormatVolume(context context.Context, request *v1beta1.FormatVo
 	return w.client.FormatVolume(context, request, opts...)
 }
 
+func (w *Client) GetVolumeDiskNumber(context context.Context, request *v1beta1.VolumeDiskNumberRequest, opts ...grpc.CallOption) (*v1beta1.VolumeDiskNumberResponse, error) {
+	return w.client.GetVolumeDiskNumber(context, request, opts...)
+}
+
+func (w *Client) GetVolumeIDFromMount(context context.Context, request *v1beta1.VolumeIDFromMountRequest, opts ...grpc.CallOption) (*v1beta1.VolumeIDFromMountResponse, error) {
+	return w.client.GetVolumeIDFromMount(context, request, opts...)
+}
+
 func (w *Client) IsVolumeFormatted(context context.Context, request *v1beta1.IsVolumeFormattedRequest, opts ...grpc.CallOption) (*v1beta1.IsVolumeFormattedResponse, error) {
 	return w.client.IsVolumeFormatted(context, request, opts...)
 }

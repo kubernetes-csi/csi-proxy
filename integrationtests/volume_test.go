@@ -9,8 +9,10 @@ import (
 	"testing"
 	"time"
 
+	diskv1beta1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1"
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1"
+	diskv1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1"
 	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1"
 	v1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1"
 )
@@ -228,6 +230,7 @@ func negativeDiskTests(t *testing.T) {
 func simpleE2e(t *testing.T) {
 	var client *v1alpha1client.Client
 	var betaClient *v1beta1client.Client
+	var diskBetaClient *diskv1beta1client.Client
 	var err error
 
 	if client, err = v1alpha1client.NewClient(); err != nil {
@@ -239,6 +242,11 @@ func simpleE2e(t *testing.T) {
 		t.Fatalf("BetaClient new error: %v", err)
 	}
 	defer betaClient.Close()
+
+	if diskBetaClient, err = diskv1beta1client.NewClient(); err != nil {
+		t.Fatalf("DiskBetaClient new error: %v", err)
+	}
+	defer diskBetaClient.Close()
 
 	s1 := rand.NewSource(time.Now().UTC().UnixNano())
 	r1 := rand.New(s1)
@@ -325,6 +333,30 @@ func simpleE2e(t *testing.T) {
 
 	if volumeStatsResponse.VolumeSize >= oldSize {
 		t.Fatalf("VolumeSize reported is not smaller after resize, it is %v", volumeStatsResponse.VolumeSize)
+	}
+
+	volumeDiskNumberRequest := &v1beta1.VolumeDiskNumberRequest{
+		VolumeId: volumeID,
+	}
+
+	volumeDiskNumberResponse, err := betaClient.GetVolumeDiskNumber(context.TODO(), volumeDiskNumberRequest)
+	if err != nil {
+		t.Fatalf("GetVolumeDiskNumber failed: %v", err)
+	}
+
+	diskNumberString := fmt.Sprintf("%d", volumeDiskNumberResponse.DiskNumber)
+
+	diskStatsRequest := &diskv1beta1.DiskStatsRequest{
+		DiskID: diskNumberString,
+	}
+
+	diskStatsResponse, err := diskBetaClient.DiskStats(context.TODO(), diskStatsRequest)
+	if err != nil {
+		t.Fatalf("DiskStats request error: %v", err)
+	}
+
+	if diskStatsResponse.DiskSize < 0 {
+		t.Fatalf("Invalid disk size was returned %v", diskStatsResponse.DiskSize)
 	}
 
 	// Mount the volume

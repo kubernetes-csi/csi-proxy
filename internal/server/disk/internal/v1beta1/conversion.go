@@ -40,3 +40,13 @@ func Convert_internal_ListDiskIDsResponse_To_v1beta1_ListDiskIDsResponse(in *int
 	}
 	return nil
 }
+
+func Convert_internal_DiskStatsResponse_To_v1beta1_DiskStatsResponse(in *internal.DiskStatsResponse, out *v1beta1.DiskStatsResponse) error {
+	out.DiskSize = in.DiskSize
+	return nil
+}
+
+func Convert_v1beta1_DiskStatsRequest_To_internal_DiskStatsRequest(in *v1beta1.DiskStatsRequest, out *internal.DiskStatsRequest) error {
+	out.DiskID = in.DiskID
+	return nil
+}

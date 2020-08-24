@@ -48,7 +48,7 @@ func (volumeAPI *fakeVolumeAPI) ResizeVolume(volumeID string, size int64) error 
 }
 
 func (volumeAPI *fakeVolumeAPI) VolumeStats(volumeID string) (int64, int64, int64, error) {
-	return -1, -1, -1, nil
+	return -1, -1, nil
 }
 
 func TestListVolumesOnDisk(t *testing.T) {
