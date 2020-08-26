@@ -3,6 +3,8 @@ package filesystem
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
@@ -29,6 +31,25 @@ func pathExists(path string) (bool, error) {
 
 func (APIImplementor) PathExists(path string) (bool, error) {
 	return pathExists(path)
+}
+
+func pathValid(path string) (bool, error) {
+	cmd := exec.Command("powershell", "/c", `Test-Path $Env:remoteapth`)
+	cmd.Env = append(os.Environ(), fmt.Sprintf("remoteapth=%s", path))
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, fmt.Errorf("returned output: %s, error: %v", string(output), err)
+	}
+
+	return strings.HasPrefix(strings.ToLower(string(output)), "true"), nil
+}
+
+// PathValid determines whether all elements of a path exist
+//   https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-path?view=powershell-7
+// for a remote path, determines whether connection is ok
+//   e.g. in a SMB server connection, if password is changed, connection will be lost, this func will return false
+func (APIImplementor) PathValid(path string) (bool, error) {
+	return pathValid(path)
 }
 
 func (APIImplementor) Mkdir(path string) error {

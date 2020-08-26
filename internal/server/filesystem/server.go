@@ -23,6 +23,7 @@ var absPathRegexWindows = regexp.MustCompile(`^[a-zA-Z]:\\`)
 
 type API interface {
 	PathExists(path string) (bool, error)
+	PathValid(path string) (bool, error)
 	Mkdir(path string) error
 	Rmdir(path string, force bool) error
 	LinkPath(tgt string, src string) error
@@ -137,6 +138,12 @@ func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsReq
 		Error:  "",
 		Exists: exists,
 	}, err
+}
+
+// PathValid checks if the given path is accessiable.
+func (s *Server) PathValid(ctx context.Context, path string) (bool, error) {
+	klog.V(4).Infof("calling PathValid with path %q", path)
+	return s.hostAPI.PathValid(path)
 }
 
 func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, version apiversion.Version) (*internal.MkdirResponse, error) {

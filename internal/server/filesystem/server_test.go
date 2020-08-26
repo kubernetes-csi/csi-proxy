@@ -13,6 +13,9 @@ type fakeFileSystemAPI struct{}
 func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
 	return true, nil
 }
+func (fakeFileSystemAPI) PathValid(path string) (bool, error) {
+	return true, nil
+}
 func (fakeFileSystemAPI) Mkdir(path string) error {
 	return nil
 }
