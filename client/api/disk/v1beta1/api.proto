@@ -19,6 +19,7 @@ service Disk {
     // ListDiskIDs returns a map of DiskID objects where the key is the disk number
     rpc ListDiskIDs(ListDiskIDsRequest) returns (ListDiskIDsResponse) {}
 
+    // DiskStats returns the stats for the disk
     rpc DiskStats(DiskStatsRequest) returns (DiskStatsResponse) {}
 }
 

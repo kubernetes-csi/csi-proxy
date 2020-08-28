@@ -51,7 +51,6 @@ message RescanResponse {
     // Intentionally empty
 }
 
-
 message GetDiskNumberByNameRequest {
     // Disk ID
     string disk_name = 1;
