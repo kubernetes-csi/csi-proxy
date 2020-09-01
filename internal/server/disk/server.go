@@ -23,6 +23,7 @@ type API interface {
 	Rescan() error
 	GetDiskNumberByName(diskName string) (string, error)
 	ListDiskIDs() (map[string]shared.DiskIDs, error)
+	DiskStats(diskID string) (int64, error)
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -141,5 +142,26 @@ func (s *Server) ListDiskIDs(context context.Context, request *internal.ListDisk
 		responseDiskIDs[k] = &diskIDs
 	}
 	response.DiskIDs = responseDiskIDs
+	return response, nil
+}
+
+func (s *Server) DiskStats(context context.Context, request *internal.DiskStatsRequest, version apiversion.Version) (*internal.DiskStatsResponse, error) {
+	klog.V(4).Infof("calling GetDiskStats with diskID %q", request.DiskID)
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("GetDiskStats requires CSI-Proxy API version v1beta1 or greater")
+	}
+	diskID := request.DiskID
+
+	diskSize, err := s.hostAPI.DiskStats(diskID)
+	if err != nil {
+		klog.Errorf("failed GetDiskStats %v", err)
+		return nil, err
+	}
+
+	response := &internal.DiskStatsResponse{
+		DiskSize: diskSize,
+	}
+
 	return response, nil
 }

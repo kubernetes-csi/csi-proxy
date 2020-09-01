@@ -51,6 +51,10 @@ func (w *Client) Close() error {
 // ensures we implement all the required methods
 var _ v1beta1.DiskClient = &Client{}
 
+func (w *Client) DiskStats(context context.Context, request *v1beta1.DiskStatsRequest, opts ...grpc.CallOption) (*v1beta1.DiskStatsResponse, error) {
+	return w.client.DiskStats(context, request, opts...)
+}
+
 func (w *Client) ListDiskIDs(context context.Context, request *v1beta1.ListDiskIDsRequest, opts ...grpc.CallOption) (*v1beta1.ListDiskIDsResponse, error) {
 	return w.client.ListDiskIDs(context, request, opts...)
 }

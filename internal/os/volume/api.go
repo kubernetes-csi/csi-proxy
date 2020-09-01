@@ -1,8 +1,11 @@
 package volume
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -77,14 +80,130 @@ func (VolAPIImplementor) DismountVolume(volumeID, path string) error {
 	return nil
 }
 
-// ResizeVolume - resize the volume to the size specified as parameter.
+// ResizeVolume - resizes a volume with the given size, if size == 0 then max supported size is used
 func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
-	// TODO: Check the size of the resize
-	// TODO: We have to get the right partition.
-	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-partition | Resize-Partition -Size %d", volumeID, size)
-	out, err := runExec(cmd)
+	// If size is 0 then we will resize to the maximum size possible, otherwise just resize to size
+	var cmd string
+	var out []byte
+	var err error
+	var finalSize int64
+	if size == 0 {
+		cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-partition | Get-PartitionSupportedSize | Select SizeMax | ConvertTo-Json", volumeID)
+		out, err = runExec(cmd)
+
+		if err != nil || len(out) == 0 {
+			return fmt.Errorf("error getting sizemin,sizemax from mount. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+		}
+
+		var getVolumeSizing map[string]int64
+		outString := string(out)
+		err = json.Unmarshal([]byte(outString), &getVolumeSizing)
+		if err != nil {
+			return fmt.Errorf("out %v outstring %v err %v", out, outString, err)
+		}
+
+		sizeMax := getVolumeSizing["SizeMax"]
+
+		finalSize = sizeMax
+	} else {
+		finalSize = size
+	}
+
+	cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-partition | Resize-Partition -Size %d", volumeID, finalSize)
+	out, err = runExec(cmd)
 	if err != nil {
-		return fmt.Errorf("error resizing volume. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+		return fmt.Errorf("error resizing volume. cmd: %s, output: %s size:%v, finalSize %v, error: %v", cmd, string(out), size, finalSize, err)
 	}
 	return nil
+}
+
+// VolumeStats - retrieves the volume stats for a given volume
+func (VolAPIImplementor) VolumeStats(volumeID string) (int64, int64, error) {
+	// get the size and sizeRemaining for the volume
+	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Select SizeRemaining,Size) | ConvertTo-Json", volumeID)
+	out, err := runExec(cmd)
+
+	if err != nil {
+		return -1, -1, fmt.Errorf("error getting capacity and used size of volume. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	var getVolume map[string]int64
+	outString := string(out)
+	err = json.Unmarshal([]byte(outString), &getVolume)
+	if err != nil {
+		return -1, -1, fmt.Errorf("out %v outstring %v err %v", out, outString, err)
+	}
+	var volumeSizeRemaining int64
+	var volumeSize int64
+
+	volumeSize = getVolume["Size"]
+	volumeSizeRemaining = getVolume["SizeRemaining"]
+
+	volumeUsedSize := volumeSize - volumeSizeRemaining
+	return volumeSizeRemaining, volumeUsedSize, nil
+}
+
+// GetVolumeDiskNumber - gets the disk number where the volume is.
+func (VolAPIImplementor) GetVolumeDiskNumber(volumeID string) (int64, error) {
+	// get the size and sizeRemaining for the volume
+	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Get-Partition).DiskNumber", volumeID)
+	out, err := runExec(cmd)
+
+	if err != nil || len(out) == 0 {
+		return -1, fmt.Errorf("error getting disk number. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	reg, err := regexp.Compile("[^0-9]+")
+	if err != nil {
+		return -1, fmt.Errorf("error compiling regex. err: %v", err)
+	}
+	diskNumberOutput := reg.ReplaceAllString(string(out), "")
+
+	diskNumber, err := strconv.ParseInt(diskNumberOutput, 10, 64)
+
+	if err != nil {
+		return -1, fmt.Errorf("error parsing disk number. cmd: %s, output: %s, error: %v", cmd, diskNumberOutput, err)
+	}
+
+	return diskNumber, nil
+}
+
+// GetVolumeIDFromMount - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out
+func (VolAPIImplementor) GetVolumeIDFromMount(mount string) (string, error) {
+	volumeString, err := getTarget(mount)
+
+	if err != nil {
+		return "", fmt.Errorf("error getting the volume for the mount %s, internal error %v", mount, err)
+	}
+
+	return volumeString, nil
+}
+
+func getTarget(mount string) (string, error) {
+	cmd := fmt.Sprintf("Get-Item -LiteralPath \"%s\" | Select Target | ConvertTo-Json", mount)
+	out, err := runExec(cmd)
+
+	if err != nil || len(out) == 0 {
+		return "", fmt.Errorf("error getting volume from mount. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	var getVolume map[string][]string
+	outString := string(out)
+	err = json.Unmarshal([]byte(outString), &getVolume)
+	if err != nil {
+		return "", fmt.Errorf("out %v outstring %v err %v", out, outString, err)
+	}
+	var volumeString string
+
+	volumeString = getVolume["Target"][0]
+
+	volumeString = strings.TrimSuffix(volumeString, "\n")
+
+	if !strings.HasPrefix(volumeString, "Volume") {
+		return getTarget(volumeString)
+	}
+
+	volumeString = "\\\\?\\" + volumeString
+
+	return volumeString, nil
 }

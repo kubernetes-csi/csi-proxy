@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -294,4 +295,26 @@ func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
 	}
 
 	return m, nil
+}
+
+func (imp APIImplementor) DiskStats(diskID string) (int64, error) {
+	cmd := fmt.Sprintf("(Get-Disk -Number %s).Size", diskID)
+	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+	if err != nil || len(out) == 0 {
+		return -1, fmt.Errorf("error getting size of disk. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	reg, err := regexp.Compile("[^0-9]+")
+	if err != nil {
+		return -1, fmt.Errorf("error compiling regex. err: %v", err)
+	}
+	diskSizeOutput := reg.ReplaceAllString(string(out), "")
+
+	diskSize, err := strconv.ParseInt(diskSizeOutput, 10, 64)
+
+	if err != nil {
+		return -1, fmt.Errorf("error parsing size of disk. cmd: %s, output: %s, error: %v", cmd, diskSizeOutput, err)
+	}
+
+	return diskSize, nil
 }

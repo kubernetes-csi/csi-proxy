@@ -50,3 +50,11 @@ type ListDiskIDsResponse struct {
 	// Map of disk device numbers and IDs <page83> associated with each disk device
 	DiskIDs map[string]*DiskIDs
 }
+
+type DiskStatsRequest struct {
+	DiskID string
+}
+
+type DiskStatsResponse struct {
+	DiskSize int64
+}
