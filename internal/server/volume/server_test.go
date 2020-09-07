@@ -47,7 +47,17 @@ func (volumeAPI *fakeVolumeAPI) ResizeVolume(volumeID string, size int64) error 
 	return nil
 }
 
-func (volumeAPI *fakeVolumeAPI) VolumeStats(volumeID string) (int64, int64, int64, error) {
+func (volumeAPI *fakeVolumeAPI) GetVolumeDiskNumber(volumeID string) (int64, error) {
+	return -1, nil
+
+}
+
+func (volumeAPI *fakeVolumeAPI) GetVolumeIDFromMount(mount string) (string, error) {
+	return "id", nil
+
+}
+
+func (volumeAPI *fakeVolumeAPI) VolumeStats(volumeID string) (int64, int64, error) {
 	return -1, -1, nil
 }
 
