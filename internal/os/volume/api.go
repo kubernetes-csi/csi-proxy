@@ -70,7 +70,7 @@ func (VolAPIImplementor) MountVolume(volumeID, path string) error {
 	return nil
 }
 
-// DismountVolume - unmounts the volume path by removing the patition access path
+// DismountVolume - unmounts the volume path by removing the partition access path
 func (VolAPIImplementor) DismountVolume(volumeID, path string) error {
 	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-Partition | Remove-PartitionAccessPath -AccessPath %s", volumeID, path)
 	out, err := runExec(cmd)

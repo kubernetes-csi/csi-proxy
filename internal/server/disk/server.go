@@ -75,12 +75,12 @@ func (s *Server) PartitionDisk(context context.Context, request *internal.Partit
 	}
 
 	klog.V(4).Infof("Checking if disk %s is partitioned", diskID)
-	paritioned, err := s.hostAPI.PartitionsExist(diskID)
+	partitioned, err := s.hostAPI.PartitionsExist(diskID)
 	if err != nil {
 		klog.Errorf("failed check PartitionsExist %v", err)
 		return response, err
 	}
-	if !paritioned {
+	if !partitioned {
 		klog.V(4).Infof("Creating partition on disk %s", diskID)
 		err = s.hostAPI.CreatePartition(diskID)
 		if err != nil {

@@ -123,7 +123,7 @@ func (APIImplementor) PartitionsExist(diskID string) (bool, error) {
 		return false, fmt.Errorf("error checking presence of partitions on disk %s: %v, %v", diskID, out, err)
 	}
 	if len(out) > 0 {
-		// disk has paritions in it
+		// disk has partitions in it
 		return true, nil
 	}
 	return false, nil

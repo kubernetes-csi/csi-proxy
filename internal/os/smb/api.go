@@ -30,7 +30,7 @@ func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
 	return true, nil
 }
 
-// NewSmbLink - creates a direcotry symbolic link to the remote share.
+// NewSmbLink - creates a directory symbolic link to the remote share.
 // The os.Symlink was having issue for cases where the destination was an SMB share - the container
 // runtime would complain stating "Access Denied". Because of this, we had to perform
 // this operation with powershell commandlet creating an directory softlink.
