@@ -45,20 +45,21 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 		isMapped = false
 	}
 
-	valid, err := s.fsServer.PathValid(context, remotePath)
-	if err != nil {
-		klog.Errorf("PathValid(%s) failed with %v", remotePath, err)
-		return response, fmt.Errorf("PathValid(%s) failed with %v", remotePath, err)
-	}
-
-	if isMapped && !valid {
-		klog.V(4).Infof("Remote %s is not valid, removing now", remotePath)
-		err := s.hostAPI.RemoveSmbGlobalMapping(remotePath)
+	if isMapped {
+		valid, err := s.fsServer.PathValid(context, remotePath)
 		if err != nil {
-			klog.Errorf("RemoveSmbGlobalMapping(%s) failed with %v", remotePath, err)
-			return response, err
+			klog.Warningf("PathValid(%s) failed with %v, ignore error", remotePath, err)
 		}
-		isMapped = false
+
+		if !valid {
+			klog.V(4).Infof("RemotePath %s is not valid, removing now", remotePath)
+			err := s.hostAPI.RemoveSmbGlobalMapping(remotePath)
+			if err != nil {
+				klog.Errorf("RemoveSmbGlobalMapping(%s) failed with %v", remotePath, err)
+				return response, err
+			}
+			isMapped = false
+		}
 	}
 
 	if !isMapped {
