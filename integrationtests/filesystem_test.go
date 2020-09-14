@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1alpha1"
-	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta1"
+	v1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta1"
 )
 
 func pathExists(path string) (bool, error) {
@@ -28,7 +28,7 @@ func pathExists(path string) (bool, error) {
 
 func TestFilesystemAPIGroup(t *testing.T) {
 	t.Run("PathExists positive", func(t *testing.T) {
-		client, err := v1alpha1client.NewClient()
+		client, err := v1beta1client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
 
@@ -37,9 +37,9 @@ func TestFilesystemAPIGroup(t *testing.T) {
 
 		// simulate FS operations around staging a volume on a node
 		stagepath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100))
-		mkdirReq := &v1alpha1.MkdirRequest{
+		mkdirReq := &v1beta1.MkdirRequest{
 			Path:    stagepath,
-			Context: v1alpha1.PathContext_PLUGIN,
+			Context: v1beta1.PathContext_PLUGIN,
 		}
 		mkdirRsp, err := client.Mkdir(context.Background(), mkdirReq)
 		if assert.Nil(t, err) {
@@ -51,17 +51,17 @@ func TestFilesystemAPIGroup(t *testing.T) {
 
 		// simulate operations around publishing a volume to a pod
 		podpath := fmt.Sprintf("C:\\var\\lib\\kubelet\\pods\\test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100))
-		mkdirReq = &v1alpha1.MkdirRequest{
+		mkdirReq = &v1beta1.MkdirRequest{
 			Path:    podpath,
-			Context: v1alpha1.PathContext_POD,
+			Context: v1beta1.PathContext_POD,
 		}
 		mkdirRsp, err = client.Mkdir(context.Background(), mkdirReq)
 		if assert.Nil(t, err) {
 			assert.Equal(t, "", mkdirRsp.Error)
 		}
-		linkReq := &v1alpha1.LinkPathRequest{
-			SourcePath: podpath + "\\rootvol",
+		linkReq := &v1beta1.LinkPathRequest{
 			TargetPath: stagepath,
+			SourcePath: podpath + "\\rootvol",
 		}
 		linkRsp, err := client.LinkPath(context.Background(), linkReq)
 		if assert.Nil(t, err) {
@@ -72,9 +72,9 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		assert.True(t, exists, err)
 
 		// cleanup pvpath
-		rmdirReq := &v1alpha1.RmdirRequest{
+		rmdirReq := &v1beta1.RmdirRequest{
 			Path:    podpath,
-			Context: v1alpha1.PathContext_POD,
+			Context: v1beta1.PathContext_POD,
 			Force:   true,
 		}
 		rmdirRsp, err := client.Rmdir(context.Background(), rmdirReq)
@@ -86,9 +86,9 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		assert.False(t, exists, err)
 
 		// cleanup plugin path
-		rmdirReq = &v1alpha1.RmdirRequest{
+		rmdirReq = &v1beta1.RmdirRequest{
 			Path:    stagepath,
-			Context: v1alpha1.PathContext_PLUGIN,
+			Context: v1beta1.PathContext_PLUGIN,
 			Force:   true,
 		}
 		rmdirRsp, err = client.Rmdir(context.Background(), rmdirReq)
@@ -100,7 +100,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		assert.False(t, exists, err)
 	})
 	t.Run("IsMount", func(t *testing.T) {
-		client, err := v1alpha1client.NewClient()
+		client, err := v1beta1client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
 
@@ -116,18 +116,17 @@ func TestFilesystemAPIGroup(t *testing.T) {
 
 		// 1. Check the isMount on a path which does not exist. Failure scenario.
 		stagepath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d", rand1, rand2)
-		isMountRequest := &v1alpha1.IsMountPointRequest{
+		isMountRequest := &v1beta1.IsMountPointRequest{
 			Path: stagepath,
 		}
 		isMountResponse, err := client.IsMountPoint(context.Background(), isMountRequest)
 		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, false)
 
 		// 2. Create the directory. This time its not a mount point. Failure scenario.
 		err = os.Mkdir(stagepath, os.ModeDir)
 		require.Nil(t, err)
 		defer os.Remove(stagepath)
-		isMountRequest = &v1alpha1.IsMountPointRequest{
+		isMountRequest = &v1beta1.IsMountPointRequest{
 			Path: stagepath,
 		}
 		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
@@ -148,7 +147,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		require.Nil(t, err)
 		defer os.Remove(lnTargetStagePath)
 
-		isMountRequest = &v1alpha1.IsMountPointRequest{
+		isMountRequest = &v1beta1.IsMountPointRequest{
 			Path: lnTargetStagePath,
 		}
 		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
@@ -158,7 +157,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		// 4. Remove the path. Failure scenario.
 		err = os.Remove(targetStagePath)
 		require.Nil(t, err)
-		isMountRequest = &v1alpha1.IsMountPointRequest{
+		isMountRequest = &v1beta1.IsMountPointRequest{
 			Path: lnTargetStagePath,
 		}
 		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
