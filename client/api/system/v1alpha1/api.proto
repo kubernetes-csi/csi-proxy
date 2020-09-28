@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package v1alpha1;
+
+option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/system/v1alpha1";
+
+service System {
+    // GetBIOSSerialNumber returns the device's serial number
+    rpc GetBIOSSerialNumber(GetBIOSSerialNumberRequest) returns (GetBIOSSerialNumberResponse) {}
+}
+
+message GetBIOSSerialNumberRequest {
+    // Intentionally empty
+}
+
+message GetBIOSSerialNumberResponse {
+    // Serial number
+    string serial_number = 1;
+}
