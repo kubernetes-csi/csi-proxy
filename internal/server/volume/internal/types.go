@@ -31,6 +31,13 @@ type FormatVolumeRequest struct {
 type FormatVolumeResponse struct {
 }
 
+type WriteVolumeCacheRequest struct {
+	VolumeId string
+}
+
+type WriteVolumeCacheResponse struct {
+}
+
 type DismountVolumeRequest struct {
 	VolumeId string
 	Path     string
