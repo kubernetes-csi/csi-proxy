@@ -118,9 +118,19 @@ func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
 }
 
 // VolumeStats - retrieves the volume stats for a given volume
-func (VolAPIImplementor) VolumeStats(volumeID string) (int64, int64, error) {
+func (VolAPIImplementor) VolumeStats(volumeID, filePath string) (int64, int64, error) {
 	// get the size and sizeRemaining for the volume
-	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Select SizeRemaining,Size) | ConvertTo-Json", volumeID)
+	var param string
+	var value string
+	if volumeID != "" {
+		param = "UniqueId"
+		value = volumeID
+	} else {
+		param = "FilePath"
+		value = filePath
+	}
+	cmd := fmt.Sprintf("(Get-Volume -%s \"%s\" | Select SizeRemaining,Size) | ConvertTo-Json", param, value)
+
 	out, err := runExec(cmd)
 
 	if err != nil {

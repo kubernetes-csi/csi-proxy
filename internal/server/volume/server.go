@@ -26,7 +26,7 @@ type API interface {
 	// ResizeVolume performs resizing of the partition and file system for a block based volume
 	ResizeVolume(volumeID string, size int64) error
 	// VolumeStats gets the volume information
-	VolumeStats(volumeID string) (int64, int64, error)
+	VolumeStats(volumeID, filePath string) (int64, int64, error)
 	// GetVolumeDiskNumber returns the disk number for where the volume is at
 	GetVolumeDiskNumber(volumeID string) (int64, error)
 	// GetVolumeIDFromMount returns the volume id of a given mount
@@ -169,11 +169,12 @@ func (s *Server) VolumeStats(context context.Context, request *internal.VolumeSt
 	}
 
 	volumeId := request.VolumeId
-	if volumeId == "" {
-		return nil, fmt.Errorf("volume id empty")
+	filePath := request.Path
+	if volumeId == "" && filePath == "" {
+		return nil, fmt.Errorf("both volume id and filePath are empty")
 	}
 
-	capacity, used, err := s.hostAPI.VolumeStats(request.VolumeId)
+	capacity, used, err := s.hostAPI.VolumeStats(volumeId, filePath)
 
 	if err != nil {
 		klog.Errorf("failed VolumeStats %v", err)

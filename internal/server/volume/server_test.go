@@ -57,7 +57,7 @@ func (volumeAPI *fakeVolumeAPI) GetVolumeIDFromMount(mount string) (string, erro
 
 }
 
-func (volumeAPI *fakeVolumeAPI) VolumeStats(volumeID string) (int64, int64, error) {
+func (volumeAPI *fakeVolumeAPI) VolumeStats(volumeID, filePath string) (int64, int64, error) {
 	return -1, -1, nil
 }
 

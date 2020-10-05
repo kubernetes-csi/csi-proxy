@@ -49,6 +49,7 @@ type ResizeVolumeResponse struct {
 
 type VolumeStatsRequest struct {
 	VolumeId string
+	Path     string
 }
 
 type VolumeStatsResponse struct {
