@@ -20,6 +20,17 @@ Recommended K8s Version: 1.18
 
 CSI-proxy is currently in Alpha status
 
+## Installation
+
+csi-proxy.exe can be installed and run as binary or run as a Windows service on each Windows node. See the following as an example to run CSI Proxy as a web service.
+```
+    $flags = "-windows-service -log_file=\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
+    sc.exe create csiproxy binPath= "\etc\kuberentes\node\bin\csi-proxy.exe $flags"
+    sc.exe failure csiproxy reset= 0 actions= restart/10000
+    sc.exe start csiproxy
+```
+If you are using kube-up to start a Windows cluster, node startup script will automatically run csi-proxy as a service. For GKE 1.18+, csi-proxy will be installed automatically.
+
 ## Usage
 
 ### Command line options
