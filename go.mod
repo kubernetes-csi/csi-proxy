@@ -1,6 +1,6 @@
 module github.com/kubernetes-csi/csi-proxy
 
-go 1.12
+go 1.13
 
 replace (
 	github.com/kubernetes-csi/csi-proxy/client => ./client
@@ -14,17 +14,19 @@ replace (
 
 require (
 	github.com/Microsoft/go-winio v0.4.14
-	github.com/golang/protobuf v1.4.1
-	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
-	github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000
-	github.com/pkg/errors v0.8.1
-	github.com/sergi/go-diff v1.0.0
+	github.com/golang/protobuf v1.4.2
+	github.com/iancoleman/strcase v0.1.2
+	github.com/kubernetes-csi/csi-proxy/client v0.2.1
+	github.com/pkg/errors v0.9.1
+	github.com/sergi/go-diff v1.1.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
-	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5
-	golang.org/x/text v0.3.2 // indirect
-	google.golang.org/grpc v1.27.1
-	k8s.io/gengo v0.0.0-00010101000000-000000000000
+	github.com/stretchr/testify v1.6.1
+	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb // indirect
+	golang.org/x/sys v0.0.0-20201009025420-dfb3f7c4e634
+	golang.org/x/tools v0.0.0-20201011145850-ed2f50202694 // indirect
+	google.golang.org/genproto v0.0.0-20201009135657-4d944d34d83c // indirect
+	google.golang.org/grpc v1.33.0
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	k8s.io/gengo v0.0.0-20200728071708-7794989d0000
 	k8s.io/klog v1.0.0
 )
