@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -116,4 +117,30 @@ func readFile(t *testing.T, filePath string) string {
 	contents, err := ioutil.ReadFile(filePath)
 	require.Nil(t, err, "unable to read %q", filePath)
 	return string(contents)
+}
+
+// GetWorkDirPath returns the path to the current working directory
+// to be used anytime the filepath is required to be within context of csi-proxy
+func getWorkDirPath(dir string, t *testing.T) string {
+	path, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get working directory: %s", err)
+	}
+	return fmt.Sprintf("%s%ctestdir%c%s", path, os.PathSeparator, os.PathSeparator, dir)
+}
+
+// returns true if CSI_PROXY_GH_ACTIONS is set to "TRUE"
+func isRunningOnGhActions() bool {
+	return os.Getenv("CSI_PROXY_GH_ACTIONS") == "TRUE"
+}
+
+// returns true if underlying os is windows
+func isRunningWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
+func skipTestOnCondition(t *testing.T, condition bool) {
+	if condition {
+		t.Skip("Skipping test")
+	}
 }

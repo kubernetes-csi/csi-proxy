@@ -380,9 +380,13 @@ func simpleE2e(t *testing.T) {
 }
 
 func TestVolumeAPIs(t *testing.T) {
+	// todo: This test will fail on Github Actions because Hyper-V needs to be enabled
+	// Skip on GH actions till we find a better solution
 	t.Run("SimpleE2E", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
 		simpleE2e(t)
 	})
+
 	t.Run("NegativeDiskTests", func(t *testing.T) {
 		negativeDiskTests(t)
 	})
