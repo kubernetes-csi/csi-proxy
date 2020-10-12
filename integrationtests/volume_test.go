@@ -368,6 +368,7 @@ func simpleE2e(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
 	}
+
 	// Dismount the volume
 	dismountVolumeRequest := &v1alpha1.DismountVolumeRequest{
 		VolumeId: volumeID,
