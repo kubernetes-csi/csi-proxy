@@ -47,16 +47,6 @@ func (VolAPIImplementor) FormatVolume(volumeID string) (err error) {
 	return nil
 }
 
-// WriteVolumeCache - Writes the file system cache to disk with the given volume id
-func (VolAPIImplementor) WriteVolumeCache(volumeID string) (err error) {
-	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Write-Volumecache", volumeID)
-	out, err := runExec(cmd)
-	if err != nil {
-		return fmt.Errorf("error writing volume cache. cmd: %s, output: %s, error: %v", cmd, string(out), err)
-	}
-	return nil
-}
-
 // IsVolumeFormatted - Check if the volume is formatted with the pre specified filesystem(typically ntfs).
 func (VolAPIImplementor) IsVolumeFormatted(volumeID string) (bool, error) {
 	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" -ErrorAction Stop).FileSystemType", volumeID)

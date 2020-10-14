@@ -31,8 +31,6 @@ type API interface {
 	GetVolumeDiskNumber(volumeID string) (int64, error)
 	// GetVolumeIDFromMount returns the volume id of a given mount
 	GetVolumeIDFromMount(mount string) (string, error)
-	// WriteVolumeCache writes volume cache to disk
-	WriteVolumeCache(volumeID string) error
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -139,24 +137,7 @@ func (s *Server) FormatVolume(context context.Context, request *internal.FormatV
 		klog.Errorf("failed FormatVolume %v", err)
 		return response, err
 	}
-	return response, nil
-}
 
-func (s *Server) WriteVolumeCache(context context.Context, request *internal.WriteVolumeCacheRequest, version apiversion.Version) (*internal.WriteVolumeCacheResponse, error) {
-	klog.V(4).Infof("calling WriteVolumeCache with request: %+v", request)
-	response := &internal.WriteVolumeCacheResponse{}
-
-	volumeID := request.VolumeId
-	if volumeID == "" {
-		klog.Errorf("volume id empty")
-		return response, fmt.Errorf("volume id empty")
-	}
-
-	err := s.hostAPI.WriteVolumeCache(volumeID)
-	if err != nil {
-		klog.Errorf("failed WriteVolumeCache %v", err)
-		return response, err
-	}
 	return response, nil
 }
 

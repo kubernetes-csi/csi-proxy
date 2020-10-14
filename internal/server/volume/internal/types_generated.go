@@ -24,5 +24,4 @@ type ServerInterface interface {
 	MountVolume(context.Context, *MountVolumeRequest, apiversion.Version) (*MountVolumeResponse, error)
 	ResizeVolume(context.Context, *ResizeVolumeRequest, apiversion.Version) (*ResizeVolumeResponse, error)
 	VolumeStats(context.Context, *VolumeStatsRequest, apiversion.Version) (*VolumeStatsResponse, error)
-	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest, apiversion.Version) (*WriteVolumeCacheResponse, error)
 }
