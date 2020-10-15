@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1"
-	v1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta2"
+	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,13 +15,13 @@ import (
 // the host name
 func TestDiskAPIGroupV1Beta1(t *testing.T) {
 	t.Run("ListDiskIDs", func(t *testing.T) {
-		client, err := v1beta1client.NewClient()
+		client, err := v1beta2client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
 
 		diskNumber := 0
 		id := "page83"
-		listRequest := &v1beta1.ListDiskIDsRequest{}
+		listRequest := &v1beta2.ListDiskIDsRequest{}
 		diskIDsResponse, err := client.ListDiskIDs(context.TODO(), listRequest)
 		require.Nil(t, err)
 
