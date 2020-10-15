@@ -33,7 +33,7 @@ func (APIImplementor) GetBIOSSerialNumber() (string, error) {
 		}
 	})
 	if len(lines) != 2 {
-		return "", fmt.Errorf("received unexpected value retrieving vm uuid: %q", string(result))
+		return "", fmt.Errorf("received unexpected value retrieving host uuid: %q", string(result))
 	}
 	return lines[1], nil
 }
