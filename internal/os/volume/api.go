@@ -49,12 +49,7 @@ func (VolAPIImplementor) FormatVolume(volumeID string) (err error) {
 
 // WriteVolumeCache - Writes the file system cache to disk with the given volume id
 func (VolAPIImplementor) WriteVolumeCache(volumeID string) (err error) {
-	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Write-Volumecache", volumeID)
-	out, err := runExec(cmd)
-	if err != nil {
-		return fmt.Errorf("error writing volume cache. cmd: %s, output: %s, error: %v", cmd, string(out), err)
-	}
-	return nil
+	return writeCache(volumeID)
 }
 
 // IsVolumeFormatted - Check if the volume is formatted with the pre specified filesystem(typically ntfs).
@@ -82,6 +77,9 @@ func (VolAPIImplementor) MountVolume(volumeID, path string) error {
 
 // DismountVolume - unmounts the volume path by removing the partition access path
 func (VolAPIImplementor) DismountVolume(volumeID, path string) error {
+	if err := writeCache(volumeID); err != nil {
+		return err
+	}
 	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-Partition | Remove-PartitionAccessPath -AccessPath %s", volumeID, path)
 	out, err := runExec(cmd)
 	if err != nil {
@@ -216,4 +214,13 @@ func getTarget(mount string) (string, error) {
 	volumeString = "\\\\?\\" + volumeString
 
 	return volumeString, nil
+}
+
+func writeCache(volumeID string) error {
+	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Write-Volumecache", volumeID)
+	out, err := runExec(cmd)
+	if err != nil {
+		return fmt.Errorf("error writing volume cache. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+	return nil
 }
