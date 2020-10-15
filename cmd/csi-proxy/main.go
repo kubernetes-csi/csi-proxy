@@ -6,11 +6,13 @@ import (
 	diskapi "github.com/kubernetes-csi/csi-proxy/internal/os/disk"
 	filesystemapi "github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
 	smbapi "github.com/kubernetes-csi/csi-proxy/internal/os/smb"
+	sysapi "github.com/kubernetes-csi/csi-proxy/internal/os/system"
 	volumeapi "github.com/kubernetes-csi/csi-proxy/internal/os/volume"
 	"github.com/kubernetes-csi/csi-proxy/internal/server"
 	disksrv "github.com/kubernetes-csi/csi-proxy/internal/server/disk"
 	filesystemsrv "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	smbsrv "github.com/kubernetes-csi/csi-proxy/internal/server/smb"
+	syssrv "github.com/kubernetes-csi/csi-proxy/internal/server/system"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
 	volumesrv "github.com/kubernetes-csi/csi-proxy/internal/server/volume"
 	"golang.org/x/sys/windows"
@@ -77,11 +79,17 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 		return []srvtypes.APIGroup{}, err
 	}
 
+	syssrv, err := syssrv.NewServer(sysapi.New())
+	if err != nil {
+		return []srvtypes.APIGroup{}, err
+	}
+
 	return []srvtypes.APIGroup{
 		fssrv,
 		disksrv,
 		volumesrv,
 		smbsrv,
+		syssrv,
 	}, nil
 }
 
