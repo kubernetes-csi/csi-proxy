@@ -58,3 +58,14 @@ type DiskStatsRequest struct {
 type DiskStatsResponse struct {
 	DiskSize int64
 }
+
+type SetAttachStateRequest struct {
+	// Disk device ID of the disk which state will change
+	DiskID string
+
+	// Online state to set for the disk. true for online, false for offline
+	IsOnline bool
+}
+
+type SetAttachStateResponse struct {
+}

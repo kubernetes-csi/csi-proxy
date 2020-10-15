@@ -21,4 +21,5 @@ type ServerInterface interface {
 	ListDiskLocations(context.Context, *ListDiskLocationsRequest, apiversion.Version) (*ListDiskLocationsResponse, error)
 	PartitionDisk(context.Context, *PartitionDiskRequest, apiversion.Version) (*PartitionDiskResponse, error)
 	Rescan(context.Context, *RescanRequest, apiversion.Version) (*RescanResponse, error)
+	SetAttachState(context.Context, *SetAttachStateRequest, apiversion.Version) (*SetAttachStateResponse, error)
 }
