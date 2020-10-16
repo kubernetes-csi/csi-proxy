@@ -13,7 +13,7 @@ import (
 
 // This test is meant to run on GCE where the page83 ID of the first disk contains
 // the host name
-func TestDiskAPIGroupV1Beta1(t *testing.T) {
+func TestDiskAPIGroup(t *testing.T) {
 	t.Run("ListDiskIDs", func(t *testing.T) {
 		client, err := v1beta2client.NewClient()
 		require.Nil(t, err)
