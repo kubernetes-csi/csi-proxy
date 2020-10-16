@@ -25,6 +25,7 @@ type API interface {
 	ListDiskIDs() (map[string]shared.DiskIDs, error)
 	DiskStats(diskID string) (int64, error)
 	SetAttachState(diskID string, isOnline bool) error
+	GetAttachState(diskID string) (bool, error)
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -181,6 +182,24 @@ func (s *Server) SetAttachState(_ context.Context, request *internal.SetAttachSt
 	}
 
 	response := &internal.SetAttachStateResponse{}
+
+	return response, nil
+}
+
+func (s *Server) GetAttachState(_ context.Context, request *internal.GetAttachStateRequest, version apiversion.Version) (*internal.GetAttachStateResponse, error) {
+	klog.V(4).Infof("calling GetDiskState with diskID %q", request.DiskID)
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta2")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("GetDiskState requires CSI-Proxy API version v1beta2 or greater")
+	}
+
+	isOnline, err := s.hostAPI.GetAttachState(request.DiskID)
+	if err != nil {
+		klog.Errorf("failed GetDiskState %v", err)
+		return nil, err
+	}
+
+	response := &internal.GetAttachStateResponse{IsOnline: isOnline}
 
 	return response, nil
 }

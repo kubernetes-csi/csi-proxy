@@ -69,3 +69,13 @@ type SetAttachStateRequest struct {
 
 type SetAttachStateResponse struct {
 }
+
+type GetAttachStateRequest struct {
+	// Disk device ID of the disk
+	DiskID string
+}
+
+type GetAttachStateResponse struct {
+	// Online state of the disk. true for online, false for offline
+	IsOnline bool
+}

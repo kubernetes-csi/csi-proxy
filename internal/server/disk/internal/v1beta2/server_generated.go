@@ -46,6 +46,25 @@ func (s *versionedAPI) DiskStats(context context.Context, versionedRequest *v1be
 	return versionedResponse, err
 }
 
+func (s *versionedAPI) GetAttachState(context context.Context, versionedRequest *v1beta2.GetAttachStateRequest) (*v1beta2.GetAttachStateResponse, error) {
+	request := &internal.GetAttachStateRequest{}
+	if err := Convert_v1beta2_GetAttachStateRequest_To_internal_GetAttachStateRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetAttachState(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta2.GetAttachStateResponse{}
+	if err := Convert_internal_GetAttachStateResponse_To_v1beta2_GetAttachStateResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) ListDiskIDs(context context.Context, versionedRequest *v1beta2.ListDiskIDsRequest) (*v1beta2.ListDiskIDsResponse, error) {
 	request := &internal.ListDiskIDsRequest{}
 	if err := Convert_v1beta2_ListDiskIDsRequest_To_internal_ListDiskIDsRequest(versionedRequest, request); err != nil {
