@@ -28,6 +28,8 @@ func pathExists(path string) (bool, error) {
 
 func TestFilesystemAPIGroup(t *testing.T) {
 	t.Run("PathExists positive", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+
 		client, err := v1beta1client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
@@ -36,7 +38,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		r1 := rand.New(s1)
 
 		// simulate FS operations around staging a volume on a node
-		stagepath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100))
+		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
 		mkdirReq := &v1beta1.MkdirRequest{
 			Path:    stagepath,
 			Context: v1beta1.PathContext_PLUGIN,
@@ -50,7 +52,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		assert.True(t, exists, err)
 
 		// simulate operations around publishing a volume to a pod
-		podpath := fmt.Sprintf("C:\\var\\lib\\kubelet\\pods\\test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100))
+		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
 		mkdirReq = &v1beta1.MkdirRequest{
 			Path:    podpath,
 			Context: v1beta1.PathContext_POD,
@@ -109,18 +111,18 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		rand1 := r1.Intn(100)
 		rand2 := r1.Intn(100)
 
-		testDir := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io", rand1)
+		testDir := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
 		err = os.MkdirAll(testDir, os.ModeDir)
 		require.Nil(t, err)
 		defer os.RemoveAll(testDir)
 
 		// 1. Check the isMount on a path which does not exist. Failure scenario.
-		stagepath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d", rand1, rand2)
+		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
 		isMountRequest := &v1beta1.IsMountPointRequest{
 			Path: stagepath,
 		}
 		isMountResponse, err := client.IsMountPoint(context.Background(), isMountRequest)
-		require.Nil(t, err)
+		require.NotNil(t, err)
 
 		// 2. Create the directory. This time its not a mount point. Failure scenario.
 		err = os.Mkdir(stagepath, os.ModeDir)
@@ -135,8 +137,8 @@ func TestFilesystemAPIGroup(t *testing.T) {
 
 		err = os.Remove(stagepath)
 		require.Nil(t, err)
-		targetStagePath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2)
-		lnTargetStagePath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2)
+		targetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2), t)
+		lnTargetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2), t)
 
 		// 3. Create soft link to the directory and make sure target exists. Success scenario.
 		err = os.Mkdir(targetStagePath, os.ModeDir)
