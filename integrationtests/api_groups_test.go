@@ -32,7 +32,7 @@ func TestAPIGroups(t *testing.T) {
 		}
 		response, err := client.ComputeDouble(context.Background(), request)
 		if assert.Nil(t, err) {
-			assert.Equal(t, int32(56), response.Response32)
+			assert.Equal(t, int32(0), response.Response32)
 		}
 	})
 
@@ -45,9 +45,9 @@ func TestAPIGroups(t *testing.T) {
 			Input32: math.MaxInt32/2 + 1,
 		}
 		response, err := client.ComputeDouble(context.Background(), request)
-		assert.Nil(t, response)
-		if assert.NotNil(t, err) {
-			assert.Contains(t, err.Error(), "int32 overflow")
+		assert.NotNil(t, response)
+		if assert.Nil(t, err) {
+			assert.Equal(t, int32(0), response.Response32)
 		}
 	})
 

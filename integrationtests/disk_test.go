@@ -13,8 +13,10 @@ import (
 
 // This test is meant to run on GCE where the page83 ID of the first disk contains
 // the host name
+// Skip on Github Actions as it is expected to fail
 func TestDiskAPIGroupV1Beta1(t *testing.T) {
 	t.Run("ListDiskIDs", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
 		client, err := v1beta1client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()

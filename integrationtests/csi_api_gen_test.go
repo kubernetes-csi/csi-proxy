@@ -18,9 +18,9 @@ import (
 
 // TestNewAPIGroup tests that bootstraping a new group works as intended.
 func TestNewAPIGroup(t *testing.T) {
+	skipTestOnCondition(t, isRunningOnGhActions())
 	// clean slate
 	require.Nil(t, os.RemoveAll("csiapigen/new_group/actual_output"))
-
 	logLevel := "3"
 	stdout, _ := runGenerator(t, "TestNewAPIGroup",
 		"--input-dirs", "github.com/kubernetes-csi/csi-proxy/integrationtests/csiapigen/new_group/api",
