@@ -188,25 +188,12 @@ func (VolAPIImplementor) GetVolumeIDFromMount(mount string) (string, error) {
 }
 
 func getTarget(mount string) (string, error) {
-	cmd := fmt.Sprintf("Get-Item -LiteralPath \"%s\" | Select Target | ConvertTo-Json", mount)
+	cmd := fmt.Sprintf("(Get-Item -Path %s).Target", mount)
 	out, err := runExec(cmd)
-
 	if err != nil || len(out) == 0 {
 		return "", fmt.Errorf("error getting volume from mount. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
-
-	var getVolume map[string][]string
-	outString := string(out)
-	err = json.Unmarshal([]byte(outString), &getVolume)
-	if err != nil {
-		return "", fmt.Errorf("out %v outstring %v err %v", out, outString, err)
-	}
-	var volumeString string
-
-	volumeString = getVolume["Target"][0]
-
-	volumeString = strings.TrimSuffix(volumeString, "\n")
-
+	volumeString := strings.TrimSpace(string(out))
 	if !strings.HasPrefix(volumeString, "Volume") {
 		return getTarget(volumeString)
 	}
