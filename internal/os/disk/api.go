@@ -337,10 +337,10 @@ func (imp APIImplementor) GetAttachState(diskID string) (bool, error) {
 	}
 
 	sout := strings.TrimSpace(string(out))
-	isOnline, err := strconv.ParseBool(sout)
+	isOffline, err := strconv.ParseBool(sout)
 	if err != nil {
 		return false, fmt.Errorf("error parsing disk state. output: %s, error: %v", sout, err)
 	}
 
-	return isOnline, nil
+	return !isOffline, nil
 }
