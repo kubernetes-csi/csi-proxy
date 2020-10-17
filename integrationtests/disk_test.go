@@ -2,28 +2,32 @@ package integrationtests
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1"
-	v1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta2"
+	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 // This test is meant to run on GCE where the page83 ID of the first disk contains
 // the host name
 // Skip on Github Actions as it is expected to fail
-func TestDiskAPIGroupV1Beta1(t *testing.T) {
+func TestDiskAPIGroup(t *testing.T) {
 	t.Run("ListDiskIDs", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
-		client, err := v1beta1client.NewClient()
+		client, err := v1beta2client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
 
 		diskNumber := 0
 		id := "page83"
-		listRequest := &v1beta1.ListDiskIDsRequest{}
+		listRequest := &v1beta2.ListDiskIDsRequest{}
 		diskIDsResponse, err := client.ListDiskIDs(context.TODO(), listRequest)
 		require.Nil(t, err)
 
@@ -52,5 +56,62 @@ func TestDiskAPIGroupV1Beta1(t *testing.T) {
 				t.Errorf("%s ID of Disk %d is incorrect. Expected to contain: %s. Received: %s", id, diskNumber, hostname, idValue)
 			}
 		}
+	})
+
+	t.Run("Get/SetAttachState", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+		client, err := v1beta2client.NewClient()
+		require.NoError(t, err)
+
+		defer client.Close()
+
+		s1 := rand.NewSource(time.Now().UTC().UnixNano())
+		r1 := rand.New(s1)
+
+		testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", r1.Intn(100))
+		mountPath := fmt.Sprintf("%smount-%d", testPluginPath, r1.Intn(100))
+		vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, r1.Intn(100))
+
+		defer diskCleanup(t, vhdxPath, mountPath, testPluginPath)
+		diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
+
+		out, err := runPowershellCmd(fmt.Sprintf("Get-Disk -Number %s | Set-Disk -IsOffline $true", diskNum))
+		require.NoError(t, err, "failed setting disk offline, out=%v", out)
+
+		getReq := &v1beta2.GetAttachStateRequest{DiskID: diskNum}
+		getResp, err := client.GetAttachState(context.TODO(), getReq)
+
+		if assert.NoError(t, err) {
+			assert.False(t, getResp.IsOnline, "Expected disk to be offline")
+		}
+
+		setReq := &v1beta2.SetAttachStateRequest{DiskID: diskNum, IsOnline: true}
+		_, err = client.SetAttachState(context.TODO(), setReq)
+		assert.NoError(t, err)
+
+		out, err = runPowershellCmd(fmt.Sprintf("Get-Disk -Number %s | Select-Object -ExpandProperty IsOffline", diskNum))
+		assert.NoError(t, err)
+
+		result, err := strconv.ParseBool(strings.TrimSpace(out))
+		assert.NoError(t, err)
+		assert.False(t, result, "Expected disk to be online")
+
+		getReq = &v1beta2.GetAttachStateRequest{DiskID: diskNum}
+		getResp, err = client.GetAttachState(context.TODO(), getReq)
+
+		if assert.NoError(t, err) {
+			assert.True(t, getResp.IsOnline, "Expected disk is online")
+		}
+
+		setReq = &v1beta2.SetAttachStateRequest{DiskID: diskNum, IsOnline: false}
+		_, err = client.SetAttachState(context.TODO(), setReq)
+		assert.NoError(t, err)
+
+		out, err = runPowershellCmd(fmt.Sprintf("Get-Disk -Number %s | Select-Object -ExpandProperty IsOffline", diskNum))
+		assert.NoError(t, err)
+
+		result, err = strconv.ParseBool(strings.TrimSpace(out))
+		assert.NoError(t, err)
+		assert.True(t, result, "Expected disk to be offline")
 	})
 }

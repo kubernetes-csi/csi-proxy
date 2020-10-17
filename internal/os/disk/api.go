@@ -318,3 +318,29 @@ func (imp APIImplementor) DiskStats(diskID string) (int64, error) {
 
 	return diskSize, nil
 }
+
+func (imp APIImplementor) SetAttachState(diskID string, isOnline bool) error {
+	cmd := fmt.Sprintf("(Get-Disk -Number %s) | Set-Disk -IsOffline $%t", diskID, !isOnline)
+	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error setting disk attach state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	return nil
+}
+
+func (imp APIImplementor) GetAttachState(diskID string) (bool, error) {
+	cmd := fmt.Sprintf("(Get-Disk -Number %s) | Select-Object -ExpandProperty IsOffline", diskID)
+	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+	if err != nil {
+		return false, fmt.Errorf("error getting disk state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	sout := strings.TrimSpace(string(out))
+	isOffline, err := strconv.ParseBool(sout)
+	if err != nil {
+		return false, fmt.Errorf("error parsing disk state. output: %s, error: %v", sout, err)
+	}
+
+	return !isOffline, nil
+}

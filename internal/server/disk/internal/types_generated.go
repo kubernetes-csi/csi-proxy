@@ -16,9 +16,11 @@ type VersionedAPI interface {
 // All the functions this group's server needs to define.
 type ServerInterface interface {
 	DiskStats(context.Context, *DiskStatsRequest, apiversion.Version) (*DiskStatsResponse, error)
+	GetAttachState(context.Context, *GetAttachStateRequest, apiversion.Version) (*GetAttachStateResponse, error)
 	GetDiskNumberByName(context.Context, *GetDiskNumberByNameRequest, apiversion.Version) (*GetDiskNumberByNameResponse, error)
 	ListDiskIDs(context.Context, *ListDiskIDsRequest, apiversion.Version) (*ListDiskIDsResponse, error)
 	ListDiskLocations(context.Context, *ListDiskLocationsRequest, apiversion.Version) (*ListDiskLocationsResponse, error)
 	PartitionDisk(context.Context, *PartitionDiskRequest, apiversion.Version) (*PartitionDiskResponse, error)
 	Rescan(context.Context, *RescanRequest, apiversion.Version) (*RescanResponse, error)
+	SetAttachState(context.Context, *SetAttachStateRequest, apiversion.Version) (*SetAttachStateResponse, error)
 }
