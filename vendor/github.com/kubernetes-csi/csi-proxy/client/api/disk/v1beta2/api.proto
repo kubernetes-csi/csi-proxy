@@ -24,6 +24,9 @@ service Disk {
 
     // SetAttachState sets the offline/online state of a disk
     rpc SetAttachState(SetAttachStateRequest) returns (SetAttachStateResponse) {}
+
+    // GetAttachState gets the offline/online state of a disk
+    rpc GetAttachState(GetAttachStateRequest) returns (GetAttachStateResponse) {}
 }
 
 message ListDiskLocationsRequest {
@@ -84,7 +87,7 @@ message DiskStatsResponse {
 }
 
 message SetAttachStateRequest {
-    // Disk device ID of the disk which state will change
+    // Disk device ID (number) of the disk which state will change
     string diskID = 1;
 
     // Online state to set for the disk. true for online, false for offline
@@ -93,3 +96,14 @@ message SetAttachStateRequest {
 
 message SetAttachStateResponse {
 }
+
+message GetAttachStateRequest {
+    // Disk device ID (number) of the disk
+    string diskID = 1;
+}
+
+message GetAttachStateResponse {
+    // Online state of the disk. true for online, false for offline
+    bool isOnline = 1;
+}
+

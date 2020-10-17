@@ -55,6 +55,10 @@ func (w *Client) DiskStats(context context.Context, request *v1beta2.DiskStatsRe
 	return w.client.DiskStats(context, request, opts...)
 }
 
+func (w *Client) GetAttachState(context context.Context, request *v1beta2.GetAttachStateRequest, opts ...grpc.CallOption) (*v1beta2.GetAttachStateResponse, error) {
+	return w.client.GetAttachState(context, request, opts...)
+}
+
 func (w *Client) ListDiskIDs(context context.Context, request *v1beta2.ListDiskIDsRequest, opts ...grpc.CallOption) (*v1beta2.ListDiskIDsResponse, error) {
 	return w.client.ListDiskIDs(context, request, opts...)
 }
