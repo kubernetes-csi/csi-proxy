@@ -169,15 +169,15 @@ func (s *Server) DiskStats(context context.Context, request *internal.DiskStatsR
 }
 
 func (s *Server) SetAttachState(_ context.Context, request *internal.SetAttachStateRequest, version apiversion.Version) (*internal.SetAttachStateResponse, error) {
-	klog.V(4).Infof("calling SetDiskState with diskID %q and isOnline %v", request.DiskID, request.IsOnline)
+	klog.V(4).Infof("calling SetAttachState with diskID %q and isOnline %v", request.DiskID, request.IsOnline)
 	minimumVersion := apiversion.NewVersionOrPanic("v1beta2")
 	if version.Compare(minimumVersion) < 0 {
-		return nil, fmt.Errorf("SetDiskState requires CSI-Proxy API version v1beta2 or greater")
+		return nil, fmt.Errorf("SetAttachState requires CSI-Proxy API version v1beta2 or greater")
 	}
 
 	err := s.hostAPI.SetAttachState(request.DiskID, request.IsOnline)
 	if err != nil {
-		klog.Errorf("failed SetDiskState %v", err)
+		klog.Errorf("failed SetAttachState %v", err)
 		return nil, err
 	}
 
@@ -187,15 +187,15 @@ func (s *Server) SetAttachState(_ context.Context, request *internal.SetAttachSt
 }
 
 func (s *Server) GetAttachState(_ context.Context, request *internal.GetAttachStateRequest, version apiversion.Version) (*internal.GetAttachStateResponse, error) {
-	klog.V(4).Infof("calling GetDiskState with diskID %q", request.DiskID)
+	klog.V(4).Infof("calling GetAttachState with diskID %q", request.DiskID)
 	minimumVersion := apiversion.NewVersionOrPanic("v1beta2")
 	if version.Compare(minimumVersion) < 0 {
-		return nil, fmt.Errorf("GetDiskState requires CSI-Proxy API version v1beta2 or greater")
+		return nil, fmt.Errorf("GetAttachState requires CSI-Proxy API version v1beta2 or greater")
 	}
 
 	isOnline, err := s.hostAPI.GetAttachState(request.DiskID)
 	if err != nil {
-		klog.Errorf("failed GetDiskState %v", err)
+		klog.Errorf("failed GetAttachState %v", err)
 		return nil, err
 	}
 

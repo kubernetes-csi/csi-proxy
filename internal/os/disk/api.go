@@ -323,7 +323,7 @@ func (imp APIImplementor) SetAttachState(diskID string, isOnline bool) error {
 	cmd := fmt.Sprintf("(Get-Disk -Number %s) | Set-Disk -IsOffline $%t", diskID, !isOnline)
 	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error setting disk state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+		return fmt.Errorf("error setting disk attach state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
 
 	return nil
