@@ -16,4 +16,7 @@ type VersionedAPI interface {
 // All the functions this group's server needs to define.
 type ServerInterface interface {
 	GetBIOSSerialNumber(context.Context, *GetBIOSSerialNumberRequest, apiversion.Version) (*GetBIOSSerialNumberResponse, error)
+	GetService(context.Context, *GetServiceRequest, apiversion.Version) (*GetServiceResponse, error)
+	StartService(context.Context, *StartServiceRequest, apiversion.Version) (*StartServiceResponse, error)
+	StopService(context.Context, *StopServiceRequest, apiversion.Version) (*StopServiceResponse, error)
 }
