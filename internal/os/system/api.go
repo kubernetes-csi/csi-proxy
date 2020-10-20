@@ -1,7 +1,9 @@
 package system
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -10,6 +12,17 @@ import (
 // pass-through to the OS APIs. Any logic around the APIs should go in
 // internal/server/system/server.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
+
+type ServiceInfo struct {
+	// Service display name
+	DisplayName string `json:"DisplayName"`
+
+	// Service start type
+	StartType uint32 `json:"StartType"`
+
+	// Service status
+	Status uint32 `json:"Status"`
+}
 
 type APIImplementor struct{}
 
@@ -36,4 +49,52 @@ func (APIImplementor) GetBIOSSerialNumber() (string, error) {
 		return "", fmt.Errorf("received unexpected value retrieving host uuid: %q", string(result))
 	}
 	return lines[1], nil
+}
+
+func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
+	script := `Get-Service -Name $env:ServiceName | Select-Object DisplayName, Status, StartType | ` +
+		`ConvertTo-JSON`
+	cmd := exec.Command("powershell", "/c", script)
+	cmd.Env = append(os.Environ(), fmt.Sprintf("ServiceName=%s", name))
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("error querying service name=%s. cmd: %s, output: %s, error: %v", name, cmd, string(out), err)
+	}
+
+	var serviceInfo ServiceInfo
+	err = json.Unmarshal(out, &serviceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &serviceInfo, nil
+}
+
+func (APIImplementor) StartService(name string) error {
+	script := `Start-Service -Name $env:ServiceName`
+	cmd := exec.Command("powershell", "/c", script)
+	cmd.Env = append(os.Environ(), fmt.Sprintf("ServiceName=%s", name))
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error starting service name=%s. cmd: %s, output: %s, error: %v", name, cmd, string(out), err)
+	}
+
+	return nil
+}
+
+func (APIImplementor) StopService(name string, force bool) error {
+	script := `Stop-Service -Name $env:ServiceName -Force:$([System.Convert]::ToBoolean($env:Force))`
+	cmd := exec.Command("powershell", "/c", script)
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("ServiceName=%s", name),
+		fmt.Sprintf("Force=%t", force))
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error stopping service name=%s. cmd: %s, output: %s, error: %v", name, cmd, string(out), err)
+	}
+
+	return nil
 }

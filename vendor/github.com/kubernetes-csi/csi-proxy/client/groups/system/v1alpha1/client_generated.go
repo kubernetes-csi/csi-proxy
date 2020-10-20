@@ -54,3 +54,15 @@ var _ v1alpha1.SystemClient = &Client{}
 func (w *Client) GetBIOSSerialNumber(context context.Context, request *v1alpha1.GetBIOSSerialNumberRequest, opts ...grpc.CallOption) (*v1alpha1.GetBIOSSerialNumberResponse, error) {
 	return w.client.GetBIOSSerialNumber(context, request, opts...)
 }
+
+func (w *Client) GetService(context context.Context, request *v1alpha1.GetServiceRequest, opts ...grpc.CallOption) (*v1alpha1.GetServiceResponse, error) {
+	return w.client.GetService(context, request, opts...)
+}
+
+func (w *Client) StartService(context context.Context, request *v1alpha1.StartServiceRequest, opts ...grpc.CallOption) (*v1alpha1.StartServiceResponse, error) {
+	return w.client.StartService(context, request, opts...)
+}
+
+func (w *Client) StopService(context context.Context, request *v1alpha1.StopServiceRequest, opts ...grpc.CallOption) (*v1alpha1.StopServiceResponse, error) {
+	return w.client.StopService(context, request, opts...)
+}

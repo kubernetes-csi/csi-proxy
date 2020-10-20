@@ -45,3 +45,60 @@ func (s *versionedAPI) GetBIOSSerialNumber(context context.Context, versionedReq
 
 	return versionedResponse, err
 }
+
+func (s *versionedAPI) GetService(context context.Context, versionedRequest *v1alpha1.GetServiceRequest) (*v1alpha1.GetServiceResponse, error) {
+	request := &internal.GetServiceRequest{}
+	if err := Convert_v1alpha1_GetServiceRequest_To_internal_GetServiceRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetService(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.GetServiceResponse{}
+	if err := Convert_internal_GetServiceResponse_To_v1alpha1_GetServiceResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) StartService(context context.Context, versionedRequest *v1alpha1.StartServiceRequest) (*v1alpha1.StartServiceResponse, error) {
+	request := &internal.StartServiceRequest{}
+	if err := Convert_v1alpha1_StartServiceRequest_To_internal_StartServiceRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.StartService(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.StartServiceResponse{}
+	if err := Convert_internal_StartServiceResponse_To_v1alpha1_StartServiceResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) StopService(context context.Context, versionedRequest *v1alpha1.StopServiceRequest) (*v1alpha1.StopServiceResponse, error) {
+	request := &internal.StopServiceRequest{}
+	if err := Convert_v1alpha1_StopServiceRequest_To_internal_StopServiceRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.StopService(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1alpha1.StopServiceResponse{}
+	if err := Convert_internal_StopServiceResponse_To_v1alpha1_StopServiceResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
