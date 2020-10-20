@@ -99,6 +99,8 @@ spec:
               mountPath: \\.\pipe\csi-proxy-volume-v1alpha1
             - name: csi-proxy-filesystem-pipe
               mountPath: \\.\pipe\csi-proxy-filesystem-v1alpha1
+            - name: csi-proxy-iscsi-pipe
+              mountPath: \\.\pipe\csi-proxy-iscsi-v1alpha1
       volumes:
         - name: csi-proxy-disk-pipe
           hostPath:
@@ -111,6 +113,10 @@ spec:
         - name: csi-proxy-filesystem-pipe
           hostPath:
             path: \\.\pipe\csi-proxy-filesystem-v1alpha1
+            type: ""
+        - name: csi-proxy-iscsi-pipe
+          hostPath:
+            path: \\.\pipe\csi-proxy-iscsi-v1alpha1
             type: ""
         - name: registration-dir
           hostPath:
