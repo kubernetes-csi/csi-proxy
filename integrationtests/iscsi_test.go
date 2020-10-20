@@ -1,18 +1,15 @@
 package integrationtests
 
-// Needs to run the test in a VM with a local iSCSI target.
-// See iscsi_test_setup.ps1 script
-
 import (
 	"context"
 	"fmt"
 	"testing"
 
 	disk_api "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta2"
-	iscsi_api "github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha1"
+	iscsi_api "github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha2"
 	system_api "github.com/kubernetes-csi/csi-proxy/client/api/system/v1alpha1"
 	disk_client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2"
-	iscsi_client "github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha1"
+	iscsi_client "github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha2"
 	system_client "github.com/kubernetes-csi/csi-proxy/client/groups/system/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,9 +52,9 @@ func TestIscsiAPIGroup(t *testing.T) {
 
 func e2e_test(t *testing.T) {
 	config, err := setupEnv("e2e")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	defer cleanup(t)
+	defer requireCleanup(t)
 
 	iscsi, err := iscsi_client.NewClient()
 	require.Nil(t, err)
@@ -121,9 +118,9 @@ func e2e_test(t *testing.T) {
 
 func targetTest(t *testing.T) {
 	config, err := setupEnv("target")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	defer cleanup(t)
+	defer requireCleanup(t)
 
 	client, err := iscsi_client.NewClient()
 	require.Nil(t, err)
@@ -173,7 +170,7 @@ func targetChapTest(t *testing.T) {
 	config, err := setupEnv(targetName)
 	require.NoError(t, err)
 
-	defer cleanup(t)
+	defer requireCleanup(t)
 
 	err = setChap(targetName, username, password)
 	require.NoError(t, err)
@@ -227,13 +224,13 @@ func targetChapTest(t *testing.T) {
 func targetMutualChapTest(t *testing.T) {
 	const targetName = "mutualChapTarget"
 	const username = "anotheruser"
-	const password = "broccoli-man"
+	const password = "averylongsecret"
 	const reverse_password = "reversssssssse"
 
 	config, err := setupEnv(targetName)
 	require.NoError(t, err)
 
-	defer cleanup(t)
+	defer requireCleanup(t)
 
 	err = setChap(targetName, username, password)
 	require.NoError(t, err)
@@ -251,25 +248,41 @@ func targetMutualChapTest(t *testing.T) {
 
 	defer func() { assert.NoError(t, system.Close()) }()
 
-	startReq := &system_api.StartServiceRequest{Name: "MSiSCSI"}
-	_, err = system.StartService(context.TODO(), startReq)
-	require.NoError(t, err)
+	{
+		req := &system_api.StartServiceRequest{Name: "MSiSCSI"}
+		resp, err := system.StartService(context.TODO(), req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	}
 
 	tp := &iscsi_api.TargetPortal{
 		TargetAddress: config.Ip,
 		TargetPort:    defaultIscsiPort,
 	}
 
-	addTpReq := &iscsi_api.AddTargetPortalRequest{
-		TargetPortal: tp,
+	{
+		req := &iscsi_api.AddTargetPortalRequest{
+			TargetPortal: tp,
+		}
+		resp, err := client.AddTargetPortal(context.Background(), req)
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
 	}
-	_, err = client.AddTargetPortal(context.Background(), addTpReq)
-	assert.Nil(t, err)
 
-	discReq := &iscsi_api.DiscoverTargetPortalRequest{TargetPortal: tp}
-	discResp, err := client.DiscoverTargetPortal(context.TODO(), discReq)
-	if assert.Nil(t, err) {
-		assert.Contains(t, discResp.Iqns, config.Iqn)
+	{
+		req := &iscsi_api.DiscoverTargetPortalRequest{TargetPortal: tp}
+		resp, err := client.DiscoverTargetPortal(context.TODO(), req)
+		if assert.Nil(t, err) && assert.NotNil(t, resp) {
+			assert.Contains(t, resp.Iqns, config.Iqn)
+		}
+	}
+
+	{
+		// Try using a wrong initiator password and expect error on connection
+		req := &iscsi_api.SetMutualChapSecretRequest{MutualChapSecret: "made-up-pass"}
+		resp, err := client.SetMutualChapSecret(context.TODO(), req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
 	}
 
 	connectReq := &iscsi_api.ConnectTargetRequest{
@@ -280,32 +293,32 @@ func targetMutualChapTest(t *testing.T) {
 		AuthType:     iscsi_api.AuthenticationType_MUTUAL_CHAP,
 	}
 
-	// TODO: Replace this with the corresponding csi-proxy API when add it
-	// Try using a wrong initiator password and expect error
-	out, err := runPowershellCmd(`Set-IscsiChapSecret -ChapSecret "made-up-pass"`)
-	require.NoErrorf(t, err, "Cannot set initiator chap out=%v", out)
-
 	_, err = client.ConnectTarget(context.TODO(), connectReq)
 	assert.NotNil(t, err)
 
-	// TODO: Replace this with the corresponding csi-proxy API when add it
-	out, err = runPowershellCmd(fmt.Sprintf(`Set-IscsiChapSecret -ChapSecret "%s"`,
-		reverse_password))
-	require.NoErrorf(t, err, "Cannot set initiator chap out=%v", out)
+	{
+		req := &iscsi_api.SetMutualChapSecretRequest{MutualChapSecret: reverse_password}
+		resp, err := client.SetMutualChapSecret(context.TODO(), req)
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	}
 
 	_, err = client.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
-	disconReq := &iscsi_api.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
-	_, err = client.DisconnectTarget(context.TODO(), disconReq)
-	assert.Nil(t, err)
+	{
+		req := &iscsi_api.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
+		resp, err := client.DisconnectTarget(context.TODO(), req)
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
+	}
 }
 
 func targetPortalTest(t *testing.T, port uint32) {
 	config, err := setupEnv(fmt.Sprintf("targetportal-%d", port))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	defer cleanup(t)
+	defer requireCleanup(t)
 
 	client, err := iscsi_client.NewClient()
 	require.Nil(t, err)

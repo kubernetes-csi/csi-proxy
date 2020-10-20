@@ -188,3 +188,19 @@ func (APIImplementor) GetTargetDisks(portal *TargetPortal, iqn string) ([]string
 
 	return ids, nil
 }
+
+func (APIImplementor) SetMutualChapSecret(mutualChapSecret string) error {
+	cmdLine := fmt.Sprintf(
+		`Set-IscsiChapSecret -ChapSecret ${Env:iscsi_mutual_chap_secret}`)
+	cmd := exec.Command("powershell.exe", "/c", cmdLine)
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("iscsi_mutual_chap_secret=%s", mutualChapSecret))
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error setting mutual chap secret. cmd %s,"+
+			" output: %s, err: %v", cmdLine, string(out), err)
+	}
+
+	return nil
+}

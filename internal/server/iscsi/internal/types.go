@@ -108,3 +108,15 @@ type TargetPortal struct {
 	// iSCSI Target port (default iSCSI port is 3260)
 	TargetPort uint32
 }
+
+type SetMutualChapSecretRequest struct {
+	// the default CHAP secret that all initiators on this machine (node) use to
+	// authenticate the target on mutual CHAP authentication.
+	// Must be at least 12 byte long for non-Ipsec connections, at least one
+	// byte long for Ipsec connections, and at most 16 bytes long.
+	MutualChapSecret string
+}
+
+type SetMutualChapSecretResponse struct {
+	// Intentionally empty
+}
