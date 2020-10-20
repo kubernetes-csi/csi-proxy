@@ -31,7 +31,6 @@ jobs:
           Write-Output "getting named pipes"
           [System.IO.Directory]::GetFiles("\\.\\pipe\\")
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
-          $env:ENABLE_ISCSI_TESTS="TRUE"
           go test -v -race ./integrationtests/...
   unit_tests:
     strategy:
