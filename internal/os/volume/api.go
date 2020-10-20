@@ -24,6 +24,23 @@ func runExec(cmd string) ([]byte, error) {
 	return out, err
 }
 
+func getVolumeSize(volumeID string) (int64, error) {
+	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Get-partition).Size", volumeID)
+	out, err := runExec(cmd)
+
+	if err != nil || len(out) == 0 {
+		return -1, fmt.Errorf("error getting size of the partition from mount. cmd %s, output: %s, error: %v", cmd, string(out), err)
+	}
+
+	outString := strings.TrimSpace(string(out))
+	volumeSize, err := strconv.ParseInt(outString, 10, 64)
+	if err != nil {
+		return -1, fmt.Errorf("error parsing size of volume %s received %v trimmed to %v err %v", volumeID, out, outString, err)
+	}
+
+	return volumeSize, nil
+}
+
 // ListVolumesOnDisk - returns back list of volumes(volumeIDs) in the disk (requested in diskID).
 func (VolAPIImplementor) ListVolumesOnDisk(diskID string) (volumeIDs []string, err error) {
 	cmd := fmt.Sprintf("(Get-Disk -DeviceId %s |Get-Partition | Get-Volume).UniqueId", diskID)
@@ -87,6 +104,7 @@ func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
 	var out []byte
 	var err error
 	var finalSize int64
+	var outString string
 	if size == 0 {
 		cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-partition | Get-PartitionSupportedSize | Select SizeMax | ConvertTo-Json", volumeID)
 		out, err = runExec(cmd)
@@ -96,7 +114,7 @@ func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
 		}
 
 		var getVolumeSizing map[string]int64
-		outString := string(out)
+		outString = string(out)
 		err = json.Unmarshal([]byte(outString), &getVolumeSizing)
 		if err != nil {
 			return fmt.Errorf("out %v outstring %v err %v", out, outString, err)
@@ -107,6 +125,16 @@ func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
 		finalSize = sizeMax
 	} else {
 		finalSize = size
+	}
+
+	currentSize, err := getVolumeSize(volumeID)
+	if err != nil {
+		return fmt.Errorf("error getting the current size of volume (%s) with error (%v)", volumeID, err)
+	}
+
+	//if the partition's size is already the size we want this is a noop, just return
+	if currentSize >= finalSize {
+		return nil
 	}
 
 	cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-partition | Resize-Partition -Size %d", volumeID, finalSize)
