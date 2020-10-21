@@ -38,6 +38,13 @@ func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
 // alpha to merge the paths.
 // TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
 func (APIImplementor) NewSmbLink(remotePath, localPath string) error {
+
+	if !strings.HasSuffix(remotePath, "\\") {
+		// Golang has issues resolving paths mapped to file shares if they do not end in a trailing \
+		// so add one if needed.
+		remotePath = remotePath + "\\"
+	}
+
 	cmdLine := fmt.Sprintf(`New-Item -ItemType SymbolicLink $Env:smblocalPath -Target $Env:smbremotepath`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
