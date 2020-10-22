@@ -42,6 +42,11 @@ func TestServiceCommands(t *testing.T) {
 		require.Nil(t, err)
 		defer client.Close()
 
+		// Make sure service is stopped
+		_, err = runPowershellCmd(fmt.Sprintf(`Stop-Service -Name "%s"`, ServiceName))
+		require.NoError(t, err)
+		assertServiceStopped(t, ServiceName)
+
 		request := &v1alpha1.GetServiceRequest{Name: ServiceName}
 		response, err := client.GetService(context.TODO(), request)
 		require.NoError(t, err)
@@ -62,6 +67,7 @@ func TestServiceCommands(t *testing.T) {
 		require.NoError(t, err, "failed unmarshalling json out=%v", out)
 
 		assert.Equal(t, serviceInfo.Status, uint32(response.Status))
+		assert.Equal(t, v1alpha1.ServiceStatus_STOPPED, response.Status)
 		assert.Equal(t, serviceInfo.StartType, uint32(response.StartType))
 		assert.Equal(t, serviceInfo.DisplayName, response.DisplayName)
 	})
@@ -72,7 +78,7 @@ func TestServiceCommands(t *testing.T) {
 		require.Nil(t, err)
 		defer client.Close()
 
-		_, err = runPowershellCmd(`Stop-Service -Name "MSiSCSI"`)
+		_, err = runPowershellCmd(fmt.Sprintf(`Stop-Service -Name "%s"`, ServiceName))
 		require.NoError(t, err)
 		assertServiceStopped(t, ServiceName)
 

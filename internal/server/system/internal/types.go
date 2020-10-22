@@ -60,9 +60,11 @@ type GetServiceResponse struct {
 	// Service display name
 	DisplayName string
 
-	// Service start type
+	// Service start type.
+	// Used to control whether a service will start on boot, and if so on which
+	// boot phase.
 	StartType Startype
 
-	// Service status
+	// Service status, e.g. stopped, running, paused
 	Status ServiceStatus
 }
