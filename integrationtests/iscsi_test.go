@@ -102,9 +102,9 @@ func e2e_test(t *testing.T) {
 	tgtDisksReq := &iscsi_api.GetTargetDisksRequest{TargetPortal: tp, Iqn: config.Iqn}
 	tgtDisksResp, err := iscsi.GetTargetDisks(context.TODO(), tgtDisksReq)
 	require.Nil(t, err)
-	require.Len(t, tgtDisksResp.DiskIds, 1)
+	require.Len(t, tgtDisksResp.DiskIDs, 1)
 
-	diskId := tgtDisksResp.DiskIds[0]
+	diskId := tgtDisksResp.DiskIDs[0]
 
 	attachReq := &disk_api.SetAttachStateRequest{DiskID: diskId, IsOnline: true}
 	_, err = disk.SetAttachState(context.TODO(), attachReq)

@@ -50,7 +50,7 @@ type ConnectTargetResponse struct {
 }
 
 type DisconnectTargetRequest struct {
-	// Target portal to which the initiator will connect.
+	// Target portal from which initiator will disconnect
 	TargetPortal *TargetPortal
 	// IQN of the iSCSI Target
 	Iqn string
@@ -72,7 +72,7 @@ type DiscoverTargetPortalResponse struct {
 }
 
 type GetTargetDisksRequest struct {
-	// Target portal to which the initiator will connect.
+	// Target portal whose disks will be queried
 	TargetPortal *TargetPortal
 	// IQN of the iSCSI Target
 	Iqn string
@@ -81,7 +81,7 @@ type GetTargetDisksRequest struct {
 type GetTargetDisksResponse struct {
 	// List composed of disk ids (numbers) that are associated with the
 	// iSCSI target
-	DiskIds []string
+	DiskIDs []string
 }
 
 type ListTargetPortalsRequest struct {

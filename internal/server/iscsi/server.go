@@ -130,7 +130,7 @@ func (s *Server) GetTargetDisks(context context.Context, request *internal.GetTa
 		result = append(result, d)
 	}
 
-	response.DiskIds = result
+	response.DiskIDs = result
 
 	return response, nil
 }

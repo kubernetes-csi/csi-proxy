@@ -278,7 +278,7 @@ func Convert_internal_GetTargetDisksRequest_To_v1alpha1_GetTargetDisksRequest(in
 }
 
 func autoConvert_v1alpha1_GetTargetDisksResponse_To_internal_GetTargetDisksResponse(in *v1alpha1.GetTargetDisksResponse, out *internal.GetTargetDisksResponse) error {
-	out.DiskIds = *(*[]string)(unsafe.Pointer(&in.DiskIds))
+	out.DiskIDs = *(*[]string)(unsafe.Pointer(&in.DiskIDs))
 	return nil
 }
 
@@ -288,7 +288,7 @@ func Convert_v1alpha1_GetTargetDisksResponse_To_internal_GetTargetDisksResponse(
 }
 
 func autoConvert_internal_GetTargetDisksResponse_To_v1alpha1_GetTargetDisksResponse(in *internal.GetTargetDisksResponse, out *v1alpha1.GetTargetDisksResponse) error {
-	out.DiskIds = *(*[]string)(unsafe.Pointer(&in.DiskIds))
+	out.DiskIDs = *(*[]string)(unsafe.Pointer(&in.DiskIDs))
 	return nil
 }
 

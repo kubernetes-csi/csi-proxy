@@ -7,6 +7,9 @@ option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alph
 service Iscsi {
   // AddTargetPortal registers an iSCSI target network address for later
   // discovery.
+  // AddTargetPortal currently does not support selecting different NICs or
+  // a different iSCSI initiator (e.g a hardware initiator). This means that
+  // Windows will select the initiator NIC and instance on its own.
   rpc AddTargetPortal(AddTargetPortalRequest)
       returns (AddTargetPortalResponse) {}
 
@@ -85,13 +88,17 @@ message ListTargetPortalsResponse {
 }
 
 enum AuthenticationType {
+  // No authentication is used
   NONE = 0;
+  // One way CHAP authentication. The target authenticates the initiator.
   ONE_WAY_CHAP = 1;
+  // Mutual CHAP authentication. The target and initiator authenticate each
+  // other.
   MUTUAL_CHAP = 2;
 }
 
 message ConnectTargetRequest {
-  // Target portal to which the initiator will connect.
+  // Target portal to which the initiator will connect
   TargetPortal target_portal = 1;
 
   // IQN of the iSCSI Target
@@ -112,9 +119,13 @@ message ConnectTargetRequest {
   // CHAP password used to authenticate the initiator
   string chap_secret = 5;
 
-  // Should enable multipath on the connection
+  // Set true to enable multipath on the connection
   // In order for multipath to work on Windows, the Multipath feature
-  // needs to be installed as well as MPIO should be correctly configured
+  // needs to be installed as well as MPIO should be correctly configured.
+  // Setting this true allows different sessions to the same target (IQN)
+  // NOTE: enabling this without having multipath installed may cause data
+  //       corruption in cases where there are multiple sessions to the same
+  //       target.
   bool is_multipath = 6;
 }
 
@@ -123,7 +134,7 @@ message ConnectTargetResponse {
 }
 
 message GetTargetDisksRequest {
-  // Target portal to which the initiator will connect.
+  // Target portal whose disks will be queried
   TargetPortal target_portal = 1;
 
   // IQN of the iSCSI Target
@@ -133,11 +144,11 @@ message GetTargetDisksRequest {
 message GetTargetDisksResponse {
   // List composed of disk ids (numbers) that are associated with the
   // iSCSI target
-  repeated string diskIds = 1;
+  repeated string diskIDs = 1;
 }
 
 message DisconnectTargetRequest {
-  // Target portal to which the initiator will connect.
+  // Target portal from which initiator will disconnect
   TargetPortal target_portal = 1;
 
   // IQN of the iSCSI Target
