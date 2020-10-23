@@ -77,7 +77,6 @@ func autoConvert_v1alpha1_ConnectTargetRequest_To_internal_ConnectTargetRequest(
 	out.AuthType = internal.AuthenticationType(in.AuthType)
 	out.ChapUsername = in.ChapUsername
 	out.ChapSecret = in.ChapSecret
-	out.IsMultipath = in.IsMultipath
 	return nil
 }
 
@@ -100,7 +99,6 @@ func autoConvert_internal_ConnectTargetRequest_To_v1alpha1_ConnectTargetRequest(
 	out.AuthType = v1alpha1.AuthenticationType(in.AuthType)
 	out.ChapUsername = in.ChapUsername
 	out.ChapSecret = in.ChapSecret
-	out.IsMultipath = in.IsMultipath
 	return nil
 }
 

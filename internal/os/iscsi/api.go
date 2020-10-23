@@ -100,7 +100,7 @@ func (APIImplementor) RemoveTargetPortal(portal *TargetPortal) error {
 	return nil
 }
 
-func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string, isMultipath bool,
+func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string,
 	authType string, chapUser string, chapSecret string) error {
 	// Not using InputObject as Connect-IscsiTarget's InputObject does not work.
 	// This is due to being a static WMI method together with a bug in the
@@ -108,8 +108,7 @@ func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string, isMultipat
 	cmdLine := fmt.Sprintf(
 		`Connect-IscsiTarget -TargetPortalAddress ${Env:iscsi_tp_address}` +
 			` -TargetPortalPortNumber ${Env:iscsi_tp_port} -NodeAddress ${Env:iscsi_target_iqn}` +
-			` -AuthenticationType ${Env:iscsi_auth_type}` +
-			` -IsMultipathEnabled $([System.Convert]::ToBoolean(${Env:iscsi_is_multipath}))`)
+			` -AuthenticationType ${Env:iscsi_auth_type}`)
 
 	if chapUser != "" {
 		cmdLine += fmt.Sprintf(` -ChapUsername ${Env:iscsi_chap_user}`)
@@ -127,7 +126,6 @@ func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string, isMultipat
 		fmt.Sprintf("iscsi_auth_type=%s", authType),
 		fmt.Sprintf("iscsi_chap_user=%s", chapUser),
 		fmt.Sprintf("iscsi_chap_secret=%s", chapSecret),
-		fmt.Sprintf("iscsi_is_multipath=%t", isMultipath),
 	)
 
 	out, err := cmd.CombinedOutput()

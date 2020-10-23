@@ -12,9 +12,15 @@ type AddTargetPortalResponse struct {
 type AuthenticationType uint32
 
 const (
-	NONE         = 0
+	// No authentication is used
+	NONE = 0
+
+	// One way CHAP authentication. The target authenticates the initiator.
 	ONE_WAY_CHAP = 1
-	MUTUAL_CHAP  = 2
+
+	// Mutual CHAP authentication. The target and initiator authenticate each
+	// other.
+	MUTUAL_CHAP = 2
 )
 
 type ConnectTargetRequest struct {
@@ -38,11 +44,6 @@ type ConnectTargetRequest struct {
 
 	// CHAP password used to authenticate the initiator
 	ChapSecret string
-
-	// Should enable multipath on the connection
-	// In order for multipath to work on Windows, the Multipath feature
-	// needs to be installed as well as MPIO should be correctly configured
-	IsMultipath bool
 }
 
 type ConnectTargetResponse struct {

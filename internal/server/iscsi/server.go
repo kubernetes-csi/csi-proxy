@@ -21,8 +21,8 @@ type API interface {
 	DiscoverTargetPortal(portal *iscsi.TargetPortal) ([]string, error)
 	ListTargetPortals() ([]iscsi.TargetPortal, error)
 	RemoveTargetPortal(portal *iscsi.TargetPortal) error
-	ConnectTarget(portal *iscsi.TargetPortal, iqn string, isMultipath bool,
-		authType string, chapUser string, chapSecret string) error
+	ConnectTarget(portal *iscsi.TargetPortal, iqn string, authType string,
+		chapUser string, chapSecret string) error
 	DisconnectTarget(portal *iscsi.TargetPortal, iqn string) error
 	GetTargetDisks(portal *iscsi.TargetPortal, iqn string) ([]string, error)
 }
@@ -68,8 +68,8 @@ func AuthTypeToString(authType internal.AuthenticationType) (string, error) {
 
 func (s *Server) ConnectTarget(context context.Context, req *internal.ConnectTargetRequest, version apiversion.Version) (*internal.ConnectTargetResponse, error) {
 	klog.V(4).Infof("calling ConnectTarget with portal %s:%d and iqn %s"+
-		" multipath=%v auth=%v chapuser=%v", req.TargetPortal.TargetAddress,
-		req.TargetPortal.TargetPort, req.Iqn, req.IsMultipath, req.AuthType, req.ChapUsername)
+		" auth=%v chapuser=%v", req.TargetPortal.TargetAddress,
+		req.TargetPortal.TargetPort, req.Iqn, req.AuthType, req.ChapUsername)
 
 	response := &internal.ConnectTargetResponse{}
 	authType, err := AuthTypeToString(req.AuthType)
@@ -79,7 +79,7 @@ func (s *Server) ConnectTarget(context context.Context, req *internal.ConnectTar
 	}
 
 	err = s.hostAPI.ConnectTarget(s.requestTPtoAPITP(req.TargetPortal), req.Iqn,
-		req.IsMultipath, authType, req.ChapUsername, req.ChapSecret)
+		authType, req.ChapUsername, req.ChapSecret)
 	if err != nil {
 		klog.Errorf("failed ConnectTarget %v", err)
 		return response, err
