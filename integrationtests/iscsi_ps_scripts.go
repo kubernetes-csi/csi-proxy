@@ -105,15 +105,20 @@ func setReverseChap(targetName string, password string) error {
 	return nil
 }
 
-func cleanup(t *testing.T) error {
+func cleanup() error {
 	_, err := runPowershellScript(IscsiCleanupScript)
 	if err != nil {
-		msg := fmt.Sprintf("failed cleaning up environment. err=%v", err)
-		t.Fatal(msg)
-		// exits function
+		return fmt.Errorf("failed cleaning up environment. err=%v", err)
 	}
 
 	return nil
+}
+
+func requireCleanup(t *testing.T) {
+	err := cleanup()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 const IscsiCleanupScript = `

@@ -22,4 +22,5 @@ type ServerInterface interface {
 	GetTargetDisks(context.Context, *GetTargetDisksRequest, apiversion.Version) (*GetTargetDisksResponse, error)
 	ListTargetPortals(context.Context, *ListTargetPortalsRequest, apiversion.Version) (*ListTargetPortalsResponse, error)
 	RemoveTargetPortal(context.Context, *RemoveTargetPortalRequest, apiversion.Version) (*RemoveTargetPortalResponse, error)
+	SetMutualChapSecret(context.Context, *SetMutualChapSecretRequest, apiversion.Version) (*SetMutualChapSecretResponse, error)
 }

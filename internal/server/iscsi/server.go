@@ -25,6 +25,7 @@ type API interface {
 		chapUser string, chapSecret string) error
 	DisconnectTarget(portal *iscsi.TargetPortal, iqn string) error
 	GetTargetDisks(portal *iscsi.TargetPortal, iqn string) ([]string, error)
+	SetMutualChapSecret(mutualChapSecret string) error
 }
 
 func NewServer(hostAPI API) (*Server, error) {
@@ -163,6 +164,24 @@ func (s *Server) RemoveTargetPortal(context context.Context, request *internal.R
 	err := s.hostAPI.RemoveTargetPortal(s.requestTPtoAPITP(request.TargetPortal))
 	if err != nil {
 		klog.Errorf("failed RemoveTargetPortal %v", err)
+		return response, err
+	}
+
+	return response, nil
+}
+
+func (s *Server) SetMutualChapSecret(context context.Context, request *internal.SetMutualChapSecretRequest, version apiversion.Version) (*internal.SetMutualChapSecretResponse, error) {
+	klog.V(4).Info("calling SetMutualChapSecret")
+
+	minimumVersion := apiversion.NewVersionOrPanic("v1alpha2")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("SetMutualChapSecret requires CSI-Proxy API version v1alpha2 or greater")
+	}
+
+	response := &internal.SetMutualChapSecretResponse{}
+	err := s.hostAPI.SetMutualChapSecret(request.MutualChapSecret)
+	if err != nil {
+		klog.Errorf("failed SetMutualChapSecret %v", err)
 		return response, err
 	}
 
