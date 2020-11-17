@@ -1,9 +1,40 @@
 # CSI Proxy
 
-CSI Proxy is a binary that exposes a set of gRPC APIs around storage operations
-over named pipes in Windows. A container, such as CSI node plugins, can mount
-the named pipes depending on operations it wants to exercise on the host and
-invoke the APIs.
+CSI Proxy (which might be more aptly named "csi-node-proxy") is a binary that exposes a set of gRPC APIs (over named pipes) around local storage operations for nodes in Windows. A container, such as CSI node plugins, can mount the named pipes depending on operations it wants to exercise on the host and
+invoke the APIs.  This allows a storage plugin to run as if were a CSI plugin on linux which have the ability to perform "privileged" actions on the windows host OS.
+
+```
+                                              +------------------+
++---------------------------------------------|                  |
+|                 +----------+                |                  |
+|                 |csi node  |                |   CSI Node Plugin|
+|                 |driver    +---------------->                  |
+|                 |registrar |                |                  |
+| NodeStageVolume ----^------+                ----------+--------+
+| NodeUnstageVol      |                                   |  Disk APIs
+| NodePublishVol      |GetNodeInfo                        |  Volume APIs
+| NodeResizeVol       |NodeRegistrationStatus  \\.\pipe\  |  SMB APIs
+| NodeGetInfo         |                                   |  File System operations
+|                     |                                   |  Windows System APIs
+| NodeGetVolStats     | csi-plugin-reg.sock   +-----------v---------+
+|                     |                       |                   |
+|                 + --+--------+              |    csi-proxy.exe  |
+|                 | kubelet.exe|              +-------------------+
+|                 |            |                      |
+|                 +---+--------++                     |
+|                     |                               |
+| csi.sock            |                               |
+|                     v                               v
+|                 +---+-------------------------------+------+
+|                 |                                          |
++---------------->|         Host Os (Windows)                |
+                  +------------------------------------------++
+```
+In the above diagram, there are 3 communication channels being utilized for CSI proxy:
+
+- `csi.sock` : This usually lives at c:/var/lib/kubelet/plugins/csi-plugin/csi.sock, and is used for the host OS to communicate with the CSI node plugin
+- `csi-plugin-reg.sock` : This lives here, c:/var/lib/kubelet/plugins_registry/csi-plugin-reg.sock, and is used for the kubelet itself to get metadata as needed from the csi plugin .
+- `\\.\pipe\csi-proxy` : This will live in a pipe, i.e. at \\.\pipe/csi-proxy-api-group-v-... : upon receipt of specific requests from the Node plugin, it carries out actions on the node plugins behalf.  Since it doesn't execute arbitrary commands on the host, its more secure then simply being a black-box proxy to run host commands.
 
 Each named pipe will support a specific version of an API (e.g. v1alpha1, v2beta1)
 that targets a specific area of storage (e.g. disk, volume, file, SMB, iSCSI).
@@ -13,7 +44,6 @@ that targets a specific area of storage (e.g. disk, volume, file, SMB, iSCSI).
 CSI drivers are recommended to be deployed as containers. Node plugin containers need to run with privileges to perform storage related operations. However, Windows does not support privileged containers currently. With CSIProxy, the node plugins can now be deployed as unprivileged pods that use the proxy to perform privileged storage operations on the node. Kubernetes administrators will need to install and maintain csi-proxy.exe on all Windows nodes in a manner similar to kubelet.exe.
 
 ## Compatibility
-
 Recommended K8s Version: 1.18
 
 ## Feature status
@@ -143,11 +173,11 @@ You can reach the maintainers of this project at:
 
 ## Supported CSI Drivers
 
-- [SMB CSI Driver](https://github.com/kubernetes-csi/csi-driver-smb/tree/master/deploy/example/windows)
+- [SMB CSI Driver](https://github.com/kubernetes-csi/csi-driver-smb/tree/master/deploy/example/windows). To see specifically how this driver is invoked, you can look at https://github.com/kubernetes-csi/csi-driver-smb/blob/master/pkg/mounter/safe_mounter_windows.go.
 
 - [Azure Disk CSI Driver](https://github.com/kubernetes-sigs/azuredisk-csi-driver/tree/master/deploy/example/windows)
 
-- [Azure File CSI Driver](https://github.com/kubernetes-sigs/azurefile-csi-driver/tree/master/deploy/example/windows)
+- [Azure File CSI Driver](https://github.com/kubernetes-sigs/azurefile-csi-driver/tree/master/deploy/example/windows).  See https://github.com/kubernetes-sigs/azurefile-csi-driver/blob/master/pkg/mounter/safe_mounter_windows.go as an example of the invocation path
 
 - [Google Compute Engine Persistent Disk CSI Driver](https://github.com/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver)
 
