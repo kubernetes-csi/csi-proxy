@@ -27,6 +27,6 @@ substitutions:
   _PULL_BASE_REF: 'master'
 artifacts:
   objects:
-    location: 'gs://k8s-artifacts-csi/csi-proxy/dev'
+    location: 'gs://k8s-staging-sig-storage/csi-proxy'
     paths: 'bin/csi-proxy-${_PULL_BASE_REF}.exe'
 
