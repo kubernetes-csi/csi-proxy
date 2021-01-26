@@ -3,6 +3,7 @@
 package disk
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -179,12 +180,17 @@ func (APIImplementor) DiskHasPage83ID(disk syscall.Handle, matchID string) (bool
 	page83ID := []byte{}
 	byteSize := unsafe.Sizeof(byte(0))
 	for n = 0; n < devIDDesc.NumberOfIdentifiers; n++ {
-		if pID.CodeSet == StorageIDCodeSetASCII && pID.Association == StorageIDAssocDevice {
+		if pID.Association == StorageIDAssocDevice && (pID.CodeSet == StorageIDCodeSetBinary || pID.CodeSet == StorageIDCodeSetASCII) {
 			for m = 0; m < pID.IdentifierSize; m++ {
 				page83ID = append(page83ID, *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(&pID.Identifier[0])) + byteSize*uintptr(m))))
 			}
 
-			page83IDString := string(page83ID)
+			var page83IDString string
+			if pID.CodeSet == StorageIDCodeSetASCII {
+				page83IDString = string(page83ID)
+			} else if pID.CodeSet == StorageIDCodeSetBinary {
+				page83IDString = hex.EncodeToString(page83ID)
+			}
 			if strings.Contains(page83IDString, matchID) {
 				return true, nil
 			}
@@ -220,12 +226,16 @@ func (APIImplementor) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	page83ID := []byte{}
 	byteSize := unsafe.Sizeof(byte(0))
 	for n = 0; n < devIDDesc.NumberOfIdentifiers; n++ {
-		if pID.CodeSet == StorageIDCodeSetASCII && pID.Association == StorageIDAssocDevice {
+		if pID.Association == StorageIDAssocDevice {
 			for m = 0; m < pID.IdentifierSize; m++ {
 				page83ID = append(page83ID, *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(&pID.Identifier[0])) + byteSize*uintptr(m))))
 			}
 
-			return string(page83ID), nil
+			if pID.CodeSet == StorageIDCodeSetASCII {
+				return string(page83ID), nil
+			} else if pID.CodeSet == StorageIDCodeSetBinary {
+				return hex.EncodeToString(page83ID), nil
+			}
 		}
 		pID = (*StorageIdentifier)(unsafe.Pointer(uintptr(unsafe.Pointer(pID)) + byteSize*uintptr(pID.NextOffset)))
 	}
