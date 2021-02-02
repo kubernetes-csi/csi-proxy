@@ -7,7 +7,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 type Server struct {

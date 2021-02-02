@@ -14,7 +14,7 @@ import (
 	"unsafe"
 
 	shared "github.com/kubernetes-csi/csi-proxy/internal/shared/disk"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var (

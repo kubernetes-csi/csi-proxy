@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/pflag"
 	"k8s.io/gengo/args"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // Execute runs csi-proxy-api-gen. It's exposed as a public function
@@ -59,7 +59,7 @@ func buildArgs(executableName string, cliArgs []string) *args.GeneratorArgs {
 // verbosityLevel returns the current verbosity level
 func verbosityLevel() klog.Level {
 	level := klog.Level(0)
-	for klog.V(level) {
+	for klog.V(level).Enabled() {
 		level++
 	}
 	return level - 1

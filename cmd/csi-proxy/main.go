@@ -19,7 +19,7 @@ import (
 	volumesrv "github.com/kubernetes-csi/csi-proxy/internal/server/volume"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var (
