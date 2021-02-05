@@ -7,7 +7,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
 	shared "github.com/kubernetes-csi/csi-proxy/internal/shared/disk"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 type Server struct {

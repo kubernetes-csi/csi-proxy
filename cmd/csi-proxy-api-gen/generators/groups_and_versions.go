@@ -7,7 +7,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"k8s.io/gengo/types"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // a groupDefinition represents an API group definition.

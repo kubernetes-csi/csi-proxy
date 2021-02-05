@@ -7,7 +7,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/os/iscsi"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/iscsi/internal"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 const defaultIscsiPort = 3260
