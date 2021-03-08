@@ -109,6 +109,7 @@ type StorageIdentifier struct {
 	Identifier     [1]byte
 }
 
-type DiskPath struct {
-	Path string `json:"Path"`
+type Disk struct {
+	Path         string `json:"Path"`
+	SerialNumber string `json:"SerialNumber"`
 }

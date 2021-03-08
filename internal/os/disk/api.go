@@ -249,11 +249,11 @@ func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
 	}
 
 	outString := string(out)
-	diskPaths := []DiskPath{}
-	json.Unmarshal([]byte(outString), &diskPaths)
+	disks := []Disk{}
+	json.Unmarshal([]byte(outString), &disks)
 
-	for i := range diskPaths {
-		h, err := syscall.Open(diskPaths[i].Path, syscall.O_RDONLY, 0)
+	for i := range disks {
+		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
 		if err != nil {
 			return 0, err
 		}
@@ -270,19 +270,19 @@ func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
 // as the value. The DiskID struct has a field for the page83 ID.
 func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
-	out, err := exec.Command("powershell.exe", "(get-disk | select Path) | ConvertTo-Json").CombinedOutput()
+	out, err := exec.Command("powershell.exe", "(get-disk | select Path, SerialNumber) | ConvertTo-Json").CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("Could not query disk paths")
 	}
 
 	outString := string(out)
-	diskPaths := []DiskPath{}
-	json.Unmarshal([]byte(outString), &diskPaths)
+	disks := []Disk{}
+	json.Unmarshal([]byte(outString), &disks)
 
 	m := make(map[string]shared.DiskIDs)
 
-	for i := range diskPaths {
-		h, err := syscall.Open(diskPaths[i].Path, syscall.O_RDONLY, 0)
+	for i := range disks {
+		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -301,6 +301,7 @@ func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
 
 		diskIDs := make(map[string]string)
 		diskIDs["page83"] = page83
+		diskIDs["serialNumber"] = disks[i].SerialNumber
 		m[diskNumString] = shared.DiskIDs{Identifiers: diskIDs}
 	}
 
