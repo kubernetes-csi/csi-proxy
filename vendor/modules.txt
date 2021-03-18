@@ -1,4 +1,5 @@
 # github.com/Microsoft/go-winio v0.4.14
+## explicit
 github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 # github.com/davecgh/go-spew v1.1.1
@@ -6,12 +7,14 @@ github.com/davecgh/go-spew/spew
 # github.com/go-logr/logr v0.2.0
 github.com/go-logr/logr
 # github.com/golang/protobuf v1.4.1
+## explicit
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/go-cmp v0.5.0
+## explicit
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/cmpopts
 github.com/google/go-cmp/cmp/internal/diff
@@ -19,8 +22,10 @@ github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
+## explicit
 github.com/iancoleman/strcase
 # github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000 => ./client
+## explicit
 github.com/kubernetes-csi/csi-proxy/client
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1
@@ -45,17 +50,22 @@ github.com/kubernetes-csi/csi-proxy/client/groups/system/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
 # github.com/pkg/errors v0.8.1
+## explicit
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.0.0
+## explicit
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/spf13/pflag v1.0.5
+## explicit
 github.com/spf13/pflag
 # github.com/stretchr/testify v1.4.0
+## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 # golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+## explicit
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
@@ -63,10 +73,12 @@ golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
 # golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5
+## explicit
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/svc
 # golang.org/x/text v0.3.2
+## explicit
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
@@ -89,6 +101,7 @@ golang.org/x/xerrors/internal
 # google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.27.1
+## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -126,6 +139,7 @@ google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
 # google.golang.org/protobuf v1.25.0
+## explicit
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
@@ -160,6 +174,7 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
 # k8s.io/gengo v0.0.0-00010101000000-000000000000 => github.com/wk8/gengo v0.0.0-20191007012548-3d2530bfe606
+## explicit
 k8s.io/gengo/args
 k8s.io/gengo/examples/conversion-gen/generators/generator
 k8s.io/gengo/generator
@@ -167,6 +182,10 @@ k8s.io/gengo/namer
 k8s.io/gengo/parser
 k8s.io/gengo/types
 # k8s.io/klog v1.0.0
+## explicit
 k8s.io/klog
 # k8s.io/klog/v2 v2.4.0
+## explicit
 k8s.io/klog/v2
+# github.com/kubernetes-csi/csi-proxy/client => ./client
+# k8s.io/gengo => github.com/wk8/gengo v0.0.0-20191007012548-3d2530bfe606
