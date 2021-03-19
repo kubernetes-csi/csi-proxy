@@ -50,7 +50,7 @@ func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
 }
 
 func TestNewSmbGlobalMapping(t *testing.T) {
-	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	v1, err := apiversion.NewVersion("v1")
 	if err != nil {
 		t.Fatalf("New version error: %v", err)
 	}
@@ -66,14 +66,14 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 			remote:      "",
 			username:    "",
 			password:    "",
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			remote:      "\\test\\path",
 			username:    "",
 			password:    "",
-			version:     v1alpha1,
+			version:     v1,
 			expectError: false,
 		},
 	}

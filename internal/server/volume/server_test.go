@@ -66,7 +66,7 @@ func (volumeAPI *fakeVolumeAPI) WriteVolumeCache(volumeID string) error {
 }
 
 func TestListVolumesOnDisk(t *testing.T) {
-	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	v1, err := apiversion.NewVersion("v1")
 	if err != nil {
 		t.Fatalf("New version error: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestListVolumesOnDisk(t *testing.T) {
 		listInput := &internal.ListVolumesOnDiskRequest{
 			DiskId: tc.inputDiskID,
 		}
-		volumeListResponse, err := volumeSrv.ListVolumesOnDisk(context.TODO(), listInput, v1alpha1)
+		volumeListResponse, err := volumeSrv.ListVolumesOnDisk(context.TODO(), listInput, v1)
 		if tc.isErrorExpected {
 			if tc.expectedError.Error() != err.Error() {
 				t.Fatalf("Expected error: %v. Got error: %v", tc.expectedError, err)
