@@ -1,6 +1,6 @@
 module github.com/kubernetes-csi/csi-proxy
 
-go 1.13
+go 1.16
 
 replace (
 	github.com/kubernetes-csi/csi-proxy/client => ./client
