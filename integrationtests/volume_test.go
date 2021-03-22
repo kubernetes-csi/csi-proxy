@@ -10,11 +10,11 @@ import (
 	"time"
 
 	diskv1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
+	v1 "github.com/kubernetes-csi/csi-proxy/client/api/volume/v1"
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1alpha1"
-	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1"
 	diskv1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1"
-	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1"
 	v1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1"
+	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1"
 )
 
 func runPowershellCmd(cmd string) (string, error) {
