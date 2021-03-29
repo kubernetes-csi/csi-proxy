@@ -76,7 +76,7 @@ func (VolAPIImplementor) IsVolumeFormatted(volumeID string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error checking if volume is formatted. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
-	if len(out) == 0 || !strings.EqualFold(strings.TrimSpace(string(out)), formatFilesystem) {
+	if len(strings.TrimSpace(string(out))) == 0 {
 		return false, nil
 	}
 	return true, nil
