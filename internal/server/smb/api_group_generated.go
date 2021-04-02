@@ -5,6 +5,7 @@ package smb
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
+	v1 "github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal/v1"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal/v1beta1"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
@@ -18,6 +19,7 @@ var _ internal.ServerInterface = &Server{}
 func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 	v1alpha1Server := v1alpha1.NewVersionedServer(s)
 	v1beta1Server := v1beta1.NewVersionedServer(s)
+	v1Server := v1.NewVersionedServer(s)
 
 	return []*srvtypes.VersionedAPI{
 		{
@@ -29,6 +31,11 @@ func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 			Group:      name,
 			Version:    apiversion.NewVersionOrPanic("v1beta1"),
 			Registrant: v1beta1Server.Register,
+		},
+		{
+			Group:      name,
+			Version:    apiversion.NewVersionOrPanic("v1"),
+			Registrant: v1Server.Register,
 		},
 	}
 }

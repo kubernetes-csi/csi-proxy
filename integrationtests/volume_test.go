@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	diskv1beta1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1"
+	diskv1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
+	v1 "github.com/kubernetes-csi/csi-proxy/client/api/volume/v1"
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1alpha1"
-	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1"
-	diskv1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1"
+	diskv1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1"
+	v1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1"
 	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1"
-	v1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1"
 )
 
 func runPowershellCmd(cmd string) (string, error) {
@@ -161,9 +161,9 @@ func runNegativeDismountVolumeRequest(t *testing.T, client *v1alpha1client.Clien
 	}
 }
 
-func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta1client.Client, volumeID string) {
+func runNegativeVolumeStatsRequest(t *testing.T, client *v1client.Client, volumeID string) {
 	// Get VolumeStats
-	volumeStatsRequest := &v1beta1.VolumeStatsRequest{
+	volumeStatsRequest := &v1.VolumeStatsRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.VolumeStats(context.TODO(), volumeStatsRequest)
@@ -174,7 +174,7 @@ func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta1client.Client, v
 
 func negativeVolumeTests(t *testing.T) {
 	var client *v1alpha1client.Client
-	var betaClient *v1beta1client.Client
+	var betaClient *v1client.Client
 	var err error
 
 	if client, err = v1alpha1client.NewClient(); err != nil {
@@ -182,7 +182,7 @@ func negativeVolumeTests(t *testing.T) {
 	}
 	defer client.Close()
 
-	if betaClient, err = v1beta1client.NewClient(); err != nil {
+	if betaClient, err = v1client.NewClient(); err != nil {
 		t.Fatalf("BetaClient new error: %v", err)
 	}
 	defer betaClient.Close()
@@ -229,8 +229,8 @@ func negativeDiskTests(t *testing.T) {
 
 func simpleE2e(t *testing.T) {
 	var client *v1alpha1client.Client
-	var betaClient *v1beta1client.Client
-	var diskBetaClient *diskv1beta1client.Client
+	var betaClient *v1client.Client
+	var diskBetaClient *diskv1client.Client
 	var err error
 
 	if client, err = v1alpha1client.NewClient(); err != nil {
@@ -238,12 +238,12 @@ func simpleE2e(t *testing.T) {
 	}
 	defer client.Close()
 
-	if betaClient, err = v1beta1client.NewClient(); err != nil {
+	if betaClient, err = v1client.NewClient(); err != nil {
 		t.Fatalf("BetaClient new error: %v", err)
 	}
 	defer betaClient.Close()
 
-	if diskBetaClient, err = diskv1beta1client.NewClient(); err != nil {
+	if diskBetaClient, err = diskv1client.NewClient(); err != nil {
 		t.Fatalf("DiskBetaClient new error: %v", err)
 	}
 	defer diskBetaClient.Close()
@@ -300,7 +300,7 @@ func simpleE2e(t *testing.T) {
 	}
 
 	t.Logf("VolumeId %v", volumeID)
-	volumeStatsRequest := &v1beta1.VolumeStatsRequest{
+	volumeStatsRequest := &v1.VolumeStatsRequest{
 		VolumeId: volumeID,
 	}
 
@@ -335,7 +335,7 @@ func simpleE2e(t *testing.T) {
 		t.Fatalf("VolumeSize reported is not smaller after resize, it is %v", volumeStatsResponse.VolumeSize)
 	}
 
-	volumeDiskNumberRequest := &v1beta1.VolumeDiskNumberRequest{
+	volumeDiskNumberRequest := &v1.VolumeDiskNumberRequest{
 		VolumeId: volumeID,
 	}
 
@@ -346,7 +346,7 @@ func simpleE2e(t *testing.T) {
 
 	diskNumberString := fmt.Sprintf("%d", volumeDiskNumberResponse.DiskNumber)
 
-	diskStatsRequest := &diskv1beta1.DiskStatsRequest{
+	diskStatsRequest := &diskv1.DiskStatsRequest{
 		DiskID: diskNumberString,
 	}
 

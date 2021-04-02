@@ -31,7 +31,7 @@ func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
 }
 
 func TestMkdirWindows(t *testing.T) {
-	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	v1, err := apiversion.NewVersion("v1")
 	if err != nil {
 		t.Fatalf("New version error: %v", err)
 	}
@@ -46,84 +46,84 @@ func TestMkdirWindows(t *testing.T) {
 			name:        "path outside of pod context with pod context set",
 			path:        `C:\foo\bar`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside pod context with pod context set",
 			path:        `C:\var\lib\kubelet\pods\pv1`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path outside of plugin context with plugin context set",
 			path:        `C:\foo\bar`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside plugin context with plugin context set",
 			path:        `C:\var\lib\kubelet\plugins\pv1`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path with invalid character `:` beyond drive letter prefix",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1:foo`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `/`",
 			path:        `C:\var\lib\kubelet\pods\pv1/foo`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `*`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1*foo`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `?`",
 			path:        `C:\var\lib\kubelet\pods\pv1?foo`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `|`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin|pv1\foo`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid characters `..`",
 			path:        `C:\var\lib\kubelet\pods\pv1\..\..\..\system32`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid prefix `\\`",
 			path:        `\\csi-plugin\..\..\..\system32`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "relative path",
 			path:        `pv1\foo`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 	}
@@ -148,7 +148,7 @@ func TestMkdirWindows(t *testing.T) {
 }
 
 func TestRmdirWindows(t *testing.T) {
-	v1alpha1, err := apiversion.NewVersion("v1alpha1")
+	v1, err := apiversion.NewVersion("v1")
 	if err != nil {
 		t.Fatalf("New version error: %v", err)
 	}
@@ -164,84 +164,84 @@ func TestRmdirWindows(t *testing.T) {
 			name:        "path outside of pod context with pod context set",
 			path:        `C:\foo\bar`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside pod context with pod context set",
 			path:        `C:\var\lib\kubelet\pods\pv1`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path outside of plugin context with plugin context set",
 			path:        `C:\foo\bar`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside plugin context with plugin context set",
 			path:        `C:\var\lib\kubelet\plugins\pv1`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path with invalid character `:` beyond drive letter prefix",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1:foo`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `/`",
 			path:        `C:\var\lib\kubelet\pods\pv1/foo`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `*`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1*foo`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `?`",
 			path:        `C:\var\lib\kubelet\pods\pv1?foo`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `|`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin|pv1\foo`,
 			pathCtx:     internal.PLUGIN,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid characters `..`",
 			path:        `C:\var\lib\kubelet\pods\pv1\..\..\..\system32`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid prefix `\\`",
 			path:        `\\csi-plugin\..\..\..\system32`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "relative path",
 			path:        `pv1\foo`,
 			pathCtx:     internal.POD,
-			version:     v1alpha1,
+			version:     v1,
 			expectError: true,
 		},
 	}

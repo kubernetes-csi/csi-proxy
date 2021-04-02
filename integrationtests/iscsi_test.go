@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	disk_api "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta2"
+	disk_api "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
 	iscsi_api "github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha2"
 	system_api "github.com/kubernetes-csi/csi-proxy/client/api/system/v1alpha1"
-	disk_client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2"
+	disk_client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1"
 	iscsi_client "github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha2"
 	system_client "github.com/kubernetes-csi/csi-proxy/client/groups/system/v1alpha1"
 	"github.com/stretchr/testify/assert"
