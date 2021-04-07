@@ -4,7 +4,6 @@ package v1
 
 import (
 	"context"
-	"fmt"
 	"net"
 
 	"github.com/Microsoft/go-winio"
