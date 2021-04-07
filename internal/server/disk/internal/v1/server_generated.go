@@ -5,7 +5,7 @@ package v1
 import (
 	"context"
 
-	v1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
 	"google.golang.org/grpc"

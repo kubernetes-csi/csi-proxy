@@ -31,7 +31,8 @@ func NewClient() (*Client, error) {
 		grpc.WithContextDialer(func(context context.Context, s string) (net.Conn, error) {
 			return winio.DialPipeContext(context, s)
 		}),
-		grpc.WithInsecure())
+		grpc.WithInsecure(),
+		grpc.WithBlock())
 	if err != nil {
 		return nil, err
 	}

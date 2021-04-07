@@ -32,6 +32,7 @@ func (g *clientGeneratedGenerator) Imports(*generator.Context) []string {
 	return []string{
 		"context",
 		"net",
+		"fmt",
 		"github.com/Microsoft/go-winio",
 		"google.golang.org/grpc",
 		"github.com/kubernetes-csi/csi-proxy/client",
@@ -44,9 +45,11 @@ func (g *clientGeneratedGenerator) Init(context *generator.Context, writer io.Wr
 	snippetWriter := generator.NewSnippetWriter(writer, context, "$", "$")
 
 	snippetWriter.Do(`
-const groupName = "$.groupName$"
+// GroupName is the group name of this API.
+const GroupName = "$.groupName$"
 
-var version = apiversion.NewVersionOrPanic("$.version$")
+// Version is the api version.
+var Version = apiversion.NewVersionOrPanic("$.version$")
 
 type Client struct {
 	client     $.version$.$.camelGroupName$Client
@@ -56,7 +59,19 @@ type Client struct {
 // NewClient returns a client to make calls to the $.groupName$ API group version $.version$.
 // It's the caller's responsibility to Close the client when done.
 func NewClient() (*Client, error) {
-	pipePath := client.PipePath(groupName, version)
+	pipePath := client.PipePath(GroupName, Version)
+	return NewClientWithPipePath(pipePath)
+}
+
+// NewClientWithPipePath returns a client to make calls to the named pipe located at "pipePath".
+// It's the caller's responsibility to Close the client when done.
+func NewClientWithPipePath(pipePath string) (*Client, error) {
+
+	// verify that the pipe exists
+	_, err := winio.DialPipe(pipePath, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	connection, err := grpc.Dial(pipePath,
 		grpc.WithContextDialer(func(context context.Context, s string) (net.Conn, error) {

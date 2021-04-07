@@ -8,7 +8,7 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/kubernetes-csi/csi-proxy/client"
-	v1 "github.com/kubernetes-csi/csi-proxy/client/api/smb/v1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/smb/v1"
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"google.golang.org/grpc"
 )
@@ -31,7 +31,8 @@ func NewClient() (*Client, error) {
 		grpc.WithContextDialer(func(context context.Context, s string) (net.Conn, error) {
 			return winio.DialPipeContext(context, s)
 		}),
-		grpc.WithInsecure())
+		grpc.WithInsecure(),
+		grpc.WithBlock())
 	if err != nil {
 		return nil, err
 	}
