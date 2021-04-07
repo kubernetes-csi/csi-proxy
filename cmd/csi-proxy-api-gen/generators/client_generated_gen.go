@@ -32,7 +32,6 @@ func (g *clientGeneratedGenerator) Imports(*generator.Context) []string {
 	return []string{
 		"context",
 		"net",
-		"fmt",
 		"github.com/Microsoft/go-winio",
 		"google.golang.org/grpc",
 		"github.com/kubernetes-csi/csi-proxy/client",
