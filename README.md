@@ -36,7 +36,7 @@ In the above diagram, there are 3 communication channels being utilized for CSI 
 - `csi-plugin-reg.sock` : This lives here, c:/var/lib/kubelet/plugins_registry/csi-plugin-reg.sock, and is used for the kubelet itself to get metadata as needed from the csi plugin .
 - `\\.\pipe\csi-proxy` : This will live in a pipe, i.e. at \\.\pipe/csi-proxy-api-group-v-... : upon receipt of specific requests from the Node plugin, it carries out actions on the node plugins behalf.  Since it doesn't execute arbitrary commands on the host, its more secure then simply being a black-box proxy to run host commands.
 
-Each named pipe will support a specific version of an API (e.g. v1alpha1, v2beta1)
+Each named pipe will support a specific version of an API (e.g. v1alpha1, v1beta1, v1beta2, v1)
 that targets a specific area of storage (e.g. disk, volume, file, SMB, iSCSI).
 
 ## Overview
@@ -48,7 +48,7 @@ Recommended K8s Version: 1.18
 
 ## Feature status
 
-CSI-proxy is currently in Alpha status
+CSI-proxy is currently in Beta status
 
 ## Installation
 
@@ -124,29 +124,29 @@ spec:
             - name: plugin-dir
               mountPath: C:\csi
             - name: csi-proxy-disk-pipe
-              mountPath: \\.\pipe\csi-proxy-disk-v1alpha1
+              mountPath: \\.\pipe\csi-proxy-disk-v1beta2
             - name: csi-proxy-volume-pipe
-              mountPath: \\.\pipe\csi-proxy-volume-v1alpha1
+              mountPath: \\.\pipe\csi-proxy-volume-v1beta1
             - name: csi-proxy-filesystem-pipe
-              mountPath: \\.\pipe\csi-proxy-filesystem-v1alpha1
+              mountPath: \\.\pipe\csi-proxy-filesystem-v1beta1
             - name: csi-proxy-iscsi-pipe
-              mountPath: \\.\pipe\csi-proxy-iscsi-v1alpha1
+              mountPath: \\.\pipe\csi-proxy-iscsi-v1beta1
       volumes:
         - name: csi-proxy-disk-pipe
           hostPath:
-            path: \\.\pipe\csi-proxy-disk-v1alpha1
+            path: \\.\pipe\csi-proxy-disk-v1beta2
             type: ""
         - name: csi-proxy-volume-pipe
           hostPath:
-            path: \\.\pipe\csi-proxy-volume-v1alpha1
+            path: \\.\pipe\csi-proxy-volume-v1beta1
             type: ""
         - name: csi-proxy-filesystem-pipe
           hostPath:
-            path: \\.\pipe\csi-proxy-filesystem-v1alpha1
+            path: \\.\pipe\csi-proxy-filesystem-v1beta1
             type: ""
         - name: csi-proxy-iscsi-pipe
           hostPath:
-            path: \\.\pipe\csi-proxy-iscsi-v1alpha1
+            path: \\.\pipe\csi-proxy-iscsi-v1beta1
             type: ""
         - name: registration-dir
           hostPath:
