@@ -13,9 +13,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-const groupName = "iscsi"
+// GroupName is the group name of this API.
+const GroupName = "iscsi"
 
-var version = apiversion.NewVersionOrPanic("v1alpha2")
+// Version is the api version.
+var Version = apiversion.NewVersionOrPanic("v1alpha2")
 
 type Client struct {
 	client     v1alpha2.IscsiClient
@@ -25,14 +27,25 @@ type Client struct {
 // NewClient returns a client to make calls to the iscsi API group version v1alpha2.
 // It's the caller's responsibility to Close the client when done.
 func NewClient() (*Client, error) {
-	pipePath := client.PipePath(groupName, version)
+	pipePath := client.PipePath(GroupName, Version)
+	return NewClientWithPipePath(pipePath)
+}
+
+// NewClientWithPipePath returns a client to make calls to the named pipe located at "pipePath".
+// It's the caller's responsibility to Close the client when done.
+func NewClientWithPipePath(pipePath string) (*Client, error) {
+
+	// verify that the pipe exists
+	_, err := winio.DialPipe(pipePath, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	connection, err := grpc.Dial(pipePath,
 		grpc.WithContextDialer(func(context context.Context, s string) (net.Conn, error) {
 			return winio.DialPipeContext(context, s)
 		}),
-		grpc.WithInsecure(),
-		grpc.WithBlock())
+		grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
