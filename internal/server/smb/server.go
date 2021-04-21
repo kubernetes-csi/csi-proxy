@@ -3,11 +3,11 @@ package smb
 import (
 	"context"
 	"fmt"
-
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
 	"k8s.io/klog/v2"
+	"strings"
 )
 
 type Server struct {
@@ -22,6 +22,11 @@ type API interface {
 	RemoveSmbGlobalMapping(remotePath string) error
 }
 
+func normalizeWindowsPath(path string) string {
+	normalizedPath := strings.Replace(path, "/", "\\", -1)
+	return normalizedPath
+}
+
 func NewServer(hostAPI API, fsServer *fsserver.Server) (*Server, error) {
 	return &Server{
 		hostAPI:  hostAPI,
@@ -32,7 +37,7 @@ func NewServer(hostAPI API, fsServer *fsserver.Server) (*Server, error) {
 func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.NewSmbGlobalMappingRequest, version apiversion.Version) (*internal.NewSmbGlobalMappingResponse, error) {
 	klog.V(4).Infof("calling NewSmbGlobalMapping with remote path %q", request.RemotePath)
 	response := &internal.NewSmbGlobalMappingResponse{}
-	remotePath := request.RemotePath
+	remotePath := normalizeWindowsPath(request.RemotePath)
 	localPath := request.LocalPath
 
 	if remotePath == "" {
@@ -90,7 +95,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *internal.RemoveSmbGlobalMappingRequest, version apiversion.Version) (*internal.RemoveSmbGlobalMappingResponse, error) {
 	klog.V(4).Infof("calling RemoveSmbGlobalMapping with remote path %q", request.RemotePath)
 	response := &internal.RemoveSmbGlobalMappingResponse{}
-	remotePath := request.RemotePath
+	remotePath := normalizeWindowsPath(request.RemotePath)
 
 	if remotePath == "" {
 		klog.Errorf("remote path is empty")

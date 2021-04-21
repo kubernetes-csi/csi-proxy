@@ -56,7 +56,7 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) string {
 	var cmd, out string
 	var err error
 	const initialSize = 5 * 1024 * 1024 * 1024
-	const partitionStyle = "MBR"
+	const partitionStyle = "GPT"
 
 	cmd = fmt.Sprintf("mkdir %s", mountPath)
 	if out, err = runPowershellCmd(cmd); err != nil {
