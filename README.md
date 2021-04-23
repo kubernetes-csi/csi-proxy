@@ -50,6 +50,17 @@ Recommended K8s Version: 1.18
 
 CSI-proxy is currently in Beta status
 
+## Build
+
+`csi-proxy.exe` binary has not published yet. You need to clone the repo and build it. The easiest way to build this binary is using the makefile in this repo.
+
+```
+   git clone https://github.com/kubernetes-csi/csi-proxy
+   sudo make build
+```
+
+On successful execution of `make build`, the output binary `csi-proxy.exe` will be available under `/bin` directory.
+
 ## Installation
 
 csi-proxy.exe can be installed and run as binary or run as a Windows service on each Windows node. See the following as an example to run CSI Proxy as a web service.
