@@ -109,7 +109,7 @@ func (APIImplementor) IsDiskInitialized(diskID string) (bool, error) {
 }
 
 func (APIImplementor) InitializeDisk(diskID string) error {
-	cmd := fmt.Sprintf("Initialize-Disk -Number %s -PartitionStyle MBR", diskID)
+	cmd := fmt.Sprintf("Initialize-Disk -Number %s -PartitionStyle GPT", diskID)
 	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error initializing disk %s: %v, %v", diskID, out, err)
