@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package v1beta1;
 
+option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/smb/v1beta1";
+
 service Smb {
     // NewSmbGlobalMapping creates an SMB mapping on the SMB client to an SMB share.
     rpc NewSmbGlobalMapping(NewSmbGlobalMappingRequest) returns (NewSmbGlobalMappingResponse) {}

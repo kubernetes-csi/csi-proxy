@@ -9,12 +9,10 @@ import (
 	"testing"
 	"time"
 
-	diskv1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
-	v1 "github.com/kubernetes-csi/csi-proxy/client/api/volume/v1"
-	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1alpha1"
-	diskv1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1"
-	v1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1"
-	v1alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1"
+	diskv1beta3 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
+	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3"
+	diskv1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
+	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3"
 )
 
 func runPowershellCmd(cmd string) (string, error) {
@@ -95,8 +93,8 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) string {
 	return diskNum
 }
 
-func runNegativeListVolumeRequest(t *testing.T, client *v1alpha1client.Client, diskNum string) {
-	listRequest := &v1alpha1.ListVolumesOnDiskRequest{
+func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum string) {
+	listRequest := &v1beta3.ListVolumesOnDiskRequest{
 		DiskId: diskNum,
 	}
 	_, err := client.ListVolumesOnDisk(context.TODO(), listRequest)
@@ -105,8 +103,8 @@ func runNegativeListVolumeRequest(t *testing.T, client *v1alpha1client.Client, d
 	}
 }
 
-func runNegativeIsVolumeFormattedRequest(t *testing.T, client *v1alpha1client.Client, volumeID string) {
-	isVolumeFormattedRequest := &v1alpha1.IsVolumeFormattedRequest{
+func runNegativeIsVolumeFormattedRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
+	isVolumeFormattedRequest := &v1beta3.IsVolumeFormattedRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
@@ -115,8 +113,8 @@ func runNegativeIsVolumeFormattedRequest(t *testing.T, client *v1alpha1client.Cl
 	}
 }
 
-func runNegativeFormatVolumeRequest(t *testing.T, client *v1alpha1client.Client, volumeID string) {
-	formatVolumeRequest := &v1alpha1.FormatVolumeRequest{
+func runNegativeFormatVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
+	formatVolumeRequest := &v1beta3.FormatVolumeRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.FormatVolume(context.TODO(), formatVolumeRequest)
@@ -125,8 +123,8 @@ func runNegativeFormatVolumeRequest(t *testing.T, client *v1alpha1client.Client,
 	}
 }
 
-func runNegativeResizeVolumeRequest(t *testing.T, client *v1alpha1client.Client, volumeID string, size int64) {
-	resizeVolumeRequest := &v1alpha1.ResizeVolumeRequest{
+func runNegativeResizeVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID string, size int64) {
+	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
 		VolumeId: volumeID,
 		Size:     size,
 	}
@@ -136,9 +134,9 @@ func runNegativeResizeVolumeRequest(t *testing.T, client *v1alpha1client.Client,
 	}
 }
 
-func runNegativeMountVolumeRequest(t *testing.T, client *v1alpha1client.Client, volumeID, mountPath string) {
+func runNegativeMountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, mountPath string) {
 	// Mount the volume
-	mountVolumeRequest := &v1alpha1.MountVolumeRequest{
+	mountVolumeRequest := &v1beta3.MountVolumeRequest{
 		VolumeId: volumeID,
 		Path:     mountPath,
 	}
@@ -149,9 +147,9 @@ func runNegativeMountVolumeRequest(t *testing.T, client *v1alpha1client.Client, 
 	}
 }
 
-func runNegativeDismountVolumeRequest(t *testing.T, client *v1alpha1client.Client, volumeID, mountPath string) {
+func runNegativeDismountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, mountPath string) {
 	// Dismount the volume
-	dismountVolumeRequest := &v1alpha1.DismountVolumeRequest{
+	dismountVolumeRequest := &v1beta3.DismountVolumeRequest{
 		VolumeId: volumeID,
 		Path:     mountPath,
 	}
@@ -161,9 +159,9 @@ func runNegativeDismountVolumeRequest(t *testing.T, client *v1alpha1client.Clien
 	}
 }
 
-func runNegativeVolumeStatsRequest(t *testing.T, client *v1client.Client, volumeID string) {
+func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
 	// Get VolumeStats
-	volumeStatsRequest := &v1.VolumeStatsRequest{
+	volumeStatsRequest := &v1beta3.VolumeStatsRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.VolumeStats(context.TODO(), volumeStatsRequest)
@@ -173,19 +171,13 @@ func runNegativeVolumeStatsRequest(t *testing.T, client *v1client.Client, volume
 }
 
 func negativeVolumeTests(t *testing.T) {
-	var client *v1alpha1client.Client
-	var betaClient *v1client.Client
+	var client *v1beta3client.Client
 	var err error
 
-	if client, err = v1alpha1client.NewClient(); err != nil {
+	if client, err = v1beta3client.NewClient(); err != nil {
 		t.Fatalf("Client new error: %v", err)
 	}
 	defer client.Close()
-
-	if betaClient, err = v1client.NewClient(); err != nil {
-		t.Fatalf("BetaClient new error: %v", err)
-	}
-	defer betaClient.Close()
 
 	// Empty volume test
 	runNegativeIsVolumeFormattedRequest(t, client, "")
@@ -208,15 +200,15 @@ func negativeVolumeTests(t *testing.T) {
 	runNegativeDismountVolumeRequest(t, client, "", "")
 	runNegativeDismountVolumeRequest(t, client, "-1", "")
 
-	runNegativeVolumeStatsRequest(t, betaClient, "")
-	runNegativeVolumeStatsRequest(t, betaClient, "-1")
+	runNegativeVolumeStatsRequest(t, client, "")
+	runNegativeVolumeStatsRequest(t, client, "-1")
 }
 
 func negativeDiskTests(t *testing.T) {
-	var client *v1alpha1client.Client
+	var client *v1beta3client.Client
 	var err error
 
-	if client, err = v1alpha1client.NewClient(); err != nil {
+	if client, err = v1beta3client.NewClient(); err != nil {
 		t.Fatalf("Client new error: %v", err)
 	}
 	defer client.Close()
@@ -228,25 +220,19 @@ func negativeDiskTests(t *testing.T) {
 }
 
 func simpleE2e(t *testing.T) {
-	var client *v1alpha1client.Client
-	var betaClient *v1client.Client
-	var diskBetaClient *diskv1client.Client
+	var volumeClient *v1beta3client.Client
+	var diskClient *diskv1beta3client.Client
 	var err error
 
-	if client, err = v1alpha1client.NewClient(); err != nil {
+	if volumeClient, err = v1beta3client.NewClient(); err != nil {
 		t.Fatalf("Client new error: %v", err)
 	}
-	defer client.Close()
+	defer volumeClient.Close()
 
-	if betaClient, err = v1client.NewClient(); err != nil {
-		t.Fatalf("BetaClient new error: %v", err)
+	if diskClient, err = diskv1beta3client.NewClient(); err != nil {
+		t.Fatalf("DiskClient new error: %v", err)
 	}
-	defer betaClient.Close()
-
-	if diskBetaClient, err = diskv1client.NewClient(); err != nil {
-		t.Fatalf("DiskBetaClient new error: %v", err)
-	}
-	defer diskBetaClient.Close()
+	defer diskClient.Close()
 
 	s1 := rand.NewSource(time.Now().UTC().UnixNano())
 	r1 := rand.New(s1)
@@ -258,10 +244,10 @@ func simpleE2e(t *testing.T) {
 	defer diskCleanup(t, vhdxPath, mountPath, testPluginPath)
 	diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
 
-	listRequest := &v1alpha1.ListVolumesOnDiskRequest{
+	listRequest := &v1beta3.ListVolumesOnDiskRequest{
 		DiskId: diskNum,
 	}
-	listResponse, err := client.ListVolumesOnDisk(context.TODO(), listRequest)
+	listResponse, err := volumeClient.ListVolumesOnDisk(context.TODO(), listRequest)
 	if err != nil {
 		t.Fatalf("List response: %v", err)
 	}
@@ -272,10 +258,10 @@ func simpleE2e(t *testing.T) {
 	}
 	volumeID := listResponse.VolumeIds[0]
 
-	isVolumeFormattedRequest := &v1alpha1.IsVolumeFormattedRequest{
+	isVolumeFormattedRequest := &v1beta3.IsVolumeFormattedRequest{
 		VolumeId: volumeID,
 	}
-	isVolumeFormattedResponse, err := client.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	isVolumeFormattedResponse, err := volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
 	if err != nil {
 		t.Fatalf("Is volume formatted request error: %v", err)
 	}
@@ -283,15 +269,15 @@ func simpleE2e(t *testing.T) {
 		t.Fatal("Volume formatted. Unexpected !!")
 	}
 
-	formatVolumeRequest := &v1alpha1.FormatVolumeRequest{
+	formatVolumeRequest := &v1beta3.FormatVolumeRequest{
 		VolumeId: volumeID,
 	}
-	_, err = client.FormatVolume(context.TODO(), formatVolumeRequest)
+	_, err = volumeClient.FormatVolume(context.TODO(), formatVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume format failed. Error: %v", err)
 	}
 
-	isVolumeFormattedResponse, err = client.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	isVolumeFormattedResponse, err = volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
 	if err != nil {
 		t.Fatalf("Is volume formatted request error: %v", err)
 	}
@@ -300,11 +286,11 @@ func simpleE2e(t *testing.T) {
 	}
 
 	t.Logf("VolumeId %v", volumeID)
-	volumeStatsRequest := &v1.VolumeStatsRequest{
+	volumeStatsRequest := &v1beta3.VolumeStatsRequest{
 		VolumeId: volumeID,
 	}
 
-	volumeStatsResponse, err := betaClient.VolumeStats(context.TODO(), volumeStatsRequest)
+	volumeStatsResponse, err := volumeClient.VolumeStats(context.TODO(), volumeStatsRequest)
 	if err != nil {
 		t.Fatalf("VolumeStats request error: %v", err)
 	}
@@ -315,18 +301,18 @@ func simpleE2e(t *testing.T) {
 
 	oldSize := volumeStatsResponse.VolumeSize
 
-	resizeVolumeRequest := &v1alpha1.ResizeVolumeRequest{
+	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
 		VolumeId: volumeID,
 		// Resize from 5G to 2G
 		Size: 2 * 1024 * 1024 * 1024,
 	}
 
-	_, err = client.ResizeVolume(context.TODO(), resizeVolumeRequest)
+	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume resize request failed. Error: %v", err)
 	}
 
-	volumeStatsResponse, err = betaClient.VolumeStats(context.TODO(), volumeStatsRequest)
+	volumeStatsResponse, err = volumeClient.VolumeStats(context.TODO(), volumeStatsRequest)
 	if err != nil {
 		t.Fatalf("VolumeStats request after resize error: %v", err)
 	}
@@ -335,22 +321,22 @@ func simpleE2e(t *testing.T) {
 		t.Fatalf("VolumeSize reported is not smaller after resize, it is %v", volumeStatsResponse.VolumeSize)
 	}
 
-	volumeDiskNumberRequest := &v1.VolumeDiskNumberRequest{
+	volumeDiskNumberRequest := &v1beta3.VolumeDiskNumberRequest{
 		VolumeId: volumeID,
 	}
 
-	volumeDiskNumberResponse, err := betaClient.GetVolumeDiskNumber(context.TODO(), volumeDiskNumberRequest)
+	volumeDiskNumberResponse, err := volumeClient.GetVolumeDiskNumber(context.TODO(), volumeDiskNumberRequest)
 	if err != nil {
 		t.Fatalf("GetVolumeDiskNumber failed: %v", err)
 	}
 
 	diskNumberString := fmt.Sprintf("%d", volumeDiskNumberResponse.DiskNumber)
 
-	diskStatsRequest := &diskv1.DiskStatsRequest{
+	diskStatsRequest := &diskv1beta3.DiskStatsRequest{
 		DiskID: diskNumberString,
 	}
 
-	diskStatsResponse, err := diskBetaClient.DiskStats(context.TODO(), diskStatsRequest)
+	diskStatsResponse, err := diskClient.DiskStats(context.TODO(), diskStatsRequest)
 	if err != nil {
 		t.Fatalf("DiskStats request error: %v", err)
 	}
@@ -360,21 +346,21 @@ func simpleE2e(t *testing.T) {
 	}
 
 	// Mount the volume
-	mountVolumeRequest := &v1alpha1.MountVolumeRequest{
+	mountVolumeRequest := &v1beta3.MountVolumeRequest{
 		VolumeId: volumeID,
 		Path:     mountPath,
 	}
-	_, err = client.MountVolume(context.TODO(), mountVolumeRequest)
+	_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
 	}
 
 	// Dismount the volume
-	dismountVolumeRequest := &v1alpha1.DismountVolumeRequest{
+	dismountVolumeRequest := &v1beta3.DismountVolumeRequest{
 		VolumeId: volumeID,
 		Path:     mountPath,
 	}
-	_, err = client.DismountVolume(context.TODO(), dismountVolumeRequest)
+	_, err = volumeClient.DismountVolume(context.TODO(), dismountVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
 	}

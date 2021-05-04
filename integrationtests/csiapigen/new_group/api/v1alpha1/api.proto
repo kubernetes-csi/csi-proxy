@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package v1alpha1;
 
+option go_package = "github.com/kubernetes-csi/csi-proxy/integrationtests/csiapigen/new_group/api/v1alpha1";
+
 service NewGroup {
     rpc Foo(FooRequest) returns (FooResponse) {}
 }

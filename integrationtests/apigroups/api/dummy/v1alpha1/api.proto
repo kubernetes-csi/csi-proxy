@@ -4,6 +4,8 @@ syntax = "proto3";
 // v1alpha1 is no longer maintained, and will be removed soon.
 package v1alpha1;
 
+option go_package = "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy/v1alpha1";
+
 service Dummy {
     // ComputeDouble computes the double of the input. Real smart stuff!
     rpc ComputeDouble(ComputeDoubleRequest) returns (ComputeDoubleResponse) {

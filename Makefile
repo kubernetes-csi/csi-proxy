@@ -34,7 +34,7 @@ generate-protobuf:
 
 .PHONY: generate-csi-proxy-api-gen
 generate-csi-proxy-api-gen: compile-csi-proxy-api-gen
-	$(CSI_PROXY_API_GEN) -i github.com/kubernetes-csi/csi-proxy/client/api,github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy
+	$(CSI_PROXY_API_GEN) -i github.com/kubernetes-csi/csi-proxy/client/api,github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy --v=5
 
 .PHONY: clean
 clean: clean-protobuf clean-generated

@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy/v1"
+	v1 "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy/v1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
 	"google.golang.org/grpc"
 )

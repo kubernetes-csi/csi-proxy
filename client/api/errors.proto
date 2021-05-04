@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package api;
 
+option go_package = "github.com/kubernetes-csi/csi-proxy/client/api";
+
 // CommandError details errors yielded by cmdlet calls.
 message CmdletError {
     // Name of the cmdlet that errored out.
