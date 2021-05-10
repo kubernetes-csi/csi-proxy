@@ -14,5 +14,5 @@ limitations under the License.
 package main
 
 var (
-	version string = "Unknown"
+	version = "Unknown"
 )
