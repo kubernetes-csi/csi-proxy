@@ -30,7 +30,7 @@ generate-protobuf:
                 protoc -I "$(GOPATH)/src/" -I '$(REPO_ROOT)/client/api' "$$FILE" --go_out=plugins="grpc:$(GOPATH)/src"; \
         } ; \
         export -f generate_protobuf_for; \
-        find '$(REPO_ROOT)' -name '*.proto' | sed -e "s|$(GOPATH)/src/||g" | xargs -n1 '$(SHELL)' -c 'generate_protobuf_for "$$0"'
+        find '$(REPO_ROOT)' -not -path './vendor/*' -name '*.proto' | sed -e "s|$(GOPATH)/src/||g" | xargs -n1 '$(SHELL)' -c 'generate_protobuf_for "$$0"'
 
 .PHONY: generate-csi-proxy-api-gen
 generate-csi-proxy-api-gen: compile-csi-proxy-api-gen

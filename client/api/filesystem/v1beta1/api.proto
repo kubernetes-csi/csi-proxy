@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package v1beta1;
 
-option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta1";
-
 service Filesystem {
     // PathExists checks if the requested path exists in the host's filesystem
     rpc PathExists(PathExistsRequest) returns (PathExistsResponse) {}
@@ -15,7 +13,7 @@ service Filesystem {
     // This may be used for unlinking a symlink created through LinkPath
     rpc Rmdir(RmdirRequest) returns (RmdirResponse) {}
 
-    // LinkPath creates a local directory symbolic link between a source path
+    // LinkPath creates a local directory symbolic link between a source path 
     // and target path in the host's filesystem
     rpc LinkPath(LinkPathRequest) returns (LinkPathResponse) {}
 
@@ -65,7 +63,7 @@ message MkdirRequest {
     //
     // Restrictions:
     // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
-    // Depending on the context parameter of this function, the path prefix needs
+    // Depending on the context parameter of this function, the path prefix needs 
     // to match the paths specified either as kubelet-csi-plugins-path
     // or as kubelet-pod-path parameters of csi-proxy.
     // The path parameter cannot already exist in the host's filesystem.
@@ -93,7 +91,7 @@ message RmdirRequest {
     //
     // Restrictions:
     // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
-    // Depending on the context parameter of this function, the path prefix needs
+    // Depending on the context parameter of this function, the path prefix needs 
     // to match the paths specified either as kubelet-csi-plugins-path
     // or as kubelet-pod-path parameters of csi-proxy.
     // UNC paths of the form "\\server\share\path\file" are not allowed.
@@ -124,7 +122,7 @@ message LinkPathRequest {
     //
     // Restrictions:
     // Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
-    // The path prefix needs needs to match the paths specified as
+    // The path prefix needs needs to match the paths specified as 
     // kubelet-csi-plugins-path parameter of csi-proxy.
     // UNC paths of the form "\\server\share\path\file" are not allowed.
     // All directory separators need to be backslash character: "\".
@@ -155,7 +153,7 @@ message LinkPathResponse {
     // Error message if any. Empty string indicates success
     string error = 1;
 }
-
+ 
 message IsMountPointRequest {
     // The path whose existence we want to check in the host's filesystem
     string path = 1;
