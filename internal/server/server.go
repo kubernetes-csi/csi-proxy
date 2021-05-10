@@ -39,9 +39,9 @@ func NewServer(apiGroups ...srvtypes.APIGroup) *Server {
 // others).
 // If passed a listeningChan, it will close it when it's started listening.
 func (s *Server) Start(listeningChan chan interface{}) []error {
-	doneChan, errors := s.startListening()
-	if len(errors) != 0 {
-		return errors
+	doneChan, ListenErr := s.startListening()
+	if len(ListenErr) != 0 {
+		return ListenErr
 	}
 	defer close(doneChan)
 
@@ -62,9 +62,9 @@ func (s *Server) startListening() (chan *versionedAPIDone, []error) {
 	}
 	s.started = true
 
-	listeners, errors := s.createListeners()
-	if len(errors) != 0 {
-		return nil, errors
+	listeners, ListenErr := s.createListeners()
+	if len(ListenErr) != 0 {
+		return nil, ListenErr
 	}
 
 	return s.createAndStartGRPCServers(listeners), nil
