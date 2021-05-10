@@ -10,27 +10,29 @@ service Volume {
     rpc ListVolumesOnDisk(ListVolumesOnDiskRequest) returns (ListVolumesOnDiskResponse) {}
     // MountVolume mounts the volume at the requested global staging path
     rpc MountVolume(MountVolumeRequest) returns (MountVolumeResponse) {}
-    // DismountVolume gracefully dismounts a volume
-    rpc DismountVolume(DismountVolumeRequest) returns (DismountVolumeResponse) {}
-    // IsVolumeFormatted checks if a volume is formatted with NTFS
+    // UnmountVolume gracefully unmounts a volume
+    rpc UnmountVolume(UnmountVolumeRequest) returns (UnmountVolumeResponse) {}
+    // IsVolumeFormatted checks if a volume is formatted.
     rpc IsVolumeFormatted(IsVolumeFormattedRequest) returns (IsVolumeFormattedResponse) {}
-    // FormatVolume formats a volume with the provided file system
+    // FormatVolume formats a volume with NTFS.
     rpc FormatVolume(FormatVolumeRequest) returns (FormatVolumeResponse) {}
     // ResizeVolume performs resizing of the partition and file system for a block based volume
     rpc ResizeVolume(ResizeVolumeRequest) returns (ResizeVolumeResponse) {}
-    // VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
-    rpc VolumeStats(VolumeStatsRequest) returns (VolumeStatsResponse) {}
-    // GetVolumeDiskNumber gets the disk number of the disk where the volume is located
-    rpc GetVolumeDiskNumber(VolumeDiskNumberRequest) returns (VolumeDiskNumberResponse) {}
-    // GetVolumeIDFromMount gets the volume id for a given mount
-    rpc GetVolumeIDFromMount(VolumeIDFromMountRequest) returns (VolumeIDFromMountResponse) {}
+    // GetVolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+    rpc GetVolumeStats(GetVolumeStatsRequest) returns (GetVolumeStatsResponse) {}
+    // GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located
+    rpc GetDiskNumberFromVolumeID(GetDiskNumberFromVolumeIDRequest) returns (GetDiskNumberFromVolumeIDResponse ) {}
+    // GetVolumeIDFromTargetPath gets the volume id for a given mount
+    rpc GetVolumeIDFromTargetPath(GetVolumeIDFromTargetPathRequest) returns (GetVolumeIDFromTargetPathResponse) {}
     // WriteVolumeCache write volume cache to disk
     rpc WriteVolumeCache(WriteVolumeCacheRequest) returns (WriteVolumeCacheResponse) {}
 }
 
 message ListVolumesOnDiskRequest {
-    // Disk device ID of the disk to query for volumes
-    string disk_id = 1;
+    // Disk device number of the disk to query for volumes
+    int64 disk_number = 1;
+    // The partition number
+    int64 partition_number = 2;
 }
 
 message ListVolumesOnDiskResponse {
@@ -42,21 +44,21 @@ message MountVolumeRequest {
     // Volume device ID of the volume to mount
     string volume_id = 1;
     // Path in the host's file system where the volume needs to be mounted
-    string path = 2;
+    string target_path = 2;
 }
 
 message MountVolumeResponse {
     // Intentionally empty
 }
 
-message DismountVolumeRequest {
+message UnmountVolumeRequest {
     // Volume device ID of the volume to dismount
     string volume_id = 1;
     // Path where the volume has been mounted.
-    string path = 2;
+    string target_path = 2;
 }
 
-message DismountVolumeResponse {
+message UnmountVolumeResponse {
     // Intentionally empty
 }
 
@@ -82,42 +84,42 @@ message FormatVolumeResponse {
 message ResizeVolumeRequest {
     // Volume device ID of the volume to dismount
     string volume_id = 1;
-    // New size of the volume
-    int64 size = 2;
+    // New size in bytes of the volume
+    int64 size_bytes = 2;
 }
 
 message ResizeVolumeResponse {
     // Intentionally empty
 }
 
-message VolumeStatsRequest{
+message GetVolumeStatsRequest{
     // Volume device Id of the volume to get the stats for
     string volume_id = 1;
 }
 
-message VolumeStatsResponse{
-    // Capacity of the volume
-    int64 volumeSize = 1;
+message GetVolumeStatsResponse{
+    // Total bytes
+    int64 total_bytes = 1;
     // Used bytes
-    int64 volumeUsedSize = 2;
+    int64 used_bytes = 2;
 }
 
-message VolumeDiskNumberRequest{
+message GetDiskNumberFromVolumeIDRequest {
     // Volume device Id of the volume to get the disk number for
     string volume_id = 1;
 }
 
-message VolumeDiskNumberResponse{
+message GetDiskNumberFromVolumeIDResponse {
     // Corresponding disk number
-    int64 diskNumber = 1;
+    int64 disk_number = 1;
 }
 
-message VolumeIDFromMountRequest {
-    // Mount
-    string mount = 1;
+message GetVolumeIDFromTargetPathRequest {
+    // The target path
+    string target_path = 1;
 }
 
-message VolumeIDFromMountResponse {
+message GetVolumeIDFromTargetPathResponse {
     // Mount
     string volume_id = 1;
 }
