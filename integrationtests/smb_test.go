@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/smb/v1"
-	v1client "github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1"
+	"github.com/kubernetes-csi/csi-proxy/client/api/smb/v1beta2"
+	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta2"
 )
 
 const letterset = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -130,7 +130,7 @@ func writeReadFile(path string) error {
 
 func TestSmbAPIGroup(t *testing.T) {
 	t.Run("Smb positive", func(t *testing.T) {
-		client, err := v1client.NewClient()
+		client, err := v1beta2client.NewClient()
 		if err != nil {
 			t.Fatalf("Fail to get smb API group client %v", err)
 		}
@@ -159,7 +159,7 @@ func TestSmbAPIGroup(t *testing.T) {
 		username = "domain\\" + username
 		remotePath := "\\\\" + hostname + "\\" + smbShare
 		// simulate Mount SMB operations around staging a volume on a node
-		mountSmbShareReq := &v1.NewSmbGlobalMappingRequest{
+		mountSmbShareReq := &v1beta2.NewSmbGlobalMappingRequest{
 			RemotePath: remotePath,
 			Username:   username,
 			Password:   password,
@@ -178,7 +178,7 @@ func TestSmbAPIGroup(t *testing.T) {
 		err = writeReadFile(remotePath)
 		assert.Nil(t, err)
 
-		unmountSmbShareReq := &v1.RemoveSmbGlobalMappingRequest{
+		unmountSmbShareReq := &v1beta2.RemoveSmbGlobalMappingRequest{
 			RemotePath: remotePath,
 		}
 		unmountSmbShareRsp, err := client.RemoveSmbGlobalMapping(context.Background(), unmountSmbShareReq)

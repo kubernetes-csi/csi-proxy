@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
-	v1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1"
+	v1beta3 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
+	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,13 +21,13 @@ import (
 func TestDiskAPIGroup(t *testing.T) {
 	t.Run("ListDiskIDs", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
-		client, err := v1client.NewClient()
+		client, err := v1beta3client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
 
 		diskNumber := 0
 		id := "page83"
-		listRequest := &v1.ListDiskIDsRequest{}
+		listRequest := &v1beta3.ListDiskIDsRequest{}
 		diskIDsResponse, err := client.ListDiskIDs(context.TODO(), listRequest)
 		require.Nil(t, err)
 
@@ -60,7 +60,7 @@ func TestDiskAPIGroup(t *testing.T) {
 
 	t.Run("Get/SetAttachState", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
-		client, err := v1client.NewClient()
+		client, err := v1beta3client.NewClient()
 		require.NoError(t, err)
 
 		defer client.Close()
@@ -78,14 +78,14 @@ func TestDiskAPIGroup(t *testing.T) {
 		out, err := runPowershellCmd(fmt.Sprintf("Get-Disk -Number %s | Set-Disk -IsOffline $true", diskNum))
 		require.NoError(t, err, "failed setting disk offline, out=%v", out)
 
-		getReq := &v1.GetAttachStateRequest{DiskID: diskNum}
+		getReq := &v1beta3.GetAttachStateRequest{DiskID: diskNum}
 		getResp, err := client.GetAttachState(context.TODO(), getReq)
 
 		if assert.NoError(t, err) {
 			assert.False(t, getResp.IsOnline, "Expected disk to be offline")
 		}
 
-		setReq := &v1.SetAttachStateRequest{DiskID: diskNum, IsOnline: true}
+		setReq := &v1beta3.SetAttachStateRequest{DiskID: diskNum, IsOnline: true}
 		_, err = client.SetAttachState(context.TODO(), setReq)
 		assert.NoError(t, err)
 
@@ -96,14 +96,14 @@ func TestDiskAPIGroup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, result, "Expected disk to be online")
 
-		getReq = &v1.GetAttachStateRequest{DiskID: diskNum}
+		getReq = &v1beta3.GetAttachStateRequest{DiskID: diskNum}
 		getResp, err = client.GetAttachState(context.TODO(), getReq)
 
 		if assert.NoError(t, err) {
 			assert.True(t, getResp.IsOnline, "Expected disk is online")
 		}
 
-		setReq = &v1.SetAttachStateRequest{DiskID: diskNum, IsOnline: false}
+		setReq = &v1beta3.SetAttachStateRequest{DiskID: diskNum, IsOnline: false}
 		_, err = client.SetAttachState(context.TODO(), setReq)
 		assert.NoError(t, err)
 
