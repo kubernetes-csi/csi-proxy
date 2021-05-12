@@ -3,8 +3,8 @@ package v1alpha1
 // Add manual conversion functions here to override automatic conversion functions
 
 import (
-	v1alpha1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1alpha1"
-	internal "github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
+	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
 )
 
 func Convert_internal_ListDiskLocationsResponse_To_v1alpha1_ListDiskLocationsResponse(in *internal.ListDiskLocationsResponse, out *v1alpha1.ListDiskLocationsResponse) error {

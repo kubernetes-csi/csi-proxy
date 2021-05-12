@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	v1beta2 "github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta2"
+	"github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta2"
 	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2"
 )
 
