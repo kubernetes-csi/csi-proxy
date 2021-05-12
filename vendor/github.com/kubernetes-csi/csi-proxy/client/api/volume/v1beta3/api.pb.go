@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.26.0
 // 	protoc        v3.12.4
-// source: github.com/kubernetes-csi/csi-proxy/vendor/github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3/api.proto
+// source: github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3/api.proto
 
 package v1beta3
 
@@ -29,14 +29,16 @@ type ListVolumesOnDiskRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Disk device ID of the disk to query for volumes
-	DiskId string `protobuf:"bytes,1,opt,name=disk_id,json=diskId,proto3" json:"disk_id,omitempty"`
+	// Disk device number of the disk to query for volumes
+	DiskNumber int64 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
+	// The partition number
+	PartitionNumber int64 `protobuf:"varint,2,opt,name=partition_number,json=partitionNumber,proto3" json:"partition_number,omitempty"`
 }
 
 func (x *ListVolumesOnDiskRequest) Reset() {
 	*x = ListVolumesOnDiskRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[0]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -49,7 +51,7 @@ func (x *ListVolumesOnDiskRequest) String() string {
 func (*ListVolumesOnDiskRequest) ProtoMessage() {}
 
 func (x *ListVolumesOnDiskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[0]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,14 +64,21 @@ func (x *ListVolumesOnDiskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVolumesOnDiskRequest.ProtoReflect.Descriptor instead.
 func (*ListVolumesOnDiskRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{0}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ListVolumesOnDiskRequest) GetDiskId() string {
+func (x *ListVolumesOnDiskRequest) GetDiskNumber() int64 {
 	if x != nil {
-		return x.DiskId
+		return x.DiskNumber
 	}
-	return ""
+	return 0
+}
+
+func (x *ListVolumesOnDiskRequest) GetPartitionNumber() int64 {
+	if x != nil {
+		return x.PartitionNumber
+	}
+	return 0
 }
 
 type ListVolumesOnDiskResponse struct {
@@ -84,7 +93,7 @@ type ListVolumesOnDiskResponse struct {
 func (x *ListVolumesOnDiskResponse) Reset() {
 	*x = ListVolumesOnDiskResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[1]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -97,7 +106,7 @@ func (x *ListVolumesOnDiskResponse) String() string {
 func (*ListVolumesOnDiskResponse) ProtoMessage() {}
 
 func (x *ListVolumesOnDiskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[1]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +119,7 @@ func (x *ListVolumesOnDiskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVolumesOnDiskResponse.ProtoReflect.Descriptor instead.
 func (*ListVolumesOnDiskResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{1}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ListVolumesOnDiskResponse) GetVolumeIds() []string {
@@ -128,13 +137,13 @@ type MountVolumeRequest struct {
 	// Volume device ID of the volume to mount
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 	// Path in the host's file system where the volume needs to be mounted
-	Path string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	TargetPath string `protobuf:"bytes,2,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
 }
 
 func (x *MountVolumeRequest) Reset() {
 	*x = MountVolumeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[2]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -147,7 +156,7 @@ func (x *MountVolumeRequest) String() string {
 func (*MountVolumeRequest) ProtoMessage() {}
 
 func (x *MountVolumeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[2]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -160,7 +169,7 @@ func (x *MountVolumeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MountVolumeRequest.ProtoReflect.Descriptor instead.
 func (*MountVolumeRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{2}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *MountVolumeRequest) GetVolumeId() string {
@@ -170,9 +179,9 @@ func (x *MountVolumeRequest) GetVolumeId() string {
 	return ""
 }
 
-func (x *MountVolumeRequest) GetPath() string {
+func (x *MountVolumeRequest) GetTargetPath() string {
 	if x != nil {
-		return x.Path
+		return x.TargetPath
 	}
 	return ""
 }
@@ -186,7 +195,7 @@ type MountVolumeResponse struct {
 func (x *MountVolumeResponse) Reset() {
 	*x = MountVolumeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[3]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -199,7 +208,7 @@ func (x *MountVolumeResponse) String() string {
 func (*MountVolumeResponse) ProtoMessage() {}
 
 func (x *MountVolumeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[3]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -212,7 +221,762 @@ func (x *MountVolumeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MountVolumeResponse.ProtoReflect.Descriptor instead.
 func (*MountVolumeResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{3}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{3}
+}
+
+type UnmountVolumeRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device ID of the volume to dismount
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+	// Path where the volume has been mounted.
+	TargetPath string `protobuf:"bytes,2,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
+}
+
+func (x *UnmountVolumeRequest) Reset() {
+	*x = UnmountVolumeRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnmountVolumeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnmountVolumeRequest) ProtoMessage() {}
+
+func (x *UnmountVolumeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnmountVolumeRequest.ProtoReflect.Descriptor instead.
+func (*UnmountVolumeRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UnmountVolumeRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+func (x *UnmountVolumeRequest) GetTargetPath() string {
+	if x != nil {
+		return x.TargetPath
+	}
+	return ""
+}
+
+type UnmountVolumeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *UnmountVolumeResponse) Reset() {
+	*x = UnmountVolumeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnmountVolumeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnmountVolumeResponse) ProtoMessage() {}
+
+func (x *UnmountVolumeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnmountVolumeResponse.ProtoReflect.Descriptor instead.
+func (*UnmountVolumeResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{5}
+}
+
+type IsVolumeFormattedRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device ID of the volume to check
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+}
+
+func (x *IsVolumeFormattedRequest) Reset() {
+	*x = IsVolumeFormattedRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IsVolumeFormattedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IsVolumeFormattedRequest) ProtoMessage() {}
+
+func (x *IsVolumeFormattedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IsVolumeFormattedRequest.ProtoReflect.Descriptor instead.
+func (*IsVolumeFormattedRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *IsVolumeFormattedRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+type IsVolumeFormattedResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Is the volume formatted with NTFS
+	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty"`
+}
+
+func (x *IsVolumeFormattedResponse) Reset() {
+	*x = IsVolumeFormattedResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IsVolumeFormattedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IsVolumeFormattedResponse) ProtoMessage() {}
+
+func (x *IsVolumeFormattedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IsVolumeFormattedResponse.ProtoReflect.Descriptor instead.
+func (*IsVolumeFormattedResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *IsVolumeFormattedResponse) GetFormatted() bool {
+	if x != nil {
+		return x.Formatted
+	}
+	return false
+}
+
+type FormatVolumeRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device ID of the volume to format
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+}
+
+func (x *FormatVolumeRequest) Reset() {
+	*x = FormatVolumeRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FormatVolumeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FormatVolumeRequest) ProtoMessage() {}
+
+func (x *FormatVolumeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FormatVolumeRequest.ProtoReflect.Descriptor instead.
+func (*FormatVolumeRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *FormatVolumeRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+type FormatVolumeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *FormatVolumeResponse) Reset() {
+	*x = FormatVolumeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FormatVolumeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FormatVolumeResponse) ProtoMessage() {}
+
+func (x *FormatVolumeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FormatVolumeResponse.ProtoReflect.Descriptor instead.
+func (*FormatVolumeResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{9}
+}
+
+type ResizeVolumeRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device ID of the volume to dismount
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+	// New size in bytes of the volume
+	SizeBytes int64 `protobuf:"varint,2,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+}
+
+func (x *ResizeVolumeRequest) Reset() {
+	*x = ResizeVolumeRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResizeVolumeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResizeVolumeRequest) ProtoMessage() {}
+
+func (x *ResizeVolumeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResizeVolumeRequest.ProtoReflect.Descriptor instead.
+func (*ResizeVolumeRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ResizeVolumeRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+func (x *ResizeVolumeRequest) GetSizeBytes() int64 {
+	if x != nil {
+		return x.SizeBytes
+	}
+	return 0
+}
+
+type ResizeVolumeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ResizeVolumeResponse) Reset() {
+	*x = ResizeVolumeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResizeVolumeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResizeVolumeResponse) ProtoMessage() {}
+
+func (x *ResizeVolumeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResizeVolumeResponse.ProtoReflect.Descriptor instead.
+func (*ResizeVolumeResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{11}
+}
+
+type GetVolumeStatsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device Id of the volume to get the stats for
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+}
+
+func (x *GetVolumeStatsRequest) Reset() {
+	*x = GetVolumeStatsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetVolumeStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVolumeStatsRequest) ProtoMessage() {}
+
+func (x *GetVolumeStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVolumeStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetVolumeStatsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetVolumeStatsRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+type GetVolumeStatsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Total bytes
+	TotalBytes int64 `protobuf:"varint,1,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	// Used bytes
+	UsedBytes int64 `protobuf:"varint,2,opt,name=used_bytes,json=usedBytes,proto3" json:"used_bytes,omitempty"`
+}
+
+func (x *GetVolumeStatsResponse) Reset() {
+	*x = GetVolumeStatsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetVolumeStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVolumeStatsResponse) ProtoMessage() {}
+
+func (x *GetVolumeStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVolumeStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetVolumeStatsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetVolumeStatsResponse) GetTotalBytes() int64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *GetVolumeStatsResponse) GetUsedBytes() int64 {
+	if x != nil {
+		return x.UsedBytes
+	}
+	return 0
+}
+
+type GetDiskNumberFromVolumeIDRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device Id of the volume to get the disk number for
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+}
+
+func (x *GetDiskNumberFromVolumeIDRequest) Reset() {
+	*x = GetDiskNumberFromVolumeIDRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetDiskNumberFromVolumeIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDiskNumberFromVolumeIDRequest) ProtoMessage() {}
+
+func (x *GetDiskNumberFromVolumeIDRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDiskNumberFromVolumeIDRequest.ProtoReflect.Descriptor instead.
+func (*GetDiskNumberFromVolumeIDRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetDiskNumberFromVolumeIDRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+type GetDiskNumberFromVolumeIDResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Corresponding disk number
+	DiskNumber int64 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
+}
+
+func (x *GetDiskNumberFromVolumeIDResponse) Reset() {
+	*x = GetDiskNumberFromVolumeIDResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetDiskNumberFromVolumeIDResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDiskNumberFromVolumeIDResponse) ProtoMessage() {}
+
+func (x *GetDiskNumberFromVolumeIDResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDiskNumberFromVolumeIDResponse.ProtoReflect.Descriptor instead.
+func (*GetDiskNumberFromVolumeIDResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetDiskNumberFromVolumeIDResponse) GetDiskNumber() int64 {
+	if x != nil {
+		return x.DiskNumber
+	}
+	return 0
+}
+
+type GetVolumeIDFromTargetPathRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The target path
+	TargetPath string `protobuf:"bytes,1,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
+}
+
+func (x *GetVolumeIDFromTargetPathRequest) Reset() {
+	*x = GetVolumeIDFromTargetPathRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetVolumeIDFromTargetPathRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVolumeIDFromTargetPathRequest) ProtoMessage() {}
+
+func (x *GetVolumeIDFromTargetPathRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVolumeIDFromTargetPathRequest.ProtoReflect.Descriptor instead.
+func (*GetVolumeIDFromTargetPathRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetVolumeIDFromTargetPathRequest) GetTargetPath() string {
+	if x != nil {
+		return x.TargetPath
+	}
+	return ""
+}
+
+type GetVolumeIDFromTargetPathResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Mount
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+}
+
+func (x *GetVolumeIDFromTargetPathResponse) Reset() {
+	*x = GetVolumeIDFromTargetPathResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetVolumeIDFromTargetPathResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVolumeIDFromTargetPathResponse) ProtoMessage() {}
+
+func (x *GetVolumeIDFromTargetPathResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVolumeIDFromTargetPathResponse.ProtoReflect.Descriptor instead.
+func (*GetVolumeIDFromTargetPathResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetVolumeIDFromTargetPathResponse) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+type WriteVolumeCacheRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Volume device ID of the volume to flush the cache
+	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
+}
+
+func (x *WriteVolumeCacheRequest) Reset() {
+	*x = WriteVolumeCacheRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *WriteVolumeCacheRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WriteVolumeCacheRequest) ProtoMessage() {}
+
+func (x *WriteVolumeCacheRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WriteVolumeCacheRequest.ProtoReflect.Descriptor instead.
+func (*WriteVolumeCacheRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *WriteVolumeCacheRequest) GetVolumeId() string {
+	if x != nil {
+		return x.VolumeId
+	}
+	return ""
+}
+
+type WriteVolumeCacheResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *WriteVolumeCacheResponse) Reset() {
+	*x = WriteVolumeCacheResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *WriteVolumeCacheResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WriteVolumeCacheResponse) ProtoMessage() {}
+
+func (x *WriteVolumeCacheResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WriteVolumeCacheResponse.ProtoReflect.Descriptor instead.
+func (*WriteVolumeCacheResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{19}
 }
 
 type DismountVolumeRequest struct {
@@ -229,7 +993,7 @@ type DismountVolumeRequest struct {
 func (x *DismountVolumeRequest) Reset() {
 	*x = DismountVolumeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[4]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -242,7 +1006,7 @@ func (x *DismountVolumeRequest) String() string {
 func (*DismountVolumeRequest) ProtoMessage() {}
 
 func (x *DismountVolumeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[4]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +1019,7 @@ func (x *DismountVolumeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DismountVolumeRequest.ProtoReflect.Descriptor instead.
 func (*DismountVolumeRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{4}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DismountVolumeRequest) GetVolumeId() string {
@@ -281,7 +1045,7 @@ type DismountVolumeResponse struct {
 func (x *DismountVolumeResponse) Reset() {
 	*x = DismountVolumeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[5]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -294,7 +1058,7 @@ func (x *DismountVolumeResponse) String() string {
 func (*DismountVolumeResponse) ProtoMessage() {}
 
 func (x *DismountVolumeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[5]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -307,389 +1071,7 @@ func (x *DismountVolumeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DismountVolumeResponse.ProtoReflect.Descriptor instead.
 func (*DismountVolumeResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{5}
-}
-
-type IsVolumeFormattedRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Volume device ID of the volume to check
-	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
-}
-
-func (x *IsVolumeFormattedRequest) Reset() {
-	*x = IsVolumeFormattedRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[6]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *IsVolumeFormattedRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IsVolumeFormattedRequest) ProtoMessage() {}
-
-func (x *IsVolumeFormattedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[6]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IsVolumeFormattedRequest.ProtoReflect.Descriptor instead.
-func (*IsVolumeFormattedRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *IsVolumeFormattedRequest) GetVolumeId() string {
-	if x != nil {
-		return x.VolumeId
-	}
-	return ""
-}
-
-type IsVolumeFormattedResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Is the volume formatted with NTFS
-	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty"`
-}
-
-func (x *IsVolumeFormattedResponse) Reset() {
-	*x = IsVolumeFormattedResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[7]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *IsVolumeFormattedResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IsVolumeFormattedResponse) ProtoMessage() {}
-
-func (x *IsVolumeFormattedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[7]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IsVolumeFormattedResponse.ProtoReflect.Descriptor instead.
-func (*IsVolumeFormattedResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *IsVolumeFormattedResponse) GetFormatted() bool {
-	if x != nil {
-		return x.Formatted
-	}
-	return false
-}
-
-type FormatVolumeRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Volume device ID of the volume to format
-	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
-}
-
-func (x *FormatVolumeRequest) Reset() {
-	*x = FormatVolumeRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[8]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *FormatVolumeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FormatVolumeRequest) ProtoMessage() {}
-
-func (x *FormatVolumeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[8]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FormatVolumeRequest.ProtoReflect.Descriptor instead.
-func (*FormatVolumeRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *FormatVolumeRequest) GetVolumeId() string {
-	if x != nil {
-		return x.VolumeId
-	}
-	return ""
-}
-
-type FormatVolumeResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *FormatVolumeResponse) Reset() {
-	*x = FormatVolumeResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[9]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *FormatVolumeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FormatVolumeResponse) ProtoMessage() {}
-
-func (x *FormatVolumeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[9]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FormatVolumeResponse.ProtoReflect.Descriptor instead.
-func (*FormatVolumeResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{9}
-}
-
-type ResizeVolumeRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Volume device ID of the volume to dismount
-	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
-	// New size of the volume
-	Size int64 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
-}
-
-func (x *ResizeVolumeRequest) Reset() {
-	*x = ResizeVolumeRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[10]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ResizeVolumeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ResizeVolumeRequest) ProtoMessage() {}
-
-func (x *ResizeVolumeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[10]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ResizeVolumeRequest.ProtoReflect.Descriptor instead.
-func (*ResizeVolumeRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ResizeVolumeRequest) GetVolumeId() string {
-	if x != nil {
-		return x.VolumeId
-	}
-	return ""
-}
-
-func (x *ResizeVolumeRequest) GetSize() int64 {
-	if x != nil {
-		return x.Size
-	}
-	return 0
-}
-
-type ResizeVolumeResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *ResizeVolumeResponse) Reset() {
-	*x = ResizeVolumeResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[11]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ResizeVolumeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ResizeVolumeResponse) ProtoMessage() {}
-
-func (x *ResizeVolumeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[11]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ResizeVolumeResponse.ProtoReflect.Descriptor instead.
-func (*ResizeVolumeResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{11}
-}
-
-type VolumeStatsRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Volume device Id of the volume to get the stats for
-	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
-}
-
-func (x *VolumeStatsRequest) Reset() {
-	*x = VolumeStatsRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[12]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *VolumeStatsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*VolumeStatsRequest) ProtoMessage() {}
-
-func (x *VolumeStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[12]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use VolumeStatsRequest.ProtoReflect.Descriptor instead.
-func (*VolumeStatsRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *VolumeStatsRequest) GetVolumeId() string {
-	if x != nil {
-		return x.VolumeId
-	}
-	return ""
-}
-
-type VolumeStatsResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Capacity of the volume
-	VolumeSize int64 `protobuf:"varint,1,opt,name=volumeSize,proto3" json:"volumeSize,omitempty"`
-	// Used bytes
-	VolumeUsedSize int64 `protobuf:"varint,2,opt,name=volumeUsedSize,proto3" json:"volumeUsedSize,omitempty"`
-}
-
-func (x *VolumeStatsResponse) Reset() {
-	*x = VolumeStatsResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[13]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *VolumeStatsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*VolumeStatsResponse) ProtoMessage() {}
-
-func (x *VolumeStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[13]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use VolumeStatsResponse.ProtoReflect.Descriptor instead.
-func (*VolumeStatsResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *VolumeStatsResponse) GetVolumeSize() int64 {
-	if x != nil {
-		return x.VolumeSize
-	}
-	return 0
-}
-
-func (x *VolumeStatsResponse) GetVolumeUsedSize() int64 {
-	if x != nil {
-		return x.VolumeUsedSize
-	}
-	return 0
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{21}
 }
 
 type VolumeDiskNumberRequest struct {
@@ -704,7 +1086,7 @@ type VolumeDiskNumberRequest struct {
 func (x *VolumeDiskNumberRequest) Reset() {
 	*x = VolumeDiskNumberRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[14]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -717,7 +1099,7 @@ func (x *VolumeDiskNumberRequest) String() string {
 func (*VolumeDiskNumberRequest) ProtoMessage() {}
 
 func (x *VolumeDiskNumberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[14]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -730,7 +1112,7 @@ func (x *VolumeDiskNumberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VolumeDiskNumberRequest.ProtoReflect.Descriptor instead.
 func (*VolumeDiskNumberRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{14}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *VolumeDiskNumberRequest) GetVolumeId() string {
@@ -746,13 +1128,13 @@ type VolumeDiskNumberResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Corresponding disk number
-	DiskNumber int64 `protobuf:"varint,1,opt,name=diskNumber,proto3" json:"diskNumber,omitempty"`
+	DiskNumber int64 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
 }
 
 func (x *VolumeDiskNumberResponse) Reset() {
 	*x = VolumeDiskNumberResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[15]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -765,7 +1147,7 @@ func (x *VolumeDiskNumberResponse) String() string {
 func (*VolumeDiskNumberResponse) ProtoMessage() {}
 
 func (x *VolumeDiskNumberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[15]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -778,7 +1160,7 @@ func (x *VolumeDiskNumberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VolumeDiskNumberResponse.ProtoReflect.Descriptor instead.
 func (*VolumeDiskNumberResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{15}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *VolumeDiskNumberResponse) GetDiskNumber() int64 {
@@ -800,7 +1182,7 @@ type VolumeIDFromMountRequest struct {
 func (x *VolumeIDFromMountRequest) Reset() {
 	*x = VolumeIDFromMountRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[16]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -813,7 +1195,7 @@ func (x *VolumeIDFromMountRequest) String() string {
 func (*VolumeIDFromMountRequest) ProtoMessage() {}
 
 func (x *VolumeIDFromMountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[16]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -826,7 +1208,7 @@ func (x *VolumeIDFromMountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VolumeIDFromMountRequest.ProtoReflect.Descriptor instead.
 func (*VolumeIDFromMountRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{16}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *VolumeIDFromMountRequest) GetMount() string {
@@ -848,7 +1230,7 @@ type VolumeIDFromMountResponse struct {
 func (x *VolumeIDFromMountResponse) Reset() {
 	*x = VolumeIDFromMountResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[17]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -861,7 +1243,7 @@ func (x *VolumeIDFromMountResponse) String() string {
 func (*VolumeIDFromMountResponse) ProtoMessage() {}
 
 func (x *VolumeIDFromMountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[17]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -874,7 +1256,7 @@ func (x *VolumeIDFromMountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VolumeIDFromMountResponse.ProtoReflect.Descriptor instead.
 func (*VolumeIDFromMountResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{17}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *VolumeIDFromMountResponse) GetVolumeId() string {
@@ -884,32 +1266,32 @@ func (x *VolumeIDFromMountResponse) GetVolumeId() string {
 	return ""
 }
 
-type WriteVolumeCacheRequest struct {
+type VolumeStatsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to flush the cache
+	// Volume device Id of the volume to get the stats for
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
-func (x *WriteVolumeCacheRequest) Reset() {
-	*x = WriteVolumeCacheRequest{}
+func (x *VolumeStatsRequest) Reset() {
+	*x = VolumeStatsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[18]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *WriteVolumeCacheRequest) String() string {
+func (x *VolumeStatsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WriteVolumeCacheRequest) ProtoMessage() {}
+func (*VolumeStatsRequest) ProtoMessage() {}
 
-func (x *WriteVolumeCacheRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[18]
+func (x *VolumeStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -920,41 +1302,46 @@ func (x *WriteVolumeCacheRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WriteVolumeCacheRequest.ProtoReflect.Descriptor instead.
-func (*WriteVolumeCacheRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{18}
+// Deprecated: Use VolumeStatsRequest.ProtoReflect.Descriptor instead.
+func (*VolumeStatsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{26}
 }
 
-func (x *WriteVolumeCacheRequest) GetVolumeId() string {
+func (x *VolumeStatsRequest) GetVolumeId() string {
 	if x != nil {
 		return x.VolumeId
 	}
 	return ""
 }
 
-type WriteVolumeCacheResponse struct {
+type VolumeStatsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	// Capacity of the volume
+	VolumeSize int64 `protobuf:"varint,1,opt,name=volume_size,json=volumeSize,proto3" json:"volume_size,omitempty"`
+	// Used bytes
+	VolumeUsedSize int64 `protobuf:"varint,2,opt,name=volume_used_size,json=volumeUsedSize,proto3" json:"volume_used_size,omitempty"`
 }
 
-func (x *WriteVolumeCacheResponse) Reset() {
-	*x = WriteVolumeCacheResponse{}
+func (x *VolumeStatsResponse) Reset() {
+	*x = VolumeStatsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[19]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *WriteVolumeCacheResponse) String() string {
+func (x *VolumeStatsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WriteVolumeCacheResponse) ProtoMessage() {}
+func (*VolumeStatsResponse) ProtoMessage() {}
 
-func (x *WriteVolumeCacheResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[19]
+func (x *VolumeStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -965,40 +1352,56 @@ func (x *WriteVolumeCacheResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WriteVolumeCacheResponse.ProtoReflect.Descriptor instead.
-func (*WriteVolumeCacheResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{19}
+// Deprecated: Use VolumeStatsResponse.ProtoReflect.Descriptor instead.
+func (*VolumeStatsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP(), []int{27}
 }
 
-var File_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto protoreflect.FileDescriptor
+func (x *VolumeStatsResponse) GetVolumeSize() int64 {
+	if x != nil {
+		return x.VolumeSize
+	}
+	return 0
+}
 
-var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc = []byte{
-	0x0a, 0x72, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62,
+func (x *VolumeStatsResponse) GetVolumeUsedSize() int64 {
+	if x != nil {
+		return x.VolumeUsedSize
+	}
+	return 0
+}
+
+var File_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto protoreflect.FileDescriptor
+
+var file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc = []byte{
+	0x0a, 0x47, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62,
 	0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63, 0x73, 0x69, 0x2f, 0x63, 0x73, 0x69, 0x2d,
-	0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x76, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x2f, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74,
-	0x65, 0x73, 0x2d, 0x63, 0x73, 0x69, 0x2f, 0x63, 0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79,
-	0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x6f, 0x6c, 0x75,
-	0x6d, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2f, 0x61, 0x70, 0x69, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x22, 0x33, 0x0a,
-	0x18, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73, 0x4f, 0x6e, 0x44, 0x69,
-	0x73, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x64, 0x69, 0x73,
-	0x6b, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x69, 0x73, 0x6b,
-	0x49, 0x64, 0x22, 0x3a, 0x0a, 0x19, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
-	0x73, 0x4f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x1d, 0x0a, 0x0a, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20,
-	0x03, 0x28, 0x09, 0x52, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x73, 0x22, 0x45,
-	0x0a, 0x12, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69,
-	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49,
-	0x64, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x04, 0x70, 0x61, 0x74, 0x68, 0x22, 0x15, 0x0a, 0x13, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f,
-	0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x48, 0x0a, 0x15,
-	0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f,
-	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
-	0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x22, 0x18, 0x0a, 0x16, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75,
+	0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2f,
+	0x61, 0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x33, 0x22, 0x66, 0x0a, 0x18, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x73, 0x4f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f,
+	0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12,
+	0x29, 0x0a, 0x10, 0x70, 0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6e, 0x75, 0x6d,
+	0x62, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f, 0x70, 0x61, 0x72, 0x74, 0x69,
+	0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x22, 0x3a, 0x0a, 0x19, 0x4c, 0x69,
+	0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73, 0x4f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x76, 0x6f, 0x6c, 0x75, 0x6d,
+	0x65, 0x5f, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09, 0x76, 0x6f, 0x6c,
+	0x75, 0x6d, 0x65, 0x49, 0x64, 0x73, 0x22, 0x52, 0x0a, 0x12, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56,
+	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09,
+	0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x61, 0x72,
+	0x67, 0x65, 0x74, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a,
+	0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x22, 0x15, 0x0a, 0x13, 0x4d, 0x6f,
+	0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x54, 0x0a, 0x14, 0x55, 0x6e, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c,
+	0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f,
+	0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x74, 0x61, 0x72,
+	0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x22, 0x17, 0x0a, 0x15, 0x55, 0x6e, 0x6d, 0x6f, 0x75,
 	0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x22, 0x37, 0x0a, 0x18, 0x49, 0x73, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d,
 	0x61, 0x74, 0x74, 0x65, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09,
@@ -1012,27 +1415,56 @@ var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_cs
 	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08,
 	0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x16, 0x0a, 0x14, 0x46, 0x6f, 0x72, 0x6d,
 	0x61, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x46, 0x0a, 0x13, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x22, 0x51, 0x0a, 0x13, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d,
 	0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75,
-	0x6d, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x22, 0x16, 0x0a, 0x14, 0x52, 0x65, 0x73, 0x69,
-	0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x31, 0x0a, 0x12, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52,
+	0x6d, 0x65, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79, 0x74,
+	0x65, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x73, 0x69, 0x7a, 0x65, 0x42, 0x79,
+	0x74, 0x65, 0x73, 0x22, 0x16, 0x0a, 0x14, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c,
+	0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x34, 0x0a, 0x15, 0x47,
+	0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49,
+	0x64, 0x22, 0x58, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74,
+	0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x74,
+	0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x0a, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x1d, 0x0a, 0x0a,
+	0x75, 0x73, 0x65, 0x64, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x09, 0x75, 0x73, 0x65, 0x64, 0x42, 0x79, 0x74, 0x65, 0x73, 0x22, 0x3f, 0x0a, 0x20, 0x47,
+	0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x46, 0x72, 0x6f, 0x6d,
+	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x44, 0x0a, 0x21,
+	0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x46, 0x72, 0x6f,
+	0x6d, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62,
+	0x65, 0x72, 0x22, 0x43, 0x0a, 0x20, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49,
+	0x44, 0x46, 0x72, 0x6f, 0x6d, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x74, 0x61, 0x72,
+	0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x22, 0x40, 0x0a, 0x21, 0x47, 0x65, 0x74, 0x56, 0x6f,
+	0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x50, 0x61, 0x74, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1b, 0x0a, 0x09,
+	0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x36, 0x0a, 0x17, 0x57, 0x72, 0x69,
+	0x74, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49,
+	0x64, 0x22, 0x1a, 0x0a, 0x18, 0x57, 0x72, 0x69, 0x74, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x48, 0x0a,
+	0x15, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
 	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d,
-	0x65, 0x49, 0x64, 0x22, 0x5d, 0x0a, 0x13, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61,
-	0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x76, 0x6f,
-	0x6c, 0x75, 0x6d, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a,
-	0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x12, 0x26, 0x0a, 0x0e, 0x76, 0x6f,
-	0x6c, 0x75, 0x6d, 0x65, 0x55, 0x73, 0x65, 0x64, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x0e, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x55, 0x73, 0x65, 0x64, 0x53, 0x69,
-	0x7a, 0x65, 0x22, 0x36, 0x0a, 0x17, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b,
-	0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a,
-	0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x3a, 0x0a, 0x18, 0x56, 0x6f,
-	0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75,
+	0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x22, 0x18, 0x0a, 0x16, 0x44, 0x69, 0x73, 0x6d, 0x6f,
+	0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x36, 0x0a, 0x17, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e,
+	0x75, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09,
+	0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x3b, 0x0a, 0x18, 0x56, 0x6f, 0x6c,
+	0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75,
 	0x6d, 0x62, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b,
 	0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x22, 0x30, 0x0a, 0x18, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
 	0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
@@ -1041,67 +1473,97 @@ var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_cs
 	0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x73,
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f,
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
-	0x49, 0x64, 0x22, 0x36, 0x0a, 0x17, 0x57, 0x72, 0x69, 0x74, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
-	0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a,
-	0x09, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x08, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x1a, 0x0a, 0x18, 0x57, 0x72,
-	0x69, 0x74, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xe9, 0x06, 0x0a, 0x06, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
-	0x65, 0x12, 0x5c, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73,
-	0x4f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x12, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33,
-	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73, 0x4f, 0x6e, 0x44, 0x69,
-	0x73, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73, 0x4f,
-	0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
-	0x4a, 0x0a, 0x0b, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1b,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f,
-	0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x0e, 0x44,
-	0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1e, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74,
-	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74,
-	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x5c, 0x0a, 0x11, 0x49, 0x73, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d,
-	0x61, 0x74, 0x74, 0x65, 0x64, 0x12, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e,
-	0x49, 0x73, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x74, 0x65,
-	0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x33, 0x2e, 0x49, 0x73, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d, 0x61,
-	0x74, 0x74, 0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d,
-	0x0a, 0x0c, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1c,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x56,
-	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76,
+	0x49, 0x64, 0x22, 0x31, 0x0a, 0x12, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x76, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x76, 0x6f, 0x6c,
+	0x75, 0x6d, 0x65, 0x49, 0x64, 0x22, 0x60, 0x0a, 0x13, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53,
+	0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x0b,
+	0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x0a, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x12, 0x28, 0x0a,
+	0x10, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x5f, 0x75, 0x73, 0x65, 0x64, 0x5f, 0x73, 0x69, 0x7a,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x55,
+	0x73, 0x65, 0x64, 0x53, 0x69, 0x7a, 0x65, 0x32, 0x88, 0x0a, 0x0a, 0x06, 0x56, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x12, 0x5c, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x73, 0x4f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x12, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
+	0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73, 0x4f, 0x6e, 0x44,
+	0x69, 0x73, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x73,
+	0x4f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x4a, 0x0a, 0x0b, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12,
+	0x1b, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56,
+	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x0d,
+	0x55, 0x6e, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1d, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x55, 0x6e, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56,
+	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x55, 0x6e, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f,
+	0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5c,
+	0x0a, 0x11, 0x49, 0x73, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74,
+	0x74, 0x65, 0x64, 0x12, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x49, 0x73,
+	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x74, 0x65, 0x64, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33,
+	0x2e, 0x49, 0x73, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x74,
+	0x65, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0c,
+	0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1c, 0x2e, 0x76,
 	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x56, 0x6f, 0x6c,
-	0x75, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a,
-	0x0c, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1c, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f,
-	0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31,
+	0x75, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x33, 0x2e, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0c, 0x52,
+	0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1c, 0x2e, 0x76, 0x31,
 	0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75,
-	0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4a, 0x0a, 0x0b,
-	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x12, 0x1b, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5c, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x56,
-	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12,
-	0x20, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
-	0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75,
-	0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5f, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c,
-	0x75, 0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x21,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49,
-	0x44, 0x46, 0x72, 0x6f, 0x6d, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x22, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75,
-	0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x59, 0x0a, 0x10, 0x57, 0x72, 0x69, 0x74, 0x65,
-	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x12, 0x20, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x57, 0x72, 0x69, 0x74, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
-	0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x57, 0x72, 0x69, 0x74, 0x65, 0x56, 0x6f, 0x6c,
-	0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x42, 0x3f, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x33, 0x2e, 0x52, 0x65, 0x73, 0x69, 0x7a, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x0e, 0x47, 0x65,
+	0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x12, 0x1e, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65,
+	0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x74, 0x0a, 0x19, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72,
+	0x46, 0x72, 0x6f, 0x6d, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x12, 0x29, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x46, 0x72, 0x6f, 0x6d, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
+	0x33, 0x2e, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x46,
+	0x72, 0x6f, 0x6d, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x74, 0x0a, 0x19, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75,
+	0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61,
+	0x74, 0x68, 0x12, 0x29, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65, 0x74,
+	0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x54, 0x61, 0x72, 0x67,
+	0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
+	0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61, 0x74,
+	0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x59, 0x0a, 0x10, 0x57,
+	0x72, 0x69, 0x74, 0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x12,
+	0x20, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x57, 0x72, 0x69, 0x74, 0x65, 0x56,
+	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x57, 0x72, 0x69, 0x74,
+	0x65, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x43, 0x61, 0x63, 0x68, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x56, 0x0a, 0x0e, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75,
+	0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x12, 0x1e, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x03, 0x88, 0x02, 0x01, 0x12, 0x4d,
+	0x0a, 0x0b, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x12, 0x1b, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74,
+	0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x03, 0x88, 0x02, 0x01, 0x12, 0x5f, 0x0a,
+	0x13, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x12, 0x20, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x56,
+	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33,
+	0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x44, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65,
+	0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x03, 0x88, 0x02, 0x01, 0x12, 0x62,
+	0x0a, 0x14, 0x47, 0x65, 0x74, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f,
+	0x6d, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33,
+	0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d, 0x4d, 0x6f, 0x75,
+	0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x33, 0x2e, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x49, 0x44, 0x46, 0x72, 0x6f, 0x6d,
+	0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x03, 0x88,
+	0x02, 0x01, 0x42, 0x3f, 0x5a, 0x3d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
 	0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63, 0x73, 0x69, 0x2f,
 	0x63, 0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74,
 	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x2f, 0x76, 0x31, 0x62, 0x65,
@@ -1109,77 +1571,91 @@ var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_cs
 }
 
 var (
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescOnce sync.Once
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData = file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc
+	file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescOnce sync.Once
+	file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData = file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc
 )
 
-func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP() []byte {
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescOnce.Do(func() {
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData = protoimpl.X.CompressGZIP(file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData)
+func file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescGZIP() []byte {
+	file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescOnce.Do(func() {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData = protoimpl.X.CompressGZIP(file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData)
 	})
-	return file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDescData
 }
 
-var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
-var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_goTypes = []interface{}{
-	(*ListVolumesOnDiskRequest)(nil),  // 0: v1beta3.ListVolumesOnDiskRequest
-	(*ListVolumesOnDiskResponse)(nil), // 1: v1beta3.ListVolumesOnDiskResponse
-	(*MountVolumeRequest)(nil),        // 2: v1beta3.MountVolumeRequest
-	(*MountVolumeResponse)(nil),       // 3: v1beta3.MountVolumeResponse
-	(*DismountVolumeRequest)(nil),     // 4: v1beta3.DismountVolumeRequest
-	(*DismountVolumeResponse)(nil),    // 5: v1beta3.DismountVolumeResponse
-	(*IsVolumeFormattedRequest)(nil),  // 6: v1beta3.IsVolumeFormattedRequest
-	(*IsVolumeFormattedResponse)(nil), // 7: v1beta3.IsVolumeFormattedResponse
-	(*FormatVolumeRequest)(nil),       // 8: v1beta3.FormatVolumeRequest
-	(*FormatVolumeResponse)(nil),      // 9: v1beta3.FormatVolumeResponse
-	(*ResizeVolumeRequest)(nil),       // 10: v1beta3.ResizeVolumeRequest
-	(*ResizeVolumeResponse)(nil),      // 11: v1beta3.ResizeVolumeResponse
-	(*VolumeStatsRequest)(nil),        // 12: v1beta3.VolumeStatsRequest
-	(*VolumeStatsResponse)(nil),       // 13: v1beta3.VolumeStatsResponse
-	(*VolumeDiskNumberRequest)(nil),   // 14: v1beta3.VolumeDiskNumberRequest
-	(*VolumeDiskNumberResponse)(nil),  // 15: v1beta3.VolumeDiskNumberResponse
-	(*VolumeIDFromMountRequest)(nil),  // 16: v1beta3.VolumeIDFromMountRequest
-	(*VolumeIDFromMountResponse)(nil), // 17: v1beta3.VolumeIDFromMountResponse
-	(*WriteVolumeCacheRequest)(nil),   // 18: v1beta3.WriteVolumeCacheRequest
-	(*WriteVolumeCacheResponse)(nil),  // 19: v1beta3.WriteVolumeCacheResponse
+var file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_goTypes = []interface{}{
+	(*ListVolumesOnDiskRequest)(nil),          // 0: v1beta3.ListVolumesOnDiskRequest
+	(*ListVolumesOnDiskResponse)(nil),         // 1: v1beta3.ListVolumesOnDiskResponse
+	(*MountVolumeRequest)(nil),                // 2: v1beta3.MountVolumeRequest
+	(*MountVolumeResponse)(nil),               // 3: v1beta3.MountVolumeResponse
+	(*UnmountVolumeRequest)(nil),              // 4: v1beta3.UnmountVolumeRequest
+	(*UnmountVolumeResponse)(nil),             // 5: v1beta3.UnmountVolumeResponse
+	(*IsVolumeFormattedRequest)(nil),          // 6: v1beta3.IsVolumeFormattedRequest
+	(*IsVolumeFormattedResponse)(nil),         // 7: v1beta3.IsVolumeFormattedResponse
+	(*FormatVolumeRequest)(nil),               // 8: v1beta3.FormatVolumeRequest
+	(*FormatVolumeResponse)(nil),              // 9: v1beta3.FormatVolumeResponse
+	(*ResizeVolumeRequest)(nil),               // 10: v1beta3.ResizeVolumeRequest
+	(*ResizeVolumeResponse)(nil),              // 11: v1beta3.ResizeVolumeResponse
+	(*GetVolumeStatsRequest)(nil),             // 12: v1beta3.GetVolumeStatsRequest
+	(*GetVolumeStatsResponse)(nil),            // 13: v1beta3.GetVolumeStatsResponse
+	(*GetDiskNumberFromVolumeIDRequest)(nil),  // 14: v1beta3.GetDiskNumberFromVolumeIDRequest
+	(*GetDiskNumberFromVolumeIDResponse)(nil), // 15: v1beta3.GetDiskNumberFromVolumeIDResponse
+	(*GetVolumeIDFromTargetPathRequest)(nil),  // 16: v1beta3.GetVolumeIDFromTargetPathRequest
+	(*GetVolumeIDFromTargetPathResponse)(nil), // 17: v1beta3.GetVolumeIDFromTargetPathResponse
+	(*WriteVolumeCacheRequest)(nil),           // 18: v1beta3.WriteVolumeCacheRequest
+	(*WriteVolumeCacheResponse)(nil),          // 19: v1beta3.WriteVolumeCacheResponse
+	(*DismountVolumeRequest)(nil),             // 20: v1beta3.DismountVolumeRequest
+	(*DismountVolumeResponse)(nil),            // 21: v1beta3.DismountVolumeResponse
+	(*VolumeDiskNumberRequest)(nil),           // 22: v1beta3.VolumeDiskNumberRequest
+	(*VolumeDiskNumberResponse)(nil),          // 23: v1beta3.VolumeDiskNumberResponse
+	(*VolumeIDFromMountRequest)(nil),          // 24: v1beta3.VolumeIDFromMountRequest
+	(*VolumeIDFromMountResponse)(nil),         // 25: v1beta3.VolumeIDFromMountResponse
+	(*VolumeStatsRequest)(nil),                // 26: v1beta3.VolumeStatsRequest
+	(*VolumeStatsResponse)(nil),               // 27: v1beta3.VolumeStatsResponse
 }
-var file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_depIdxs = []int32{
+var file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_depIdxs = []int32{
 	0,  // 0: v1beta3.Volume.ListVolumesOnDisk:input_type -> v1beta3.ListVolumesOnDiskRequest
 	2,  // 1: v1beta3.Volume.MountVolume:input_type -> v1beta3.MountVolumeRequest
-	4,  // 2: v1beta3.Volume.DismountVolume:input_type -> v1beta3.DismountVolumeRequest
+	4,  // 2: v1beta3.Volume.UnmountVolume:input_type -> v1beta3.UnmountVolumeRequest
 	6,  // 3: v1beta3.Volume.IsVolumeFormatted:input_type -> v1beta3.IsVolumeFormattedRequest
 	8,  // 4: v1beta3.Volume.FormatVolume:input_type -> v1beta3.FormatVolumeRequest
 	10, // 5: v1beta3.Volume.ResizeVolume:input_type -> v1beta3.ResizeVolumeRequest
-	12, // 6: v1beta3.Volume.VolumeStats:input_type -> v1beta3.VolumeStatsRequest
-	14, // 7: v1beta3.Volume.GetVolumeDiskNumber:input_type -> v1beta3.VolumeDiskNumberRequest
-	16, // 8: v1beta3.Volume.GetVolumeIDFromMount:input_type -> v1beta3.VolumeIDFromMountRequest
+	12, // 6: v1beta3.Volume.GetVolumeStats:input_type -> v1beta3.GetVolumeStatsRequest
+	14, // 7: v1beta3.Volume.GetDiskNumberFromVolumeID:input_type -> v1beta3.GetDiskNumberFromVolumeIDRequest
+	16, // 8: v1beta3.Volume.GetVolumeIDFromTargetPath:input_type -> v1beta3.GetVolumeIDFromTargetPathRequest
 	18, // 9: v1beta3.Volume.WriteVolumeCache:input_type -> v1beta3.WriteVolumeCacheRequest
-	1,  // 10: v1beta3.Volume.ListVolumesOnDisk:output_type -> v1beta3.ListVolumesOnDiskResponse
-	3,  // 11: v1beta3.Volume.MountVolume:output_type -> v1beta3.MountVolumeResponse
-	5,  // 12: v1beta3.Volume.DismountVolume:output_type -> v1beta3.DismountVolumeResponse
-	7,  // 13: v1beta3.Volume.IsVolumeFormatted:output_type -> v1beta3.IsVolumeFormattedResponse
-	9,  // 14: v1beta3.Volume.FormatVolume:output_type -> v1beta3.FormatVolumeResponse
-	11, // 15: v1beta3.Volume.ResizeVolume:output_type -> v1beta3.ResizeVolumeResponse
-	13, // 16: v1beta3.Volume.VolumeStats:output_type -> v1beta3.VolumeStatsResponse
-	15, // 17: v1beta3.Volume.GetVolumeDiskNumber:output_type -> v1beta3.VolumeDiskNumberResponse
-	17, // 18: v1beta3.Volume.GetVolumeIDFromMount:output_type -> v1beta3.VolumeIDFromMountResponse
-	19, // 19: v1beta3.Volume.WriteVolumeCache:output_type -> v1beta3.WriteVolumeCacheResponse
-	10, // [10:20] is the sub-list for method output_type
-	0,  // [0:10] is the sub-list for method input_type
+	20, // 10: v1beta3.Volume.DismountVolume:input_type -> v1beta3.DismountVolumeRequest
+	26, // 11: v1beta3.Volume.VolumeStats:input_type -> v1beta3.VolumeStatsRequest
+	22, // 12: v1beta3.Volume.GetVolumeDiskNumber:input_type -> v1beta3.VolumeDiskNumberRequest
+	24, // 13: v1beta3.Volume.GetVolumeIDFromMount:input_type -> v1beta3.VolumeIDFromMountRequest
+	1,  // 14: v1beta3.Volume.ListVolumesOnDisk:output_type -> v1beta3.ListVolumesOnDiskResponse
+	3,  // 15: v1beta3.Volume.MountVolume:output_type -> v1beta3.MountVolumeResponse
+	5,  // 16: v1beta3.Volume.UnmountVolume:output_type -> v1beta3.UnmountVolumeResponse
+	7,  // 17: v1beta3.Volume.IsVolumeFormatted:output_type -> v1beta3.IsVolumeFormattedResponse
+	9,  // 18: v1beta3.Volume.FormatVolume:output_type -> v1beta3.FormatVolumeResponse
+	11, // 19: v1beta3.Volume.ResizeVolume:output_type -> v1beta3.ResizeVolumeResponse
+	13, // 20: v1beta3.Volume.GetVolumeStats:output_type -> v1beta3.GetVolumeStatsResponse
+	15, // 21: v1beta3.Volume.GetDiskNumberFromVolumeID:output_type -> v1beta3.GetDiskNumberFromVolumeIDResponse
+	17, // 22: v1beta3.Volume.GetVolumeIDFromTargetPath:output_type -> v1beta3.GetVolumeIDFromTargetPathResponse
+	19, // 23: v1beta3.Volume.WriteVolumeCache:output_type -> v1beta3.WriteVolumeCacheResponse
+	21, // 24: v1beta3.Volume.DismountVolume:output_type -> v1beta3.DismountVolumeResponse
+	27, // 25: v1beta3.Volume.VolumeStats:output_type -> v1beta3.VolumeStatsResponse
+	23, // 26: v1beta3.Volume.GetVolumeDiskNumber:output_type -> v1beta3.VolumeDiskNumberResponse
+	25, // 27: v1beta3.Volume.GetVolumeIDFromMount:output_type -> v1beta3.VolumeIDFromMountResponse
+	14, // [14:28] is the sub-list for method output_type
+	0,  // [0:14] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
 }
 
-func init() {
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_init()
-}
-func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_init() {
-	if File_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto != nil {
+func init() { file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_init() }
+func file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_init() {
+	if File_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListVolumesOnDiskRequest); i {
 			case 0:
 				return &v.state
@@ -1191,7 +1667,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListVolumesOnDiskResponse); i {
 			case 0:
 				return &v.state
@@ -1203,7 +1679,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MountVolumeRequest); i {
 			case 0:
 				return &v.state
@@ -1215,7 +1691,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MountVolumeResponse); i {
 			case 0:
 				return &v.state
@@ -1227,8 +1703,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DismountVolumeRequest); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnmountVolumeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1239,8 +1715,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DismountVolumeResponse); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnmountVolumeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1251,7 +1727,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IsVolumeFormattedRequest); i {
 			case 0:
 				return &v.state
@@ -1263,7 +1739,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IsVolumeFormattedResponse); i {
 			case 0:
 				return &v.state
@@ -1275,7 +1751,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FormatVolumeRequest); i {
 			case 0:
 				return &v.state
@@ -1287,7 +1763,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FormatVolumeResponse); i {
 			case 0:
 				return &v.state
@@ -1299,7 +1775,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResizeVolumeRequest); i {
 			case 0:
 				return &v.state
@@ -1311,7 +1787,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResizeVolumeResponse); i {
 			case 0:
 				return &v.state
@@ -1323,8 +1799,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VolumeStatsRequest); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetVolumeStatsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1335,8 +1811,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VolumeStatsResponse); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetVolumeStatsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1347,8 +1823,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VolumeDiskNumberRequest); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetDiskNumberFromVolumeIDRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1359,8 +1835,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VolumeDiskNumberResponse); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetDiskNumberFromVolumeIDResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1371,8 +1847,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VolumeIDFromMountRequest); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetVolumeIDFromTargetPathRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1383,8 +1859,8 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VolumeIDFromMountResponse); i {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetVolumeIDFromTargetPathResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1395,7 +1871,7 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WriteVolumeCacheRequest); i {
 			case 0:
 				return &v.state
@@ -1407,8 +1883,104 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 				return nil
 			}
 		}
-		file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WriteVolumeCacheResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DismountVolumeRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DismountVolumeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VolumeDiskNumberRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VolumeDiskNumberResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VolumeIDFromMountRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VolumeIDFromMountResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VolumeStatsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VolumeStatsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1424,20 +1996,20 @@ func file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_c
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc,
+			RawDescriptor: file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_goTypes,
-		DependencyIndexes: file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_depIdxs,
-		MessageInfos:      file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes,
+		GoTypes:           file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_goTypes,
+		DependencyIndexes: file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_depIdxs,
+		MessageInfos:      file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_msgTypes,
 	}.Build()
-	File_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto = out.File
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc = nil
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_goTypes = nil
-	file_github_com_kubernetes_csi_csi_proxy_vendor_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_depIdxs = nil
+	File_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto = out.File
+	file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_rawDesc = nil
+	file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_goTypes = nil
+	file_github_com_kubernetes_csi_csi_proxy_client_api_volume_v1beta3_api_proto_depIdxs = nil
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1457,22 +2029,34 @@ type VolumeClient interface {
 	ListVolumesOnDisk(ctx context.Context, in *ListVolumesOnDiskRequest, opts ...grpc.CallOption) (*ListVolumesOnDiskResponse, error)
 	// MountVolume mounts the volume at the requested global staging path
 	MountVolume(ctx context.Context, in *MountVolumeRequest, opts ...grpc.CallOption) (*MountVolumeResponse, error)
-	// DismountVolume gracefully dismounts a volume
-	DismountVolume(ctx context.Context, in *DismountVolumeRequest, opts ...grpc.CallOption) (*DismountVolumeResponse, error)
-	// IsVolumeFormatted checks if a volume is formatted with NTFS
+	// UnmountVolume gracefully unmounts a volume
+	UnmountVolume(ctx context.Context, in *UnmountVolumeRequest, opts ...grpc.CallOption) (*UnmountVolumeResponse, error)
+	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(ctx context.Context, in *IsVolumeFormattedRequest, opts ...grpc.CallOption) (*IsVolumeFormattedResponse, error)
-	// FormatVolume formats a volume with the provided file system
+	// FormatVolume formats a volume with NTFS.
 	FormatVolume(ctx context.Context, in *FormatVolumeRequest, opts ...grpc.CallOption) (*FormatVolumeResponse, error)
 	// ResizeVolume performs resizing of the partition and file system for a block based volume
 	ResizeVolume(ctx context.Context, in *ResizeVolumeRequest, opts ...grpc.CallOption) (*ResizeVolumeResponse, error)
-	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
-	VolumeStats(ctx context.Context, in *VolumeStatsRequest, opts ...grpc.CallOption) (*VolumeStatsResponse, error)
-	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located
-	GetVolumeDiskNumber(ctx context.Context, in *VolumeDiskNumberRequest, opts ...grpc.CallOption) (*VolumeDiskNumberResponse, error)
-	// GetVolumeIDFromMount gets the volume id for a given mount
-	GetVolumeIDFromMount(ctx context.Context, in *VolumeIDFromMountRequest, opts ...grpc.CallOption) (*VolumeIDFromMountResponse, error)
+	// GetVolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	GetVolumeStats(ctx context.Context, in *GetVolumeStatsRequest, opts ...grpc.CallOption) (*GetVolumeStatsResponse, error)
+	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located
+	GetDiskNumberFromVolumeID(ctx context.Context, in *GetDiskNumberFromVolumeIDRequest, opts ...grpc.CallOption) (*GetDiskNumberFromVolumeIDResponse, error)
+	// GetVolumeIDFromTargetPath gets the volume id for a given mount
+	GetVolumeIDFromTargetPath(ctx context.Context, in *GetVolumeIDFromTargetPathRequest, opts ...grpc.CallOption) (*GetVolumeIDFromTargetPathResponse, error)
 	// WriteVolumeCache write volume cache to disk
 	WriteVolumeCache(ctx context.Context, in *WriteVolumeCacheRequest, opts ...grpc.CallOption) (*WriteVolumeCacheResponse, error)
+	// Deprecated: Do not use.
+	// DismountVolume dismounts a volume
+	DismountVolume(ctx context.Context, in *DismountVolumeRequest, opts ...grpc.CallOption) (*DismountVolumeResponse, error)
+	// Deprecated: Do not use.
+	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	VolumeStats(ctx context.Context, in *VolumeStatsRequest, opts ...grpc.CallOption) (*VolumeStatsResponse, error)
+	// Deprecated: Do not use.
+	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located
+	GetVolumeDiskNumber(ctx context.Context, in *VolumeDiskNumberRequest, opts ...grpc.CallOption) (*VolumeDiskNumberResponse, error)
+	// Deprecated: Do not use.
+	// GetVolumeIDFromMount gets the volume id for a given mount
+	GetVolumeIDFromMount(ctx context.Context, in *VolumeIDFromMountRequest, opts ...grpc.CallOption) (*VolumeIDFromMountResponse, error)
 }
 
 type volumeClient struct {
@@ -1501,9 +2085,9 @@ func (c *volumeClient) MountVolume(ctx context.Context, in *MountVolumeRequest, 
 	return out, nil
 }
 
-func (c *volumeClient) DismountVolume(ctx context.Context, in *DismountVolumeRequest, opts ...grpc.CallOption) (*DismountVolumeResponse, error) {
-	out := new(DismountVolumeResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Volume/DismountVolume", in, out, opts...)
+func (c *volumeClient) UnmountVolume(ctx context.Context, in *UnmountVolumeRequest, opts ...grpc.CallOption) (*UnmountVolumeResponse, error) {
+	out := new(UnmountVolumeResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/UnmountVolume", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1537,27 +2121,27 @@ func (c *volumeClient) ResizeVolume(ctx context.Context, in *ResizeVolumeRequest
 	return out, nil
 }
 
-func (c *volumeClient) VolumeStats(ctx context.Context, in *VolumeStatsRequest, opts ...grpc.CallOption) (*VolumeStatsResponse, error) {
-	out := new(VolumeStatsResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Volume/VolumeStats", in, out, opts...)
+func (c *volumeClient) GetVolumeStats(ctx context.Context, in *GetVolumeStatsRequest, opts ...grpc.CallOption) (*GetVolumeStatsResponse, error) {
+	out := new(GetVolumeStatsResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetVolumeStats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *volumeClient) GetVolumeDiskNumber(ctx context.Context, in *VolumeDiskNumberRequest, opts ...grpc.CallOption) (*VolumeDiskNumberResponse, error) {
-	out := new(VolumeDiskNumberResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetVolumeDiskNumber", in, out, opts...)
+func (c *volumeClient) GetDiskNumberFromVolumeID(ctx context.Context, in *GetDiskNumberFromVolumeIDRequest, opts ...grpc.CallOption) (*GetDiskNumberFromVolumeIDResponse, error) {
+	out := new(GetDiskNumberFromVolumeIDResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetDiskNumberFromVolumeID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *volumeClient) GetVolumeIDFromMount(ctx context.Context, in *VolumeIDFromMountRequest, opts ...grpc.CallOption) (*VolumeIDFromMountResponse, error) {
-	out := new(VolumeIDFromMountResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetVolumeIDFromMount", in, out, opts...)
+func (c *volumeClient) GetVolumeIDFromTargetPath(ctx context.Context, in *GetVolumeIDFromTargetPathRequest, opts ...grpc.CallOption) (*GetVolumeIDFromTargetPathResponse, error) {
+	out := new(GetVolumeIDFromTargetPathResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetVolumeIDFromTargetPath", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1573,6 +2157,46 @@ func (c *volumeClient) WriteVolumeCache(ctx context.Context, in *WriteVolumeCach
 	return out, nil
 }
 
+// Deprecated: Do not use.
+func (c *volumeClient) DismountVolume(ctx context.Context, in *DismountVolumeRequest, opts ...grpc.CallOption) (*DismountVolumeResponse, error) {
+	out := new(DismountVolumeResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/DismountVolume", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Deprecated: Do not use.
+func (c *volumeClient) VolumeStats(ctx context.Context, in *VolumeStatsRequest, opts ...grpc.CallOption) (*VolumeStatsResponse, error) {
+	out := new(VolumeStatsResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/VolumeStats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Deprecated: Do not use.
+func (c *volumeClient) GetVolumeDiskNumber(ctx context.Context, in *VolumeDiskNumberRequest, opts ...grpc.CallOption) (*VolumeDiskNumberResponse, error) {
+	out := new(VolumeDiskNumberResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetVolumeDiskNumber", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Deprecated: Do not use.
+func (c *volumeClient) GetVolumeIDFromMount(ctx context.Context, in *VolumeIDFromMountRequest, opts ...grpc.CallOption) (*VolumeIDFromMountResponse, error) {
+	out := new(VolumeIDFromMountResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Volume/GetVolumeIDFromMount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VolumeServer is the server API for Volume service.
 type VolumeServer interface {
 	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for
@@ -1580,22 +2204,34 @@ type VolumeServer interface {
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest) (*ListVolumesOnDiskResponse, error)
 	// MountVolume mounts the volume at the requested global staging path
 	MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error)
-	// DismountVolume gracefully dismounts a volume
-	DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error)
-	// IsVolumeFormatted checks if a volume is formatted with NTFS
+	// UnmountVolume gracefully unmounts a volume
+	UnmountVolume(context.Context, *UnmountVolumeRequest) (*UnmountVolumeResponse, error)
+	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(context.Context, *IsVolumeFormattedRequest) (*IsVolumeFormattedResponse, error)
-	// FormatVolume formats a volume with the provided file system
+	// FormatVolume formats a volume with NTFS.
 	FormatVolume(context.Context, *FormatVolumeRequest) (*FormatVolumeResponse, error)
 	// ResizeVolume performs resizing of the partition and file system for a block based volume
 	ResizeVolume(context.Context, *ResizeVolumeRequest) (*ResizeVolumeResponse, error)
-	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
-	VolumeStats(context.Context, *VolumeStatsRequest) (*VolumeStatsResponse, error)
-	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located
-	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest) (*VolumeDiskNumberResponse, error)
-	// GetVolumeIDFromMount gets the volume id for a given mount
-	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error)
+	// GetVolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	GetVolumeStats(context.Context, *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error)
+	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located
+	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error)
+	// GetVolumeIDFromTargetPath gets the volume id for a given mount
+	GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error)
 	// WriteVolumeCache write volume cache to disk
 	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error)
+	// Deprecated: Do not use.
+	// DismountVolume dismounts a volume
+	DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error)
+	// Deprecated: Do not use.
+	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	VolumeStats(context.Context, *VolumeStatsRequest) (*VolumeStatsResponse, error)
+	// Deprecated: Do not use.
+	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located
+	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest) (*VolumeDiskNumberResponse, error)
+	// Deprecated: Do not use.
+	// GetVolumeIDFromMount gets the volume id for a given mount
+	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error)
 }
 
 // UnimplementedVolumeServer can be embedded to have forward compatible implementations.
@@ -1608,8 +2244,8 @@ func (*UnimplementedVolumeServer) ListVolumesOnDisk(context.Context, *ListVolume
 func (*UnimplementedVolumeServer) MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MountVolume not implemented")
 }
-func (*UnimplementedVolumeServer) DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DismountVolume not implemented")
+func (*UnimplementedVolumeServer) UnmountVolume(context.Context, *UnmountVolumeRequest) (*UnmountVolumeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmountVolume not implemented")
 }
 func (*UnimplementedVolumeServer) IsVolumeFormatted(context.Context, *IsVolumeFormattedRequest) (*IsVolumeFormattedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsVolumeFormatted not implemented")
@@ -1620,6 +2256,21 @@ func (*UnimplementedVolumeServer) FormatVolume(context.Context, *FormatVolumeReq
 func (*UnimplementedVolumeServer) ResizeVolume(context.Context, *ResizeVolumeRequest) (*ResizeVolumeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResizeVolume not implemented")
 }
+func (*UnimplementedVolumeServer) GetVolumeStats(context.Context, *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVolumeStats not implemented")
+}
+func (*UnimplementedVolumeServer) GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDiskNumberFromVolumeID not implemented")
+}
+func (*UnimplementedVolumeServer) GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVolumeIDFromTargetPath not implemented")
+}
+func (*UnimplementedVolumeServer) WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WriteVolumeCache not implemented")
+}
+func (*UnimplementedVolumeServer) DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DismountVolume not implemented")
+}
 func (*UnimplementedVolumeServer) VolumeStats(context.Context, *VolumeStatsRequest) (*VolumeStatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VolumeStats not implemented")
 }
@@ -1628,9 +2279,6 @@ func (*UnimplementedVolumeServer) GetVolumeDiskNumber(context.Context, *VolumeDi
 }
 func (*UnimplementedVolumeServer) GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVolumeIDFromMount not implemented")
-}
-func (*UnimplementedVolumeServer) WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WriteVolumeCache not implemented")
 }
 
 func RegisterVolumeServer(s *grpc.Server, srv VolumeServer) {
@@ -1673,20 +2321,20 @@ func _Volume_MountVolume_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Volume_DismountVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DismountVolumeRequest)
+func _Volume_UnmountVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmountVolumeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VolumeServer).DismountVolume(ctx, in)
+		return srv.(VolumeServer).UnmountVolume(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/v1beta3.Volume/DismountVolume",
+		FullMethod: "/v1beta3.Volume/UnmountVolume",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VolumeServer).DismountVolume(ctx, req.(*DismountVolumeRequest))
+		return srv.(VolumeServer).UnmountVolume(ctx, req.(*UnmountVolumeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1745,6 +2393,96 @@ func _Volume_ResizeVolume_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Volume_GetVolumeStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVolumeStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServer).GetVolumeStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1beta3.Volume/GetVolumeStats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServer).GetVolumeStats(ctx, req.(*GetVolumeStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Volume_GetDiskNumberFromVolumeID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDiskNumberFromVolumeIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServer).GetDiskNumberFromVolumeID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1beta3.Volume/GetDiskNumberFromVolumeID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServer).GetDiskNumberFromVolumeID(ctx, req.(*GetDiskNumberFromVolumeIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Volume_GetVolumeIDFromTargetPath_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVolumeIDFromTargetPathRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServer).GetVolumeIDFromTargetPath(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1beta3.Volume/GetVolumeIDFromTargetPath",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServer).GetVolumeIDFromTargetPath(ctx, req.(*GetVolumeIDFromTargetPathRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Volume_WriteVolumeCache_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WriteVolumeCacheRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServer).WriteVolumeCache(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1beta3.Volume/WriteVolumeCache",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServer).WriteVolumeCache(ctx, req.(*WriteVolumeCacheRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Volume_DismountVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DismountVolumeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServer).DismountVolume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v1beta3.Volume/DismountVolume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServer).DismountVolume(ctx, req.(*DismountVolumeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Volume_VolumeStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VolumeStatsRequest)
 	if err := dec(in); err != nil {
@@ -1799,24 +2537,6 @@ func _Volume_GetVolumeIDFromMount_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Volume_WriteVolumeCache_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WriteVolumeCacheRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(VolumeServer).WriteVolumeCache(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1beta3.Volume/WriteVolumeCache",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VolumeServer).WriteVolumeCache(ctx, req.(*WriteVolumeCacheRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Volume_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "v1beta3.Volume",
 	HandlerType: (*VolumeServer)(nil),
@@ -1830,8 +2550,8 @@ var _Volume_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Volume_MountVolume_Handler,
 		},
 		{
-			MethodName: "DismountVolume",
-			Handler:    _Volume_DismountVolume_Handler,
+			MethodName: "UnmountVolume",
+			Handler:    _Volume_UnmountVolume_Handler,
 		},
 		{
 			MethodName: "IsVolumeFormatted",
@@ -1846,6 +2566,26 @@ var _Volume_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Volume_ResizeVolume_Handler,
 		},
 		{
+			MethodName: "GetVolumeStats",
+			Handler:    _Volume_GetVolumeStats_Handler,
+		},
+		{
+			MethodName: "GetDiskNumberFromVolumeID",
+			Handler:    _Volume_GetDiskNumberFromVolumeID_Handler,
+		},
+		{
+			MethodName: "GetVolumeIDFromTargetPath",
+			Handler:    _Volume_GetVolumeIDFromTargetPath_Handler,
+		},
+		{
+			MethodName: "WriteVolumeCache",
+			Handler:    _Volume_WriteVolumeCache_Handler,
+		},
+		{
+			MethodName: "DismountVolume",
+			Handler:    _Volume_DismountVolume_Handler,
+		},
+		{
 			MethodName: "VolumeStats",
 			Handler:    _Volume_VolumeStats_Handler,
 		},
@@ -1857,11 +2597,7 @@ var _Volume_serviceDesc = grpc.ServiceDesc{
 			MethodName: "GetVolumeIDFromMount",
 			Handler:    _Volume_GetVolumeIDFromMount_Handler,
 		},
-		{
-			MethodName: "WriteVolumeCache",
-			Handler:    _Volume_WriteVolumeCache_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "github.com/kubernetes-csi/csi-proxy/vendor/github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3/api.proto",
+	Metadata: "github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3/api.proto",
 }

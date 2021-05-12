@@ -10,8 +10,6 @@ import (
 )
 
 func autoConvert_v1alpha1_DismountVolumeRequest_To_internal_DismountVolumeRequest(in *v1alpha1.DismountVolumeRequest, out *internal.DismountVolumeRequest) error {
-	out.VolumeId = in.VolumeId
-	out.Path = in.Path
 	return nil
 }
 
@@ -21,8 +19,6 @@ func Convert_v1alpha1_DismountVolumeRequest_To_internal_DismountVolumeRequest(in
 }
 
 func autoConvert_internal_DismountVolumeRequest_To_v1alpha1_DismountVolumeRequest(in *internal.DismountVolumeRequest, out *v1alpha1.DismountVolumeRequest) error {
-	out.VolumeId = in.VolumeId
-	out.Path = in.Path
 	return nil
 }
 
@@ -128,7 +124,6 @@ func Convert_internal_IsVolumeFormattedResponse_To_v1alpha1_IsVolumeFormattedRes
 }
 
 func autoConvert_v1alpha1_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskRequest(in *v1alpha1.ListVolumesOnDiskRequest, out *internal.ListVolumesOnDiskRequest) error {
-	out.DiskId = in.DiskId
 	return nil
 }
 
@@ -138,7 +133,6 @@ func Convert_v1alpha1_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskRequ
 }
 
 func autoConvert_internal_ListVolumesOnDiskRequest_To_v1alpha1_ListVolumesOnDiskRequest(in *internal.ListVolumesOnDiskRequest, out *v1alpha1.ListVolumesOnDiskRequest) error {
-	out.DiskId = in.DiskId
 	return nil
 }
 
@@ -169,7 +163,6 @@ func Convert_internal_ListVolumesOnDiskResponse_To_v1alpha1_ListVolumesOnDiskRes
 
 func autoConvert_v1alpha1_MountVolumeRequest_To_internal_MountVolumeRequest(in *v1alpha1.MountVolumeRequest, out *internal.MountVolumeRequest) error {
 	out.VolumeId = in.VolumeId
-	out.Path = in.Path
 	return nil
 }
 
@@ -180,7 +173,6 @@ func Convert_v1alpha1_MountVolumeRequest_To_internal_MountVolumeRequest(in *v1al
 
 func autoConvert_internal_MountVolumeRequest_To_v1alpha1_MountVolumeRequest(in *internal.MountVolumeRequest, out *v1alpha1.MountVolumeRequest) error {
 	out.VolumeId = in.VolumeId
-	out.Path = in.Path
 	return nil
 }
 
@@ -209,7 +201,6 @@ func Convert_internal_MountVolumeResponse_To_v1alpha1_MountVolumeResponse(in *in
 
 func autoConvert_v1alpha1_ResizeVolumeRequest_To_internal_ResizeVolumeRequest(in *v1alpha1.ResizeVolumeRequest, out *internal.ResizeVolumeRequest) error {
 	out.VolumeId = in.VolumeId
-	out.Size = in.Size
 	return nil
 }
 
@@ -220,7 +211,6 @@ func Convert_v1alpha1_ResizeVolumeRequest_To_internal_ResizeVolumeRequest(in *v1
 
 func autoConvert_internal_ResizeVolumeRequest_To_v1alpha1_ResizeVolumeRequest(in *internal.ResizeVolumeRequest, out *v1alpha1.ResizeVolumeRequest) error {
 	out.VolumeId = in.VolumeId
-	out.Size = in.Size
 	return nil
 }
 

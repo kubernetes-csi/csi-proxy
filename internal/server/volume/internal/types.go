@@ -1,7 +1,13 @@
+// Defines all the structs that the server is aware of, because all
+// the apis are included as the target for code generation it also
+// has definition for older APIs e.g. volume/v1alpha1, volume/v1beta1, etc
+// Because of this some structs are needed but are no longer used
+
 package internal
 
 type ListVolumesOnDiskRequest struct {
-	DiskId string
+	PartitionNumber int64
+	DiskNumber      int64
 }
 
 type ListVolumesOnDiskResponse struct {
@@ -9,8 +15,8 @@ type ListVolumesOnDiskResponse struct {
 }
 
 type MountVolumeRequest struct {
-	VolumeId string
-	Path     string
+	VolumeId   string
+	TargetPath string
 }
 
 type MountVolumeResponse struct {
@@ -38,43 +44,53 @@ type WriteVolumeCacheRequest struct {
 type WriteVolumeCacheResponse struct {
 }
 
-type DismountVolumeRequest struct {
-	VolumeId string
-	Path     string
+type UnmountVolumeRequest struct {
+	VolumeId   string
+	TargetPath string
 }
 
-type DismountVolumeResponse struct {
+type UnmountVolumeResponse struct {
 }
 
 type ResizeVolumeRequest struct {
-	VolumeId string
-	Size     int64
+	VolumeId  string
+	SizeBytes int64
 }
 
 type ResizeVolumeResponse struct {
 }
 
-type VolumeStatsRequest struct {
+type GetVolumeStatsRequest struct {
 	VolumeId string
 }
 
-type VolumeStatsResponse struct {
-	VolumeSize     int64
-	VolumeUsedSize int64
+type GetVolumeStatsResponse struct {
+	TotalBytes int64
+	UsedBytes  int64
 }
 
-type VolumeDiskNumberRequest struct {
+type GetDiskNumberFromVolumeIDRequest struct {
 	VolumeId string
 }
 
-type VolumeDiskNumberResponse struct {
+type GetDiskNumberFromVolumeIDResponse struct {
 	DiskNumber int64
 }
 
-type VolumeIDFromMountRequest struct {
-	Mount string
+type GetVolumeIDFromTargetPathRequest struct {
+	TargetPath string
 }
 
-type VolumeIDFromMountResponse struct {
+type GetVolumeIDFromTargetPathResponse struct {
 	VolumeId string
 }
+
+// These fields are deprecated but are needed because the generator needs them
+type DismountVolumeRequest struct{}
+type DismountVolumeResponse struct{}
+type VolumeDiskNumberRequest struct{}
+type VolumeDiskNumberResponse struct{}
+type VolumeStatsRequest struct{}
+type VolumeStatsResponse struct{}
+type VolumeIDFromMountRequest struct{}
+type VolumeIDFromMountResponse struct{}

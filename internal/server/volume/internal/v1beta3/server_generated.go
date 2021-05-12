@@ -65,6 +65,25 @@ func (s *versionedAPI) FormatVolume(context context.Context, versionedRequest *v
 	return versionedResponse, err
 }
 
+func (s *versionedAPI) GetDiskNumberFromVolumeID(context context.Context, versionedRequest *v1beta3.GetDiskNumberFromVolumeIDRequest) (*v1beta3.GetDiskNumberFromVolumeIDResponse, error) {
+	request := &internal.GetDiskNumberFromVolumeIDRequest{}
+	if err := Convert_v1beta3_GetDiskNumberFromVolumeIDRequest_To_internal_GetDiskNumberFromVolumeIDRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetDiskNumberFromVolumeID(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta3.GetDiskNumberFromVolumeIDResponse{}
+	if err := Convert_internal_GetDiskNumberFromVolumeIDResponse_To_v1beta3_GetDiskNumberFromVolumeIDResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) GetVolumeDiskNumber(context context.Context, versionedRequest *v1beta3.VolumeDiskNumberRequest) (*v1beta3.VolumeDiskNumberResponse, error) {
 	request := &internal.VolumeDiskNumberRequest{}
 	if err := Convert_v1beta3_VolumeDiskNumberRequest_To_internal_VolumeDiskNumberRequest(versionedRequest, request); err != nil {
@@ -97,6 +116,44 @@ func (s *versionedAPI) GetVolumeIDFromMount(context context.Context, versionedRe
 
 	versionedResponse := &v1beta3.VolumeIDFromMountResponse{}
 	if err := Convert_internal_VolumeIDFromMountResponse_To_v1beta3_VolumeIDFromMountResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) GetVolumeIDFromTargetPath(context context.Context, versionedRequest *v1beta3.GetVolumeIDFromTargetPathRequest) (*v1beta3.GetVolumeIDFromTargetPathResponse, error) {
+	request := &internal.GetVolumeIDFromTargetPathRequest{}
+	if err := Convert_v1beta3_GetVolumeIDFromTargetPathRequest_To_internal_GetVolumeIDFromTargetPathRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetVolumeIDFromTargetPath(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta3.GetVolumeIDFromTargetPathResponse{}
+	if err := Convert_internal_GetVolumeIDFromTargetPathResponse_To_v1beta3_GetVolumeIDFromTargetPathResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) GetVolumeStats(context context.Context, versionedRequest *v1beta3.GetVolumeStatsRequest) (*v1beta3.GetVolumeStatsResponse, error) {
+	request := &internal.GetVolumeStatsRequest{}
+	if err := Convert_v1beta3_GetVolumeStatsRequest_To_internal_GetVolumeStatsRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetVolumeStats(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta3.GetVolumeStatsResponse{}
+	if err := Convert_internal_GetVolumeStatsResponse_To_v1beta3_GetVolumeStatsResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 
@@ -173,6 +230,25 @@ func (s *versionedAPI) ResizeVolume(context context.Context, versionedRequest *v
 
 	versionedResponse := &v1beta3.ResizeVolumeResponse{}
 	if err := Convert_internal_ResizeVolumeResponse_To_v1beta3_ResizeVolumeResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
+func (s *versionedAPI) UnmountVolume(context context.Context, versionedRequest *v1beta3.UnmountVolumeRequest) (*v1beta3.UnmountVolumeResponse, error) {
+	request := &internal.UnmountVolumeRequest{}
+	if err := Convert_v1beta3_UnmountVolumeRequest_To_internal_UnmountVolumeRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.UnmountVolume(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1beta3.UnmountVolumeResponse{}
+	if err := Convert_internal_UnmountVolumeResponse_To_v1beta3_UnmountVolumeResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 

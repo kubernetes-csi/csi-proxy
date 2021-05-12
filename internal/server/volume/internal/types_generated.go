@@ -17,12 +17,16 @@ type VersionedAPI interface {
 type ServerInterface interface {
 	DismountVolume(context.Context, *DismountVolumeRequest, apiversion.Version) (*DismountVolumeResponse, error)
 	FormatVolume(context.Context, *FormatVolumeRequest, apiversion.Version) (*FormatVolumeResponse, error)
+	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest, apiversion.Version) (*GetDiskNumberFromVolumeIDResponse, error)
 	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest, apiversion.Version) (*VolumeDiskNumberResponse, error)
 	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest, apiversion.Version) (*VolumeIDFromMountResponse, error)
+	GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest, apiversion.Version) (*GetVolumeIDFromTargetPathResponse, error)
+	GetVolumeStats(context.Context, *GetVolumeStatsRequest, apiversion.Version) (*GetVolumeStatsResponse, error)
 	IsVolumeFormatted(context.Context, *IsVolumeFormattedRequest, apiversion.Version) (*IsVolumeFormattedResponse, error)
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest, apiversion.Version) (*ListVolumesOnDiskResponse, error)
 	MountVolume(context.Context, *MountVolumeRequest, apiversion.Version) (*MountVolumeResponse, error)
 	ResizeVolume(context.Context, *ResizeVolumeRequest, apiversion.Version) (*ResizeVolumeResponse, error)
+	UnmountVolume(context.Context, *UnmountVolumeRequest, apiversion.Version) (*UnmountVolumeResponse, error)
 	VolumeStats(context.Context, *VolumeStatsRequest, apiversion.Version) (*VolumeStatsResponse, error)
 	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest, apiversion.Version) (*WriteVolumeCacheResponse, error)
 }

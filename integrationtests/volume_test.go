@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os/exec"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -50,7 +51,7 @@ func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
 	}
 }
 
-func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) string {
+func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) int64 {
 	var cmd, out string
 	var err error
 	const initialSize = 5 * 1024 * 1024 * 1024
@@ -74,28 +75,32 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) string {
 		t.Fatalf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 	}
 
-	var diskNum string
+	var diskNum int64
+	var diskNumUnparsed string
 	cmd = fmt.Sprintf("(Get-VHD -Path %s).DiskNumber", vhdxPath)
-	if diskNum, err = runPowershellCmd(cmd); err != nil {
+
+	if diskNumUnparsed, err = runPowershellCmd(cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
-	diskNum = strings.TrimRight(diskNum, "\r\n")
+	if diskNum, err = strconv.ParseInt(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 64); err != nil {
+		t.Fatalf("Error: %v", err)
+	}
 
-	cmd = fmt.Sprintf("Initialize-Disk -Number %s -PartitionStyle %s", diskNum, partitionStyle)
+	cmd = fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle %s", diskNum, partitionStyle)
 	if _, err = runPowershellCmd(cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
 
-	cmd = fmt.Sprintf("New-Partition -DiskNumber %s -UseMaximumSize", diskNum)
+	cmd = fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNum)
 	if _, err = runPowershellCmd(cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
 	return diskNum
 }
 
-func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum string) {
+func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum int64) {
 	listRequest := &v1beta3.ListVolumesOnDiskRequest{
-		DiskId: diskNum,
+		DiskNumber: diskNum,
 	}
 	_, err := client.ListVolumesOnDisk(context.TODO(), listRequest)
 	if err == nil {
@@ -125,8 +130,8 @@ func runNegativeFormatVolumeRequest(t *testing.T, client *v1beta3client.Client, 
 
 func runNegativeResizeVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID string, size int64) {
 	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
-		VolumeId: volumeID,
-		Size:     size,
+		VolumeId:  volumeID,
+		SizeBytes: size,
 	}
 	_, err := client.ResizeVolume(context.TODO(), resizeVolumeRequest)
 	if err == nil {
@@ -137,8 +142,8 @@ func runNegativeResizeVolumeRequest(t *testing.T, client *v1beta3client.Client, 
 func runNegativeMountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, mountPath string) {
 	// Mount the volume
 	mountVolumeRequest := &v1beta3.MountVolumeRequest{
-		VolumeId: volumeID,
-		Path:     mountPath,
+		VolumeId:   volumeID,
+		TargetPath: mountPath,
 	}
 
 	_, err := client.MountVolume(context.TODO(), mountVolumeRequest)
@@ -147,13 +152,13 @@ func runNegativeMountVolumeRequest(t *testing.T, client *v1beta3client.Client, v
 	}
 }
 
-func runNegativeDismountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, mountPath string) {
-	// Dismount the volume
-	dismountVolumeRequest := &v1beta3.DismountVolumeRequest{
-		VolumeId: volumeID,
-		Path:     mountPath,
+func runNegativeUnmountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, mountPath string) {
+	// Unmount the volume
+	unmountVolumeRequest := &v1beta3.UnmountVolumeRequest{
+		VolumeId:   volumeID,
+		TargetPath: mountPath,
 	}
-	_, err := client.DismountVolume(context.TODO(), dismountVolumeRequest)
+	_, err := client.UnmountVolume(context.TODO(), unmountVolumeRequest)
 	if err == nil {
 		t.Fatalf("Empty error. Volume id %s dismount from path %s ", volumeID, mountPath)
 	}
@@ -161,10 +166,10 @@ func runNegativeDismountVolumeRequest(t *testing.T, client *v1beta3client.Client
 
 func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
 	// Get VolumeStats
-	volumeStatsRequest := &v1beta3.VolumeStatsRequest{
+	volumeStatsRequest := &v1beta3.GetVolumeStatsRequest{
 		VolumeId: volumeID,
 	}
-	_, err := client.VolumeStats(context.TODO(), volumeStatsRequest)
+	_, err := client.GetVolumeStats(context.TODO(), volumeStatsRequest)
 	if err == nil {
 		t.Errorf("Empty error. VolumeStats for id %s", volumeID)
 	}
@@ -196,9 +201,9 @@ func negativeVolumeTests(t *testing.T) {
 	runNegativeMountVolumeRequest(t, client, "", "")
 	runNegativeMountVolumeRequest(t, client, "-1", "")
 
-	// Dismount volume negative tests
-	runNegativeDismountVolumeRequest(t, client, "", "")
-	runNegativeDismountVolumeRequest(t, client, "-1", "")
+	// Unmount volume negative tests
+	runNegativeUnmountVolumeRequest(t, client, "", "")
+	runNegativeUnmountVolumeRequest(t, client, "-1", "")
 
 	runNegativeVolumeStatsRequest(t, client, "")
 	runNegativeVolumeStatsRequest(t, client, "-1")
@@ -214,9 +219,10 @@ func negativeDiskTests(t *testing.T) {
 	defer client.Close()
 
 	// Empty disk Id test
-	runNegativeListVolumeRequest(t, client, "")
+	// TODO(mauriciopoppe): changed from an empty string to 0, verify if this is ok
+	runNegativeListVolumeRequest(t, client, 0)
 	// Negative disk id test
-	runNegativeListVolumeRequest(t, client, "-1")
+	runNegativeListVolumeRequest(t, client, -1)
 }
 
 func simpleE2e(t *testing.T) {
@@ -245,7 +251,7 @@ func simpleE2e(t *testing.T) {
 	diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
 
 	listRequest := &v1beta3.ListVolumesOnDiskRequest{
-		DiskId: diskNum,
+		DiskNumber: diskNum,
 	}
 	listResponse, err := volumeClient.ListVolumesOnDisk(context.TODO(), listRequest)
 	if err != nil {
@@ -286,25 +292,25 @@ func simpleE2e(t *testing.T) {
 	}
 
 	t.Logf("VolumeId %v", volumeID)
-	volumeStatsRequest := &v1beta3.VolumeStatsRequest{
+	volumeStatsRequest := &v1beta3.GetVolumeStatsRequest{
 		VolumeId: volumeID,
 	}
 
-	volumeStatsResponse, err := volumeClient.VolumeStats(context.TODO(), volumeStatsRequest)
+	volumeStatsResponse, err := volumeClient.GetVolumeStats(context.TODO(), volumeStatsRequest)
 	if err != nil {
 		t.Fatalf("VolumeStats request error: %v", err)
 	}
 
-	if volumeStatsResponse.VolumeSize == -1 {
-		t.Fatalf("VolumeSize reported is not valid, it is %v", volumeStatsResponse.VolumeSize)
+	if volumeStatsResponse.TotalBytes == -1 {
+		t.Fatalf("volumeStatsResponse.TotalBytes reported is not valid, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
-	oldSize := volumeStatsResponse.VolumeSize
+	oldSize := volumeStatsResponse.TotalBytes
 
 	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
 		VolumeId: volumeID,
 		// Resize from 5G to 2G
-		Size: 2 * 1024 * 1024 * 1024,
+		SizeBytes: 2 * 1024 * 1024 * 1024,
 	}
 
 	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
@@ -312,22 +318,22 @@ func simpleE2e(t *testing.T) {
 		t.Fatalf("Volume resize request failed. Error: %v", err)
 	}
 
-	volumeStatsResponse, err = volumeClient.VolumeStats(context.TODO(), volumeStatsRequest)
+	volumeStatsResponse, err = volumeClient.GetVolumeStats(context.TODO(), volumeStatsRequest)
 	if err != nil {
 		t.Fatalf("VolumeStats request after resize error: %v", err)
 	}
 
-	if volumeStatsResponse.VolumeSize >= oldSize {
-		t.Fatalf("VolumeSize reported is not smaller after resize, it is %v", volumeStatsResponse.VolumeSize)
+	if volumeStatsResponse.TotalBytes >= oldSize {
+		t.Fatalf("VolumeSize reported is not smaller after resize, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
-	volumeDiskNumberRequest := &v1beta3.VolumeDiskNumberRequest{
+	volumeDiskNumberRequest := &v1beta3.GetDiskNumberFromVolumeIDRequest{
 		VolumeId: volumeID,
 	}
 
-	volumeDiskNumberResponse, err := volumeClient.GetVolumeDiskNumber(context.TODO(), volumeDiskNumberRequest)
+	volumeDiskNumberResponse, err := volumeClient.GetDiskNumberFromVolumeID(context.TODO(), volumeDiskNumberRequest)
 	if err != nil {
-		t.Fatalf("GetVolumeDiskNumber failed: %v", err)
+		t.Fatalf("GetDiskNumberFromVolumeID failed: %v", err)
 	}
 
 	diskNumberString := fmt.Sprintf("%d", volumeDiskNumberResponse.DiskNumber)
@@ -347,20 +353,20 @@ func simpleE2e(t *testing.T) {
 
 	// Mount the volume
 	mountVolumeRequest := &v1beta3.MountVolumeRequest{
-		VolumeId: volumeID,
-		Path:     mountPath,
+		VolumeId:   volumeID,
+		TargetPath: mountPath,
 	}
 	_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
 	}
 
-	// Dismount the volume
-	dismountVolumeRequest := &v1beta3.DismountVolumeRequest{
-		VolumeId: volumeID,
-		Path:     mountPath,
+	// Unmount the volume
+	dismountVolumeRequest := &v1beta3.UnmountVolumeRequest{
+		VolumeId:   volumeID,
+		TargetPath: mountPath,
 	}
-	_, err = volumeClient.DismountVolume(context.TODO(), dismountVolumeRequest)
+	_, err = volumeClient.UnmountVolume(context.TODO(), dismountVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
 	}

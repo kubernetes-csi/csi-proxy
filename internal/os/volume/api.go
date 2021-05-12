@@ -11,12 +11,38 @@ import (
 
 const formatFilesystem = "ntfs"
 
-// VolAPIImplementor - struct for implementing the internal Volume APIs
-type VolAPIImplementor struct{}
+// API exposes the internal volume operations available in the server
+type API interface {
+	ListVolumesOnDisk(diskNumber int64) (volumeIDs []string, err error)
+	// MountVolume mounts the volume at the requested global staging target path
+	MountVolume(volumeID, targetPath string) error
+	// UnmountVolume gracefully dismounts a volume
+	UnmountVolume(volumeID, targetPath string) error
+	// IsVolumeFormatted checks if a volume is formatted with NTFS
+	IsVolumeFormatted(volumeID string) (bool, error)
+	// FormatVolume formats a volume with the provided file system
+	FormatVolume(volumeID string) error
+	// ResizeVolume performs resizing of the partition and file system for a block based volume
+	ResizeVolume(volumeID string, sizeBytes int64) error
+	// GetVolumeStats gets the volume information
+	GetVolumeStats(volumeID string) (int64, int64, error)
+	// GetDiskNumberFromVolumeID returns the disk number for where the volume is at
+	GetDiskNumberFromVolumeID(volumeID string) (int64, error)
+	// GetVolumeIDFromTargetPath returns the volume id of a given target path
+	GetVolumeIDFromTargetPath(targetPath string) (string, error)
+	// WriteVolumeCache writes volume cache to disk
+	WriteVolumeCache(volumeID string) error
+}
+
+// VolumeAPI implements the internal Volume APIs
+type VolumeAPI struct{}
+
+// verifies that the API is implemented
+var _ API = &VolumeAPI{}
 
 // New - Construct a new Volume API Implementation.
-func New() VolAPIImplementor {
-	return VolAPIImplementor{}
+func New() VolumeAPI {
+	return VolumeAPI{}
 }
 
 func runExec(cmd string) ([]byte, error) {
@@ -41,9 +67,9 @@ func getVolumeSize(volumeID string) (int64, error) {
 	return volumeSize, nil
 }
 
-// ListVolumesOnDisk - returns back list of volumes(volumeIDs) in the disk (requested in diskID).
-func (VolAPIImplementor) ListVolumesOnDisk(diskID string) (volumeIDs []string, err error) {
-	cmd := fmt.Sprintf("(Get-Disk -DeviceId %s |Get-Partition | Get-Volume).UniqueId", diskID)
+// ListVolumesOnDisk - returns back list of volumes(volumeIDs) in the disk.
+func (VolumeAPI) ListVolumesOnDisk(diskNumber int64) (volumeIDs []string, err error) {
+	cmd := fmt.Sprintf("(Get-Disk -Number %d |Get-Partition | Get-Volume).UniqueId", diskNumber)
 	out, err := runExec(cmd)
 	if err != nil {
 		return []string{}, fmt.Errorf("error list volumes on disk. cmd: %s, output: %s, error: %v", cmd, string(out), err)
@@ -54,7 +80,7 @@ func (VolAPIImplementor) ListVolumesOnDisk(diskID string) (volumeIDs []string, e
 }
 
 // FormatVolume - Format a volume with a pre specified filesystem (typically ntfs)
-func (VolAPIImplementor) FormatVolume(volumeID string) (err error) {
+func (VolumeAPI) FormatVolume(volumeID string) (err error) {
 	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Format-Volume  -FileSystem %s -Confirm:$false", volumeID, formatFilesystem)
 	out, err := runExec(cmd)
 	if err != nil {
@@ -65,12 +91,12 @@ func (VolAPIImplementor) FormatVolume(volumeID string) (err error) {
 }
 
 // WriteVolumeCache - Writes the file system cache to disk with the given volume id
-func (VolAPIImplementor) WriteVolumeCache(volumeID string) (err error) {
+func (VolumeAPI) WriteVolumeCache(volumeID string) (err error) {
 	return writeCache(volumeID)
 }
 
 // IsVolumeFormatted - Check if the volume is formatted with the pre specified filesystem(typically ntfs).
-func (VolAPIImplementor) IsVolumeFormatted(volumeID string) (bool, error) {
+func (VolumeAPI) IsVolumeFormatted(volumeID string) (bool, error) {
 	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" -ErrorAction Stop).FileSystemType", volumeID)
 	out, err := runExec(cmd)
 	if err != nil {
@@ -84,7 +110,7 @@ func (VolAPIImplementor) IsVolumeFormatted(volumeID string) (bool, error) {
 }
 
 // MountVolume - mounts a volume to a path. This is done using the Add-PartitionAccessPath for presenting the volume via a path.
-func (VolAPIImplementor) MountVolume(volumeID, path string) error {
+func (VolumeAPI) MountVolume(volumeID, path string) error {
 	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-Partition | Add-PartitionAccessPath -AccessPath %s", volumeID, path)
 	out, err := runExec(cmd)
 	if err != nil {
@@ -93,8 +119,8 @@ func (VolAPIImplementor) MountVolume(volumeID, path string) error {
 	return nil
 }
 
-// DismountVolume - unmounts the volume path by removing the partition access path
-func (VolAPIImplementor) DismountVolume(volumeID, path string) error {
+// UnmountVolume - unmounts the volume path by removing the partition access path
+func (VolumeAPI) UnmountVolume(volumeID, path string) error {
 	if err := writeCache(volumeID); err != nil {
 		return err
 	}
@@ -107,7 +133,7 @@ func (VolAPIImplementor) DismountVolume(volumeID, path string) error {
 }
 
 // ResizeVolume - resizes a volume with the given size, if size == 0 then max supported size is used
-func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
+func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 	// If size is 0 then we will resize to the maximum size possible, otherwise just resize to size
 	var cmd string
 	var out []byte
@@ -154,8 +180,8 @@ func (VolAPIImplementor) ResizeVolume(volumeID string, size int64) error {
 	return nil
 }
 
-// VolumeStats - retrieves the volume stats for a given volume
-func (VolAPIImplementor) VolumeStats(volumeID string) (int64, int64, error) {
+// GetVolumeStats - retrieves the volume stats for a given volume
+func (VolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
 	// get the size and sizeRemaining for the volume
 	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Select SizeRemaining,Size) | ConvertTo-Json", volumeID)
 	out, err := runExec(cmd)
@@ -180,8 +206,8 @@ func (VolAPIImplementor) VolumeStats(volumeID string) (int64, int64, error) {
 	return volumeSizeRemaining, volumeUsedSize, nil
 }
 
-// GetVolumeDiskNumber - gets the disk number where the volume is.
-func (VolAPIImplementor) GetVolumeDiskNumber(volumeID string) (int64, error) {
+// GetDiskNumberFromVolumeID - gets the disk number where the volume is.
+func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (int64, error) {
 	// get the size and sizeRemaining for the volume
 	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Get-Partition).DiskNumber", volumeID)
 	out, err := runExec(cmd)
@@ -205,8 +231,8 @@ func (VolAPIImplementor) GetVolumeDiskNumber(volumeID string) (int64, error) {
 	return diskNumber, nil
 }
 
-// GetVolumeIDFromMount - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out
-func (VolAPIImplementor) GetVolumeIDFromMount(mount string) (string, error) {
+// GetVolumeIDFromTargetPath - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out
+func (VolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
 	volumeString, err := getTarget(mount)
 
 	if err != nil {
