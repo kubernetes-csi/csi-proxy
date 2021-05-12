@@ -98,7 +98,7 @@ func TestListVolumesOnDisk(t *testing.T) {
 			inputDiskNumber:   3,
 			expectedVolumeIds: nil,
 			isErrorExpected:   true,
-			expectedError:     fmt.Errorf("returning error for diskID3 list"),
+			expectedError:     fmt.Errorf("returning error for 3 list"),
 		},
 	}
 
