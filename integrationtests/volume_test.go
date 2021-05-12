@@ -219,9 +219,9 @@ func negativeDiskTests(t *testing.T) {
 	defer client.Close()
 
 	// Empty disk Id test
-	// TODO(mauriciopoppe): changed from an empty string to 0, verify if this is ok
-	runNegativeListVolumeRequest(t, client, 0)
-	// Negative disk id test
+	// TODO(mauriciopoppe): previously diskNumber was a string and it could be possible to send
+	// an empty string, I'm not sure about the equivalent for a number so I set it to any
+	// negative number
 	runNegativeListVolumeRequest(t, client, -1)
 }
 
