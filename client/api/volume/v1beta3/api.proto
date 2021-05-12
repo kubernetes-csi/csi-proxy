@@ -156,9 +156,10 @@ message WriteVolumeCacheResponse {
     // Intentionally empty
 }
 
-// deprecated messages
+// deprecated messages, see #138
 
 message DismountVolumeRequest {
+    option deprecated = true;
     // Volume device ID of the volume to dismount
     string volume_id = 1;
     // Path where the volume has been mounted.
@@ -166,35 +167,41 @@ message DismountVolumeRequest {
 }
 
 message DismountVolumeResponse {
-    // Intentionally empty
+    option deprecated = true;
 }
 
 message VolumeDiskNumberRequest{
+    option deprecated = true;
     // Volume device Id of the volume to get the disk number for
     string volume_id = 1;
 }
 
 message VolumeDiskNumberResponse{
+    option deprecated = true;
     // Corresponding disk number
     int64 disk_number = 1;
 }
 
 message VolumeIDFromMountRequest {
+    option deprecated = true;
     // Mount
     string mount = 1;
 }
 
 message VolumeIDFromMountResponse {
+    option deprecated = true;
     // Mount
     string volume_id = 1;
 }
 
 message VolumeStatsRequest{
+    option deprecated = true;
     // Volume device Id of the volume to get the stats for
     string volume_id = 1;
 }
 
 message VolumeStatsResponse{
+    option deprecated = true;
     // Capacity of the volume
     int64 volume_size = 1;
     // Used bytes
