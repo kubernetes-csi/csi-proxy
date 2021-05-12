@@ -104,7 +104,7 @@ func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, di
 	}
 	_, err := client.ListVolumesOnDisk(context.TODO(), listRequest)
 	if err == nil {
-		t.Fatalf("Empty error. Expected error for disknum:%s", diskNum)
+		t.Fatalf("Empty error. Expected error for disknum:%d", diskNum)
 	}
 }
 
