@@ -104,7 +104,7 @@ func Convert_internal_GetDiskNumberFromVolumeIDRequest_To_v1beta3_GetDiskNumberF
 }
 
 func autoConvert_v1beta3_GetDiskNumberFromVolumeIDResponse_To_internal_GetDiskNumberFromVolumeIDResponse(in *v1beta3.GetDiskNumberFromVolumeIDResponse, out *internal.GetDiskNumberFromVolumeIDResponse) error {
-	out.DiskNumber = in.DiskNumber
+	out.DiskNumber = uint32(in.DiskNumber)
 	return nil
 }
 
@@ -114,7 +114,7 @@ func Convert_v1beta3_GetDiskNumberFromVolumeIDResponse_To_internal_GetDiskNumber
 }
 
 func autoConvert_internal_GetDiskNumberFromVolumeIDResponse_To_v1beta3_GetDiskNumberFromVolumeIDResponse(in *internal.GetDiskNumberFromVolumeIDResponse, out *v1beta3.GetDiskNumberFromVolumeIDResponse) error {
-	out.DiskNumber = in.DiskNumber
+	out.DiskNumber = int64(in.DiskNumber)
 	return nil
 }
 
@@ -246,8 +246,8 @@ func Convert_internal_IsVolumeFormattedResponse_To_v1beta3_IsVolumeFormattedResp
 }
 
 func autoConvert_v1beta3_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskRequest(in *v1beta3.ListVolumesOnDiskRequest, out *internal.ListVolumesOnDiskRequest) error {
-	out.DiskNumber = in.DiskNumber
-	out.PartitionNumber = in.PartitionNumber
+	out.DiskNumber = uint32(in.DiskNumber)
+	out.PartitionNumber = uint32(in.PartitionNumber)
 	return nil
 }
 
@@ -257,8 +257,8 @@ func Convert_v1beta3_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskReque
 }
 
 func autoConvert_internal_ListVolumesOnDiskRequest_To_v1beta3_ListVolumesOnDiskRequest(in *internal.ListVolumesOnDiskRequest, out *v1beta3.ListVolumesOnDiskRequest) error {
-	out.PartitionNumber = in.PartitionNumber
-	out.DiskNumber = in.DiskNumber
+	out.PartitionNumber = int64(in.PartitionNumber)
+	out.DiskNumber = int64(in.DiskNumber)
 	return nil
 }
 

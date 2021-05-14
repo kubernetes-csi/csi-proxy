@@ -13,7 +13,7 @@ const formatFilesystem = "ntfs"
 
 // API exposes the internal volume operations available in the server
 type API interface {
-	ListVolumesOnDisk(diskNumber int64) (volumeIDs []string, err error)
+	ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err error)
 	// MountVolume mounts the volume at the requested global staging target path
 	MountVolume(volumeID, targetPath string) error
 	// UnmountVolume gracefully dismounts a volume
@@ -27,7 +27,7 @@ type API interface {
 	// GetVolumeStats gets the volume information
 	GetVolumeStats(volumeID string) (int64, int64, error)
 	// GetDiskNumberFromVolumeID returns the disk number for where the volume is at
-	GetDiskNumberFromVolumeID(volumeID string) (int64, error)
+	GetDiskNumberFromVolumeID(volumeID string) (uint32, error)
 	// GetVolumeIDFromTargetPath returns the volume id of a given target path
 	GetVolumeIDFromTargetPath(targetPath string) (string, error)
 	// WriteVolumeCache writes volume cache to disk
@@ -68,7 +68,7 @@ func getVolumeSize(volumeID string) (int64, error) {
 }
 
 // ListVolumesOnDisk - returns back list of volumes(volumeIDs) in the disk.
-func (VolumeAPI) ListVolumesOnDisk(diskNumber int64) (volumeIDs []string, err error) {
+func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err error) {
 	cmd := fmt.Sprintf("(Get-Disk -Number %d |Get-Partition | Get-Volume).UniqueId", diskNumber)
 	out, err := runExec(cmd)
 	if err != nil {
@@ -207,28 +207,28 @@ func (VolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
 }
 
 // GetDiskNumberFromVolumeID - gets the disk number where the volume is.
-func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (int64, error) {
+func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
 	// get the size and sizeRemaining for the volume
 	cmd := fmt.Sprintf("(Get-Volume -UniqueId \"%s\" | Get-Partition).DiskNumber", volumeID)
 	out, err := runExec(cmd)
 
 	if err != nil || len(out) == 0 {
-		return -1, fmt.Errorf("error getting disk number. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+		return 0, fmt.Errorf("error getting disk number. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
 
 	reg, err := regexp.Compile("[^0-9]+")
 	if err != nil {
-		return -1, fmt.Errorf("error compiling regex. err: %v", err)
+		return 0, fmt.Errorf("error compiling regex. err: %v", err)
 	}
 	diskNumberOutput := reg.ReplaceAllString(string(out), "")
 
-	diskNumber, err := strconv.ParseInt(diskNumberOutput, 10, 64)
+	diskNumber, err := strconv.ParseUint(diskNumberOutput, 10, 32)
 
 	if err != nil {
-		return -1, fmt.Errorf("error parsing disk number. cmd: %s, output: %s, error: %v", cmd, diskNumberOutput, err)
+		return 0, fmt.Errorf("error parsing disk number. cmd: %s, output: %s, error: %v", cmd, diskNumberOutput, err)
 	}
 
-	return diskNumber, nil
+	return uint32(diskNumber), nil
 }
 
 // GetVolumeIDFromTargetPath - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out

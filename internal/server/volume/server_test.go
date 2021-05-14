@@ -11,18 +11,18 @@ import (
 )
 
 type fakeVolumeAPI struct {
-	diskVolMap map[int64][]string
+	diskVolMap map[uint32][]string
 }
 
 var _ volume.API = &fakeVolumeAPI{}
 
-func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[int64][]string) {
+func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[uint32][]string) {
 	for d, v := range diskToVolMapIn {
 		volumeAPI.diskVolMap[d] = v
 	}
 }
 
-func (volumeAPI *fakeVolumeAPI) ListVolumesOnDisk(diskNumber int64) (volumeIDs []string, err error) {
+func (volumeAPI *fakeVolumeAPI) ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err error) {
 	v := volumeAPI.diskVolMap[diskNumber]
 	if v == nil {
 		return nil, fmt.Errorf("returning error for %d list", diskNumber)
@@ -50,8 +50,8 @@ func (volumeAPI *fakeVolumeAPI) ResizeVolume(volumeID string, size int64) error 
 	return nil
 }
 
-func (volumeAPI *fakeVolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (int64, error) {
-	return -1, nil
+func (volumeAPI *fakeVolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
+	return 0, nil
 }
 
 func (volumeAPI *fakeVolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
@@ -74,7 +74,7 @@ func TestListVolumesOnDisk(t *testing.T) {
 
 	testCases := []struct {
 		name              string
-		inputDiskNumber   int64
+		inputDiskNumber   uint32
 		expectedVolumeIds []string
 		isErrorExpected   bool
 		expectedError     error
@@ -102,12 +102,12 @@ func TestListVolumesOnDisk(t *testing.T) {
 		},
 	}
 
-	diskToVolMap := map[int64][]string{
+	diskToVolMap := map[uint32][]string{
 		1: {"volumeID1", "volumeID2"},
 		2: {"volumeID3"},
 	}
 	volAPI := &fakeVolumeAPI{
-		diskVolMap: make(map[int64][]string),
+		diskVolMap: make(map[uint32][]string),
 	}
 	volAPI.Fill(diskToVolMap)
 

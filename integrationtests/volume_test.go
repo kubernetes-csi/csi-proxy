@@ -217,12 +217,6 @@ func negativeDiskTests(t *testing.T) {
 		t.Fatalf("Client new error: %v", err)
 	}
 	defer client.Close()
-
-	// Empty disk Id test
-	// TODO(mauriciopoppe): previously diskNumber was a string and it could be possible to send
-	// an empty string, I'm not sure about the equivalent for a number so I set it to any
-	// negative number
-	runNegativeListVolumeRequest(t, client, -1)
 }
 
 func simpleE2e(t *testing.T) {

@@ -6,8 +6,8 @@
 package internal
 
 type ListVolumesOnDiskRequest struct {
-	PartitionNumber int64
-	DiskNumber      int64
+	PartitionNumber uint32
+	DiskNumber      uint32
 }
 
 type ListVolumesOnDiskResponse struct {
@@ -74,7 +74,7 @@ type GetDiskNumberFromVolumeIDRequest struct {
 }
 
 type GetDiskNumberFromVolumeIDResponse struct {
-	DiskNumber int64
+	DiskNumber uint32
 }
 
 type GetVolumeIDFromTargetPathRequest struct {

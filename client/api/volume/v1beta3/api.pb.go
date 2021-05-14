@@ -29,9 +29,9 @@ type ListVolumesOnDiskRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Disk device number of the disk to query for volumes
+	// Disk device number of the disk to query for volumes.
 	DiskNumber int64 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
-	// The partition number
+	// The partition number.
 	PartitionNumber int64 `protobuf:"varint,2,opt,name=partition_number,json=partitionNumber,proto3" json:"partition_number,omitempty"`
 }
 
@@ -86,7 +86,7 @@ type ListVolumesOnDiskResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device IDs of volumes on the specified disk
+	// Volume device IDs of volumes on the specified disk.
 	VolumeIds []string `protobuf:"bytes,1,rep,name=volume_ids,json=volumeIds,proto3" json:"volume_ids,omitempty"`
 }
 
@@ -134,9 +134,9 @@ type MountVolumeRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to mount
+	// Volume device ID of the volume to mount.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
-	// Path in the host's file system where the volume needs to be mounted
+	// Path in the host's file system where the volume needs to be mounted.
 	TargetPath string `protobuf:"bytes,2,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
 }
 
@@ -229,7 +229,7 @@ type UnmountVolumeRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to dismount
+	// Volume device ID of the volume to dismount.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 	// Path where the volume has been mounted.
 	TargetPath string `protobuf:"bytes,2,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
@@ -324,7 +324,7 @@ type IsVolumeFormattedRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to check
+	// Volume device ID of the volume to check.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -372,7 +372,7 @@ type IsVolumeFormattedResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Is the volume formatted with NTFS
+	// Is the volume formatted with NTFS.
 	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty"`
 }
 
@@ -420,7 +420,7 @@ type FormatVolumeRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to format
+	// Volume device ID of the volume to format.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -506,9 +506,9 @@ type ResizeVolumeRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to dismount
+	// Volume device ID of the volume to dismount.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
-	// New size in bytes of the volume
+	// New size in bytes of the volume.
 	SizeBytes int64 `protobuf:"varint,2,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
 }
 
@@ -601,7 +601,7 @@ type GetVolumeStatsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device Id of the volume to get the stats for
+	// Volume device Id of the volume to get the stats for.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -706,7 +706,7 @@ type GetDiskNumberFromVolumeIDRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device Id of the volume to get the disk number for
+	// Volume device ID of the volume to get the disk number for.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -754,7 +754,7 @@ type GetDiskNumberFromVolumeIDResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Corresponding disk number
+	// Corresponding disk number.
 	DiskNumber int64 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
 }
 
@@ -802,7 +802,7 @@ type GetVolumeIDFromTargetPathRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The target path
+	// The target path.
 	TargetPath string `protobuf:"bytes,1,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
 }
 
@@ -850,7 +850,7 @@ type GetVolumeIDFromTargetPathResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Mount
+	// The volume device ID.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -898,7 +898,7 @@ type WriteVolumeCacheRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to flush the cache
+	// Volume device ID of the volume to flush the cache.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -1082,7 +1082,7 @@ type VolumeDiskNumberRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device Id of the volume to get the disk number for
+	// Volume device ID of the volume to get the disk number for.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -1131,7 +1131,7 @@ type VolumeDiskNumberResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Corresponding disk number
+	// Corresponding disk number.
 	DiskNumber int64 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
 }
 
@@ -1180,7 +1180,7 @@ type VolumeIDFromMountRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Mount
+	// Mount.
 	Mount string `protobuf:"bytes,1,opt,name=mount,proto3" json:"mount,omitempty"`
 }
 
@@ -1229,7 +1229,7 @@ type VolumeIDFromMountResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Mount
+	// The volume device ID.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -1278,7 +1278,7 @@ type VolumeStatsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device Id of the volume to get the stats for
+	// Volume device Id of the volume to get the stats for.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 }
 
@@ -1327,9 +1327,9 @@ type VolumeStatsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Capacity of the volume
+	// Capacity of the volume.
 	VolumeSize int64 `protobuf:"varint,1,opt,name=volume_size,json=volumeSize,proto3" json:"volume_size,omitempty"`
-	// Used bytes
+	// Used bytes.
 	VolumeUsedSize int64 `protobuf:"varint,2,opt,name=volume_used_size,json=volumeUsedSize,proto3" json:"volume_used_size,omitempty"`
 }
 
@@ -2039,38 +2039,37 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type VolumeClient interface {
-	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for
-	// all volumes on a Disk device
+	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes on a Disk device.
 	ListVolumesOnDisk(ctx context.Context, in *ListVolumesOnDiskRequest, opts ...grpc.CallOption) (*ListVolumesOnDiskResponse, error)
-	// MountVolume mounts the volume at the requested global staging path
+	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(ctx context.Context, in *MountVolumeRequest, opts ...grpc.CallOption) (*MountVolumeResponse, error)
-	// UnmountVolume gracefully unmounts a volume
+	// UnmountVolume gracefully unmounts a volume.
 	UnmountVolume(ctx context.Context, in *UnmountVolumeRequest, opts ...grpc.CallOption) (*UnmountVolumeResponse, error)
 	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(ctx context.Context, in *IsVolumeFormattedRequest, opts ...grpc.CallOption) (*IsVolumeFormattedResponse, error)
 	// FormatVolume formats a volume with NTFS.
 	FormatVolume(ctx context.Context, in *FormatVolumeRequest, opts ...grpc.CallOption) (*FormatVolumeResponse, error)
-	// ResizeVolume performs resizing of the partition and file system for a block based volume
+	// ResizeVolume performs resizing of the partition and file system for a block based volume.
 	ResizeVolume(ctx context.Context, in *ResizeVolumeRequest, opts ...grpc.CallOption) (*ResizeVolumeResponse, error)
-	// GetVolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	// GetVolumeStats gathers total types and used bytes for a volume.
 	GetVolumeStats(ctx context.Context, in *GetVolumeStatsRequest, opts ...grpc.CallOption) (*GetVolumeStatsResponse, error)
-	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located
+	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
 	GetDiskNumberFromVolumeID(ctx context.Context, in *GetDiskNumberFromVolumeIDRequest, opts ...grpc.CallOption) (*GetDiskNumberFromVolumeIDResponse, error)
-	// GetVolumeIDFromTargetPath gets the volume id for a given mount
+	// GetVolumeIDFromTargetPath gets the volume id for a given mount.
 	GetVolumeIDFromTargetPath(ctx context.Context, in *GetVolumeIDFromTargetPathRequest, opts ...grpc.CallOption) (*GetVolumeIDFromTargetPathResponse, error)
-	// WriteVolumeCache write volume cache to disk
+	// WriteVolumeCache write volume cache to disk.
 	WriteVolumeCache(ctx context.Context, in *WriteVolumeCacheRequest, opts ...grpc.CallOption) (*WriteVolumeCacheResponse, error)
 	// Deprecated: Do not use.
-	// DismountVolume dismounts a volume
+	// DismountVolume dismounts a volume.
 	DismountVolume(ctx context.Context, in *DismountVolumeRequest, opts ...grpc.CallOption) (*DismountVolumeResponse, error)
 	// Deprecated: Do not use.
-	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume.
 	VolumeStats(ctx context.Context, in *VolumeStatsRequest, opts ...grpc.CallOption) (*VolumeStatsResponse, error)
 	// Deprecated: Do not use.
-	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located
+	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located.
 	GetVolumeDiskNumber(ctx context.Context, in *VolumeDiskNumberRequest, opts ...grpc.CallOption) (*VolumeDiskNumberResponse, error)
 	// Deprecated: Do not use.
-	// GetVolumeIDFromMount gets the volume id for a given mount
+	// GetVolumeIDFromMount gets the volume id for a given mount.
 	GetVolumeIDFromMount(ctx context.Context, in *VolumeIDFromMountRequest, opts ...grpc.CallOption) (*VolumeIDFromMountResponse, error)
 }
 
@@ -2214,38 +2213,37 @@ func (c *volumeClient) GetVolumeIDFromMount(ctx context.Context, in *VolumeIDFro
 
 // VolumeServer is the server API for Volume service.
 type VolumeServer interface {
-	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for
-	// all volumes on a Disk device
+	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes on a Disk device.
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest) (*ListVolumesOnDiskResponse, error)
-	// MountVolume mounts the volume at the requested global staging path
+	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error)
-	// UnmountVolume gracefully unmounts a volume
+	// UnmountVolume gracefully unmounts a volume.
 	UnmountVolume(context.Context, *UnmountVolumeRequest) (*UnmountVolumeResponse, error)
 	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(context.Context, *IsVolumeFormattedRequest) (*IsVolumeFormattedResponse, error)
 	// FormatVolume formats a volume with NTFS.
 	FormatVolume(context.Context, *FormatVolumeRequest) (*FormatVolumeResponse, error)
-	// ResizeVolume performs resizing of the partition and file system for a block based volume
+	// ResizeVolume performs resizing of the partition and file system for a block based volume.
 	ResizeVolume(context.Context, *ResizeVolumeRequest) (*ResizeVolumeResponse, error)
-	// GetVolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	// GetVolumeStats gathers total types and used bytes for a volume.
 	GetVolumeStats(context.Context, *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error)
-	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located
+	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
 	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error)
-	// GetVolumeIDFromTargetPath gets the volume id for a given mount
+	// GetVolumeIDFromTargetPath gets the volume id for a given mount.
 	GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error)
-	// WriteVolumeCache write volume cache to disk
+	// WriteVolumeCache write volume cache to disk.
 	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error)
 	// Deprecated: Do not use.
-	// DismountVolume dismounts a volume
+	// DismountVolume dismounts a volume.
 	DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error)
 	// Deprecated: Do not use.
-	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume
+	// VolumeStats gathers DiskSize, VolumeSize and VolumeUsedSize for a volume.
 	VolumeStats(context.Context, *VolumeStatsRequest) (*VolumeStatsResponse, error)
 	// Deprecated: Do not use.
-	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located
+	// GetVolumeDiskNumber gets the disk number of the disk where the volume is located.
 	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest) (*VolumeDiskNumberResponse, error)
 	// Deprecated: Do not use.
-	// GetVolumeIDFromMount gets the volume id for a given mount
+	// GetVolumeIDFromMount gets the volume id for a given mount.
 	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error)
 }
 

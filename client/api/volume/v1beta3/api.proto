@@ -52,9 +52,9 @@ service Volume {
 
 message ListVolumesOnDiskRequest {
     // Disk device number of the disk to query for volumes.
-    int64 disk_number = 1;
+    uint32 disk_number = 1;
     // The partition number.
-    int64 partition_number = 2;
+    uint32 partition_number = 2;
 }
 
 message ListVolumesOnDiskResponse {
@@ -133,7 +133,7 @@ message GetDiskNumberFromVolumeIDRequest {
 
 message GetDiskNumberFromVolumeIDResponse {
     // Corresponding disk number.
-    int64 disk_number = 1;
+    uint32 disk_number = 1;
 }
 
 message GetVolumeIDFromTargetPathRequest {
