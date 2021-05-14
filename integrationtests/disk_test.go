@@ -74,7 +74,7 @@ func TestDiskAPIGroup(t *testing.T) {
 
 		defer diskCleanup(t, vhdxPath, mountPath, testPluginPath)
 		diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
-		diskNumAsString := strconv.FormatInt(diskNum, 10)
+		diskNumAsString := strconv.FormatUint(uint64(diskNum), 10)
 
 		out, err := runPowershellCmd(fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsOffline $true", diskNum))
 		require.NoError(t, err, "failed setting disk offline, out=%v", out)

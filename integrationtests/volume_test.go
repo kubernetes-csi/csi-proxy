@@ -51,7 +51,7 @@ func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
 	}
 }
 
-func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) int64 {
+func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 	var cmd, out string
 	var err error
 	const initialSize = 5 * 1024 * 1024 * 1024
@@ -75,14 +75,14 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) int64 {
 		t.Fatalf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 	}
 
-	var diskNum int64
+	var diskNum uint64
 	var diskNumUnparsed string
 	cmd = fmt.Sprintf("(Get-VHD -Path %s).DiskNumber", vhdxPath)
 
 	if diskNumUnparsed, err = runPowershellCmd(cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
-	if diskNum, err = strconv.ParseInt(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 64); err != nil {
+	if diskNum, err = strconv.ParseUint(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 32); err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
@@ -95,10 +95,10 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) int64 {
 	if _, err = runPowershellCmd(cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
-	return diskNum
+	return uint32(diskNum)
 }
 
-func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum int64) {
+func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum uint32) {
 	listRequest := &v1beta3.ListVolumesOnDiskRequest{
 		DiskNumber: diskNum,
 	}
