@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	v1beta3 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
+	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
 	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

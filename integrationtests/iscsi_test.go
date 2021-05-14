@@ -46,12 +46,12 @@ func TestIscsiAPIGroup(t *testing.T) {
 	})
 
 	t.Run("Full flow", func(t *testing.T) {
-		e2e_test(t)
+		e2eTest(t)
 	})
 
 }
 
-func e2e_test(t *testing.T) {
+func e2eTest(t *testing.T) {
 	config, err := setupEnv("e2e")
 	require.NoError(t, err)
 

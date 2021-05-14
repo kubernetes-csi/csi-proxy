@@ -5,7 +5,7 @@ import (
 	"math"
 
 	pb "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy/v1alpha1"
-	internal "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
 )
 
 func convert_pb_ComputeDoubleRequest_To_internal_ComputeDoubleRequest(in *pb.ComputeDoubleRequest, out *internal.ComputeDoubleRequest) error {

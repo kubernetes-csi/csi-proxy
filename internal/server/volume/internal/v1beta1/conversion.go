@@ -3,8 +3,8 @@ package v1beta1
 // Add manual conversion functions here to override automatic conversion functions
 
 import (
-	v1beta1 "github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1"
-	internal "github.com/kubernetes-csi/csi-proxy/internal/server/volume/internal"
+	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1"
+	"github.com/kubernetes-csi/csi-proxy/internal/server/volume/internal"
 )
 
 func Convert_internal_VolumeStatsResponse_To_v1beta1_VolumeStatsResponse(in *internal.VolumeStatsResponse, out *v1beta1.VolumeStatsResponse) error {
