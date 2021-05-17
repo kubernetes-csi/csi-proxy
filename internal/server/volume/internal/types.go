@@ -1,13 +1,15 @@
 // Defines all the structs that the server is aware of, because all
 // the apis are included as the target for code generation it also
 // has definition for older APIs e.g. volume/v1alpha1, volume/v1beta1, etc
-// Because of this some structs are needed but are no longer used
+// Because of this some structs are needed but are no longer used in newer APIs
 
 package internal
 
 type ListVolumesOnDiskRequest struct {
-	PartitionNumber uint32
+	// DiskId is deprecated, it's parsed into a DiskNumber in the internal server implementation
+	DiskId          string
 	DiskNumber      uint32
+	PartitionNumber uint32
 }
 
 type ListVolumesOnDiskResponse struct {
@@ -15,7 +17,9 @@ type ListVolumesOnDiskResponse struct {
 }
 
 type MountVolumeRequest struct {
-	VolumeId   string
+	VolumeId string
+	// Path is deprecated, it's copied to TargetPath in the internal server implementation
+	Path       string
 	TargetPath string
 }
 
@@ -53,7 +57,9 @@ type UnmountVolumeResponse struct {
 }
 
 type ResizeVolumeRequest struct {
-	VolumeId  string
+	VolumeId string
+	// Size is deprecated, it's copied into SizeBytes
+	Size      int64
 	SizeBytes int64
 }
 
@@ -85,12 +91,29 @@ type GetVolumeIDFromTargetPathResponse struct {
 	VolumeId string
 }
 
-// These fields are deprecated but are needed because the generator needs them
-type DismountVolumeRequest struct{}
+// These structs are deprecated but are needed to provide support for older APIs
+
+type DismountVolumeRequest struct {
+	VolumeId string
+	Path     string
+}
 type DismountVolumeResponse struct{}
-type VolumeDiskNumberRequest struct{}
-type VolumeDiskNumberResponse struct{}
-type VolumeStatsRequest struct{}
-type VolumeStatsResponse struct{}
-type VolumeIDFromMountRequest struct{}
-type VolumeIDFromMountResponse struct{}
+type VolumeDiskNumberRequest struct {
+	VolumeId string
+}
+type VolumeDiskNumberResponse struct {
+	DiskNumber int64
+}
+type VolumeIDFromMountRequest struct {
+	Mount string
+}
+type VolumeIDFromMountResponse struct {
+	VolumeId string
+}
+type VolumeStatsRequest struct {
+	VolumeId string
+}
+type VolumeStatsResponse struct {
+	VolumeSize     int64
+	VolumeUsedSize int64
+}

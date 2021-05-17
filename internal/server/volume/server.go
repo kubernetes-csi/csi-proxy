@@ -3,6 +3,7 @@ package volume
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/os/volume"
@@ -25,11 +26,17 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 	klog.V(5).Infof("ListVolumesOnDisk: Request: %+v", request)
 	response := &internal.ListVolumesOnDiskResponse{}
 
+	// pre v1beta3 requests are done with diskId instead of diskNumber
 	diskNumber := request.DiskNumber
-	if diskNumber < 0 {
-		klog.Errorf("disk number is invalid")
-		return response, fmt.Errorf("ListVolumesOnDiskRequest.DiskNumber is invalid")
+	if version.Compare(apiversion.NewVersionOrPanic("v1beta3")) < 0 {
+		diskIDUint, err := strconv.ParseUint(request.DiskId, 10, 64)
+		if err != nil {
+			return response, fmt.Errorf("Failed to parse diskId: err=%+v", err)
+		}
+		diskNumber = uint32(diskIDUint)
+		return nil, fmt.Errorf("VolumeStats requires CSI-Proxy API version v1beta1 or greater")
 	}
+
 	volumeIDs, err := s.hostAPI.ListVolumesOnDisk(diskNumber)
 	if err != nil {
 		klog.Errorf("failed ListVolumeOnDisk %v", err)
@@ -43,6 +50,11 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 func (s *Server) MountVolume(context context.Context, request *internal.MountVolumeRequest, version apiversion.Version) (*internal.MountVolumeResponse, error) {
 	klog.V(5).Infof("MountVolume: Request: %+v", request)
 	response := &internal.MountVolumeResponse{}
+
+	// pre v1beta3 API requests were done with `path` instead of `targetPath`
+	if version.Compare(apiversion.NewVersionOrPanic("v1beta3")) < 0 {
+		request.TargetPath = request.Path
+	}
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
@@ -63,8 +75,17 @@ func (s *Server) MountVolume(context context.Context, request *internal.MountVol
 	return response, nil
 }
 
-func (s *Server) DismountVolume(context.Context, *internal.DismountVolumeRequest, apiversion.Version) (*internal.DismountVolumeResponse, error) {
-	return nil, fmt.Errorf("DismountVolume is deprecated, use UnmountVolume")
+func (s *Server) DismountVolume(context context.Context, request *internal.DismountVolumeRequest, version apiversion.Version) (*internal.DismountVolumeResponse, error) {
+	unmountVolumeRequest := &internal.UnmountVolumeRequest{
+		VolumeId:   request.VolumeId,
+		TargetPath: request.Path,
+	}
+	_, err := s.UnmountVolume(context, unmountVolumeRequest, version)
+	if err != nil {
+		return nil, fmt.Errorf("Forward to UnmountVolume failed, err=%+v", err)
+	}
+	dismountVolumeResponse := &internal.DismountVolumeResponse{}
+	return dismountVolumeResponse, nil
 }
 
 func (s *Server) UnmountVolume(context context.Context, request *internal.UnmountVolumeRequest, version apiversion.Version) (*internal.UnmountVolumeResponse, error) {
@@ -148,6 +169,11 @@ func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeV
 	klog.V(4).Infof("calling ResizeVolume with request: %+v", request)
 	response := &internal.ResizeVolumeResponse{}
 
+	// pre v1beta3 API requests were done with `size` instead of `sizeBytes`
+	if version.Compare(apiversion.NewVersionOrPanic("v1beta3")) < 0 {
+		request.SizeBytes = request.Size
+	}
+
 	volumeID := request.VolumeId
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
@@ -165,7 +191,19 @@ func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeV
 }
 
 func (s *Server) VolumeStats(context context.Context, request *internal.VolumeStatsRequest, version apiversion.Version) (*internal.VolumeStatsResponse, error) {
-	return nil, fmt.Errorf("DismountVolume is deprecated, use UnmountVolume")
+	klog.V(5).Infof("VolumeStats is deprecated, use GetVolumeStats instead.")
+	getVolumeStatsRequest := &internal.GetVolumeStatsRequest{
+		VolumeId: request.VolumeId,
+	}
+	getVolumeStatsResponse, err := s.GetVolumeStats(context, getVolumeStatsRequest, version)
+	if err != nil {
+		return nil, fmt.Errorf("Forward to GetVolumeStats failed, err=%+v", err)
+	}
+	volumeStatsResponse := &internal.VolumeStatsResponse{
+		VolumeSize:     getVolumeStatsResponse.TotalBytes,
+		VolumeUsedSize: getVolumeStatsResponse.UsedBytes,
+	}
+	return volumeStatsResponse, nil
 }
 
 func (s *Server) GetVolumeStats(context context.Context, request *internal.GetVolumeStatsRequest, version apiversion.Version) (*internal.GetVolumeStatsResponse, error) {
@@ -198,7 +236,17 @@ func (s *Server) GetVolumeStats(context context.Context, request *internal.GetVo
 }
 
 func (s *Server) GetVolumeDiskNumber(context context.Context, request *internal.VolumeDiskNumberRequest, version apiversion.Version) (*internal.VolumeDiskNumberResponse, error) {
-	return nil, fmt.Errorf("GetVolumeDiskNumber is deprecated, use GetDiskNumberFromVolumeID")
+	getDiskNumberFromVolumeIDRequest := &internal.GetDiskNumberFromVolumeIDRequest{
+		VolumeId: request.VolumeId,
+	}
+	getDiskNumberFromVolumeIDResponse, err := s.GetDiskNumberFromVolumeID(context, getDiskNumberFromVolumeIDRequest, version)
+	if err != nil {
+		return nil, fmt.Errorf("Forward to GetDiskNumberFromVolumeID failed, err=%+v", err)
+	}
+	volumeStatsResponse := &internal.VolumeDiskNumberResponse{
+		DiskNumber: int64(getDiskNumberFromVolumeIDResponse.DiskNumber),
+	}
+	return volumeStatsResponse, nil
 }
 
 func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *internal.GetDiskNumberFromVolumeIDRequest, version apiversion.Version) (*internal.GetDiskNumberFromVolumeIDResponse, error) {
@@ -227,14 +275,25 @@ func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *int
 }
 
 func (s *Server) GetVolumeIDFromMount(context context.Context, request *internal.VolumeIDFromMountRequest, version apiversion.Version) (*internal.VolumeIDFromMountResponse, error) {
-	return nil, fmt.Errorf("GetVolumeIDFromMount is deprecated, use GetVolumeIDFromTargetPath")
+	klog.V(5).Infof("GetVolumeIDFromMount is deprecated, use GetVolumeIDFromTargetPathRequest instead.")
+	getVolumeIDFromTargetPathRequest := &internal.GetVolumeIDFromTargetPathRequest{
+		TargetPath: request.Mount,
+	}
+	getVolumeIDFromTargetPathResponse, err := s.GetVolumeIDFromTargetPath(context, getVolumeIDFromTargetPathRequest, version)
+	if err != nil {
+		return nil, fmt.Errorf("Forward to GetVolumeIDFromTargetPath failed, err=%+v", err)
+	}
+	volumeIDFromMountResponse := &internal.VolumeIDFromMountResponse{
+		VolumeId: getVolumeIDFromTargetPathResponse.VolumeId,
+	}
+	return volumeIDFromMountResponse, nil
 }
 
 func (s *Server) GetVolumeIDFromTargetPath(context context.Context, request *internal.GetVolumeIDFromTargetPathRequest, version apiversion.Version) (*internal.GetVolumeIDFromTargetPathResponse, error) {
-	klog.V(4).Infof("calling GetVolumeFromMount with request %+v", request)
+	klog.V(4).Infof("calling GetVolumeIDFromTargetPath with request %+v", request)
 	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
 	if version.Compare(minimumVersion) < 0 {
-		return nil, fmt.Errorf("GetVolumeFromMount requires CSI-Proxy API version v1beta1 or greater")
+		return nil, fmt.Errorf("GetVolumeIDFromTargetPath requires CSI-Proxy API version v1beta1 or greater")
 	}
 
 	targetPath := request.TargetPath
@@ -244,7 +303,7 @@ func (s *Server) GetVolumeIDFromTargetPath(context context.Context, request *int
 
 	volume, err := s.hostAPI.GetVolumeIDFromTargetPath(targetPath)
 	if err != nil {
-		klog.Errorf("failed GetVolumeFromMount %v", err)
+		klog.Errorf("failed GetVolumeIDFromTargetPathc: %v", err)
 		return nil, err
 	}
 

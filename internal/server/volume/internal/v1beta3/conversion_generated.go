@@ -10,6 +10,8 @@ import (
 )
 
 func autoConvert_v1beta3_DismountVolumeRequest_To_internal_DismountVolumeRequest(in *v1beta3.DismountVolumeRequest, out *internal.DismountVolumeRequest) error {
+	out.VolumeId = in.VolumeId
+	out.Path = in.Path
 	return nil
 }
 
@@ -19,6 +21,8 @@ func Convert_v1beta3_DismountVolumeRequest_To_internal_DismountVolumeRequest(in 
 }
 
 func autoConvert_internal_DismountVolumeRequest_To_v1beta3_DismountVolumeRequest(in *internal.DismountVolumeRequest, out *v1beta3.DismountVolumeRequest) error {
+	out.VolumeId = in.VolumeId
+	out.Path = in.Path
 	return nil
 }
 
@@ -257,8 +261,8 @@ func Convert_v1beta3_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskReque
 }
 
 func autoConvert_internal_ListVolumesOnDiskRequest_To_v1beta3_ListVolumesOnDiskRequest(in *internal.ListVolumesOnDiskRequest, out *v1beta3.ListVolumesOnDiskRequest) error {
-	out.PartitionNumber = in.PartitionNumber
 	out.DiskNumber = in.DiskNumber
+	out.PartitionNumber = in.PartitionNumber
 	return nil
 }
 
@@ -408,6 +412,7 @@ func Convert_internal_UnmountVolumeResponse_To_v1beta3_UnmountVolumeResponse(in 
 }
 
 func autoConvert_v1beta3_VolumeDiskNumberRequest_To_internal_VolumeDiskNumberRequest(in *v1beta3.VolumeDiskNumberRequest, out *internal.VolumeDiskNumberRequest) error {
+	out.VolumeId = in.VolumeId
 	return nil
 }
 
@@ -417,6 +422,7 @@ func Convert_v1beta3_VolumeDiskNumberRequest_To_internal_VolumeDiskNumberRequest
 }
 
 func autoConvert_internal_VolumeDiskNumberRequest_To_v1beta3_VolumeDiskNumberRequest(in *internal.VolumeDiskNumberRequest, out *v1beta3.VolumeDiskNumberRequest) error {
+	out.VolumeId = in.VolumeId
 	return nil
 }
 
@@ -426,6 +432,7 @@ func Convert_internal_VolumeDiskNumberRequest_To_v1beta3_VolumeDiskNumberRequest
 }
 
 func autoConvert_v1beta3_VolumeDiskNumberResponse_To_internal_VolumeDiskNumberResponse(in *v1beta3.VolumeDiskNumberResponse, out *internal.VolumeDiskNumberResponse) error {
+	out.DiskNumber = in.DiskNumber
 	return nil
 }
 
@@ -435,6 +442,7 @@ func Convert_v1beta3_VolumeDiskNumberResponse_To_internal_VolumeDiskNumberRespon
 }
 
 func autoConvert_internal_VolumeDiskNumberResponse_To_v1beta3_VolumeDiskNumberResponse(in *internal.VolumeDiskNumberResponse, out *v1beta3.VolumeDiskNumberResponse) error {
+	out.DiskNumber = in.DiskNumber
 	return nil
 }
 
@@ -444,6 +452,7 @@ func Convert_internal_VolumeDiskNumberResponse_To_v1beta3_VolumeDiskNumberRespon
 }
 
 func autoConvert_v1beta3_VolumeIDFromMountRequest_To_internal_VolumeIDFromMountRequest(in *v1beta3.VolumeIDFromMountRequest, out *internal.VolumeIDFromMountRequest) error {
+	out.Mount = in.Mount
 	return nil
 }
 
@@ -453,6 +462,7 @@ func Convert_v1beta3_VolumeIDFromMountRequest_To_internal_VolumeIDFromMountReque
 }
 
 func autoConvert_internal_VolumeIDFromMountRequest_To_v1beta3_VolumeIDFromMountRequest(in *internal.VolumeIDFromMountRequest, out *v1beta3.VolumeIDFromMountRequest) error {
+	out.Mount = in.Mount
 	return nil
 }
 
@@ -462,6 +472,7 @@ func Convert_internal_VolumeIDFromMountRequest_To_v1beta3_VolumeIDFromMountReque
 }
 
 func autoConvert_v1beta3_VolumeIDFromMountResponse_To_internal_VolumeIDFromMountResponse(in *v1beta3.VolumeIDFromMountResponse, out *internal.VolumeIDFromMountResponse) error {
+	out.VolumeId = in.VolumeId
 	return nil
 }
 
@@ -471,6 +482,7 @@ func Convert_v1beta3_VolumeIDFromMountResponse_To_internal_VolumeIDFromMountResp
 }
 
 func autoConvert_internal_VolumeIDFromMountResponse_To_v1beta3_VolumeIDFromMountResponse(in *internal.VolumeIDFromMountResponse, out *v1beta3.VolumeIDFromMountResponse) error {
+	out.VolumeId = in.VolumeId
 	return nil
 }
 
@@ -480,6 +492,7 @@ func Convert_internal_VolumeIDFromMountResponse_To_v1beta3_VolumeIDFromMountResp
 }
 
 func autoConvert_v1beta3_VolumeStatsRequest_To_internal_VolumeStatsRequest(in *v1beta3.VolumeStatsRequest, out *internal.VolumeStatsRequest) error {
+	out.VolumeId = in.VolumeId
 	return nil
 }
 
@@ -489,6 +502,7 @@ func Convert_v1beta3_VolumeStatsRequest_To_internal_VolumeStatsRequest(in *v1bet
 }
 
 func autoConvert_internal_VolumeStatsRequest_To_v1beta3_VolumeStatsRequest(in *internal.VolumeStatsRequest, out *v1beta3.VolumeStatsRequest) error {
+	out.VolumeId = in.VolumeId
 	return nil
 }
 
@@ -498,6 +512,8 @@ func Convert_internal_VolumeStatsRequest_To_v1beta3_VolumeStatsRequest(in *inter
 }
 
 func autoConvert_v1beta3_VolumeStatsResponse_To_internal_VolumeStatsResponse(in *v1beta3.VolumeStatsResponse, out *internal.VolumeStatsResponse) error {
+	out.VolumeSize = in.VolumeSize
+	out.VolumeUsedSize = in.VolumeUsedSize
 	return nil
 }
 
@@ -507,6 +523,8 @@ func Convert_v1beta3_VolumeStatsResponse_To_internal_VolumeStatsResponse(in *v1b
 }
 
 func autoConvert_internal_VolumeStatsResponse_To_v1beta3_VolumeStatsResponse(in *internal.VolumeStatsResponse, out *v1beta3.VolumeStatsResponse) error {
+	out.VolumeSize = in.VolumeSize
+	out.VolumeUsedSize = in.VolumeUsedSize
 	return nil
 }
 
