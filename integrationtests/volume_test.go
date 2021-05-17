@@ -11,12 +11,12 @@ import (
 	"time"
 
 	diskv1beta3 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
-	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta2"
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3"
 	diskv1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
 	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3"
 
 	// pre v1beta3 requests have different mappings in some requests, checking with v1beta2 imports
+	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta2"
 	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2"
 )
 
