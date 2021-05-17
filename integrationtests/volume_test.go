@@ -14,10 +14,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3"
 	diskv1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
 	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3"
-
 	// pre v1beta3 requests have different mappings in some requests, checking with v1beta2 imports
-	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta2"
-	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2"
 )
 
 func runPowershellCmd(cmd string) (string, error) {
@@ -213,30 +210,42 @@ func negativeVolumeTests(t *testing.T) {
 	runNegativeVolumeStatsRequest(t, client, "-1")
 }
 
-// v1beta2NegativeDismountVolume should call UnmountVolume internally.
-func v1beta2NegativeDismountVolumeRequest(t *testing.T, client *v1beta2client.Client, volumeID, path string) {
-	dismountVolumeRequest := &v1beta2.DismountVolumeRequest{
-		VolumeId: volumeID,
-		Path:     path,
-	}
-	_, err := client.DismountVolume(context.TODO(), dismountVolumeRequest)
-	fmt.Printf("NegativeDismountVolumeRequest err=%+v", err)
-	if err == nil {
-		t.Fatalf("Expected DismountVolumeRequest volumeID=%s path=%s to fail", volumeID, path)
-	}
-}
+// // v1beta2NegativeDismountVolume should call UnmountVolume internally.
+// func v1beta2NegativeDismountVolumeRequest(t *testing.T, client *v1beta2client.Client, volumeID string, path string, fn func(t *testing.T, err error)) {
+// 	dismountVolumeRequest := &v1beta2.DismountVolumeRequest{
+// 		VolumeId: volumeID,
+// 		Path:     path,
+// 	}
+// 	_, err := client.DismountVolume(context.TODO(), dismountVolumeRequest)
+// 	fn(t, err)
+// }
 
 // clientCompatibilityTests tests that the API is compatible with versions that are before
 // the latest, e.g. that a v1beta2 client can still use the server csi-proxy v1beta3
 func clientCompatibilityTests(t *testing.T) {
 	// it's intended for this client to be before v1beta3!
 	// i.e. don't change it if there are upgrades
-	v1beta2Client, err := v1beta2client.NewClient()
-	if err != nil {
-		t.Fatalf("Failed to create new v1beta2 client, err=%+v", err)
-	}
+	// var err error
+	// v1beta2Client, err := v1beta2client.NewClient()
+	// if err != nil {
+	// 	t.Fatalf("Failed to create new v1beta2 client, err=%+v", err)
+	// }
 
-	v1beta2NegativeDismountVolumeRequest(t, v1beta2Client, "", "")
+	// var dismountVolumeRequest *v1beta2.DismountVolumeRequest
+	// dismountVolumeRequest = &v1beta2.DismountVolumeRequest{
+	// 	VolumeId: "",
+	// 	Path:     "",
+	// }
+	// _, err = v1beta2Client.DismountVolume(context.TODO(), dismountVolumeRequest)
+	// if err == nil || !strings.Contains(err.Error(), "volume id empty") {
+	// 	t.Fatalf("")
+	// }
+
+	// // v1beta2NegativeDismountVolumeRequest(t, v1beta2Client, "", "", func(t *testing.T, err error) {
+	// // 	errStatus, _ := status.FromError(err)
+	// // })
+	// // v1beta2NegativeDismountVolumeRequest(t, v1beta2Client, "10", "", "target path empty")
+	// // v1beta2NegativeDismountVolumeRequest(t, v1beta2Client, "10", "10", "error getting driver letter to mount volume")
 }
 
 func negativeDiskTests(t *testing.T) {
@@ -386,11 +395,11 @@ func simpleE2e(t *testing.T) {
 	}
 
 	// Unmount the volume
-	dismountVolumeRequest := &v1beta3.UnmountVolumeRequest{
+	unmountVolumeRequest := &v1beta3.UnmountVolumeRequest{
 		VolumeId:   volumeID,
 		TargetPath: mountPath,
 	}
-	_, err = volumeClient.UnmountVolume(context.TODO(), dismountVolumeRequest)
+	_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
 	}
@@ -400,7 +409,7 @@ func TestVolumeAPIs(t *testing.T) {
 	// todo: This test will fail on Github Actions because Hyper-V needs to be enabled
 	// Skip on GH actions till we find a better solution
 	t.Run("SimpleE2E", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
+		// skipTestOnCondition(t, isRunningOnGhActions())
 		simpleE2e(t)
 	})
 
