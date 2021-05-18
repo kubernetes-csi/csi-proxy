@@ -9,28 +9,27 @@ import (
 	"strings"
 )
 
-const formatFilesystem = "ntfs"
-
 // API exposes the internal volume operations available in the server
 type API interface {
-	ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err error)
-	// MountVolume mounts the volume at the requested global staging target path
+	// ListVolumesOnDisk lists volumes on a disk identified by a `diskNumber` and optionally a partition identified by `partitionNumber`.
+	ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error)
+	// MountVolume mounts the volume at the requested global staging target path.
 	MountVolume(volumeID, targetPath string) error
-	// UnmountVolume gracefully dismounts a volume
+	// UnmountVolume gracefully dismounts a volume.
 	UnmountVolume(volumeID, targetPath string) error
-	// IsVolumeFormatted checks if a volume is formatted with NTFS
+	// IsVolumeFormatted checks if a volume is formatted with NTFS.
 	IsVolumeFormatted(volumeID string) (bool, error)
-	// FormatVolume formats a volume with the provided file system
+	// FormatVolume formats a volume with the NTFS format.
 	FormatVolume(volumeID string) error
-	// ResizeVolume performs resizing of the partition and file system for a block based volume
+	// ResizeVolume performs resizing of the partition and file system for a block based volume.
 	ResizeVolume(volumeID string, sizeBytes int64) error
-	// GetVolumeStats gets the volume information
+	// GetVolumeStats gets the volume information.
 	GetVolumeStats(volumeID string) (int64, int64, error)
-	// GetDiskNumberFromVolumeID returns the disk number for where the volume is at
+	// GetDiskNumberFromVolumeID returns the disk number for a given volumeID.
 	GetDiskNumberFromVolumeID(volumeID string) (uint32, error)
-	// GetVolumeIDFromTargetPath returns the volume id of a given target path
+	// GetVolumeIDFromTargetPath returns the volume id of a given target path.
 	GetVolumeIDFromTargetPath(targetPath string) (string, error)
-	// WriteVolumeCache writes volume cache to disk
+	// WriteVolumeCache writes the volume `volumeID`'s cache to disk.
 	WriteVolumeCache(volumeID string) error
 }
 
@@ -67,9 +66,15 @@ func getVolumeSize(volumeID string) (int64, error) {
 	return volumeSize, nil
 }
 
-// ListVolumesOnDisk - returns back list of volumes(volumeIDs) in the disk.
-func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err error) {
-	cmd := fmt.Sprintf("(Get-Disk -Number %d |Get-Partition | Get-Volume).UniqueId", diskNumber)
+// ListVolumesOnDisk - returns back list of volumes(volumeIDs) in a disk and a partition.
+func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error) {
+	// means that the partitionNumber wasn't set so we list all the partitions
+	var cmd string
+	if partitionNumber == 0 {
+		cmd = fmt.Sprintf("(Get-Disk -Number %d | Get-Partition | Get-Volume).UniqueId", diskNumber)
+	} else {
+		cmd = fmt.Sprintf("(Get-Disk -Number %d | Get-Partition -PartitionNumber %d | Get-Volume).UniqueId", diskNumber, partitionNumber)
+	}
 	out, err := runExec(cmd)
 	if err != nil {
 		return []string{}, fmt.Errorf("error list volumes on disk. cmd: %s, output: %s, error: %v", cmd, string(out), err)
@@ -79,9 +84,9 @@ func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err e
 	return volumeIds, nil
 }
 
-// FormatVolume - Format a volume with a pre specified filesystem (typically ntfs)
+// FormatVolume - Formats a volume with the NTFS format.
 func (VolumeAPI) FormatVolume(volumeID string) (err error) {
-	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Format-Volume  -FileSystem %s -Confirm:$false", volumeID, formatFilesystem)
+	cmd := fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Format-Volume -FileSystem ntfs -Confirm:$false", volumeID)
 	out, err := runExec(cmd)
 	if err != nil {
 		return fmt.Errorf("error formatting volume. cmd: %s, output: %s, error: %v", cmd, string(out), err)

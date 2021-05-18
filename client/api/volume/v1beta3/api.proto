@@ -9,7 +9,7 @@ service Volume {
     rpc ListVolumesOnDisk(ListVolumesOnDiskRequest) returns (ListVolumesOnDiskResponse) {}
     // MountVolume mounts the volume at the requested global staging path.
     rpc MountVolume(MountVolumeRequest) returns (MountVolumeResponse) {}
-    // UnmountVolume gracefully unmounts a volume.
+    // UnmountVolume flushes data cache to disk and removes the global staging path.
     rpc UnmountVolume(UnmountVolumeRequest) returns (UnmountVolumeResponse) {}
     // IsVolumeFormatted checks if a volume is formatted.
     rpc IsVolumeFormatted(IsVolumeFormattedRequest) returns (IsVolumeFormattedResponse) {}
@@ -17,11 +17,11 @@ service Volume {
     rpc FormatVolume(FormatVolumeRequest) returns (FormatVolumeResponse) {}
     // ResizeVolume performs resizing of the partition and file system for a block based volume.
     rpc ResizeVolume(ResizeVolumeRequest) returns (ResizeVolumeResponse) {}
-    // GetVolumeStats gathers total types and used bytes for a volume.
+    // GetVolumeStats gathers total bytes and used bytes for a volume.
     rpc GetVolumeStats(GetVolumeStatsRequest) returns (GetVolumeStatsResponse) {}
     // GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
     rpc GetDiskNumberFromVolumeID(GetDiskNumberFromVolumeIDRequest) returns (GetDiskNumberFromVolumeIDResponse ) {}
-    // GetVolumeIDFromTargetPath gets the volume id for a given mount.
+    // GetVolumeIDFromTargetPath gets the volume id for a given target path.
     rpc GetVolumeIDFromTargetPath(GetVolumeIDFromTargetPathRequest) returns (GetVolumeIDFromTargetPathResponse) {}
     // WriteVolumeCache write volume cache to disk.
     rpc WriteVolumeCache(WriteVolumeCacheRequest) returns (WriteVolumeCacheResponse) {}
@@ -30,7 +30,7 @@ service Volume {
 message ListVolumesOnDiskRequest {
     // Disk device number of the disk to query for volumes.
     uint32 disk_number = 1;
-    // The partition number.
+    // The partition number (optional), by default it uses the first partition of the disk.
     uint32 partition_number = 2;
 }
 
@@ -81,7 +81,7 @@ message FormatVolumeResponse {
 }
 
 message ResizeVolumeRequest {
-    // Volume device ID of the volume to dismount.
+    // Volume device ID of the volume to resize.
     string volume_id = 1;
     // New size in bytes of the volume.
     int64 size_bytes = 2;

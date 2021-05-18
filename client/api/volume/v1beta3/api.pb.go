@@ -31,7 +31,7 @@ type ListVolumesOnDiskRequest struct {
 
 	// Disk device number of the disk to query for volumes.
 	DiskNumber uint32 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
-	// The partition number.
+	// The partition number (optional), by default it uses the first partition of the disk.
 	PartitionNumber uint32 `protobuf:"varint,2,opt,name=partition_number,json=partitionNumber,proto3" json:"partition_number,omitempty"`
 }
 
@@ -1472,7 +1472,7 @@ type VolumeClient interface {
 	ListVolumesOnDisk(ctx context.Context, in *ListVolumesOnDiskRequest, opts ...grpc.CallOption) (*ListVolumesOnDiskResponse, error)
 	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(ctx context.Context, in *MountVolumeRequest, opts ...grpc.CallOption) (*MountVolumeResponse, error)
-	// UnmountVolume gracefully unmounts a volume.
+	// UnmountVolume flushes data cache to disk and removes the global staging path.
 	UnmountVolume(ctx context.Context, in *UnmountVolumeRequest, opts ...grpc.CallOption) (*UnmountVolumeResponse, error)
 	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(ctx context.Context, in *IsVolumeFormattedRequest, opts ...grpc.CallOption) (*IsVolumeFormattedResponse, error)
@@ -1480,11 +1480,11 @@ type VolumeClient interface {
 	FormatVolume(ctx context.Context, in *FormatVolumeRequest, opts ...grpc.CallOption) (*FormatVolumeResponse, error)
 	// ResizeVolume performs resizing of the partition and file system for a block based volume.
 	ResizeVolume(ctx context.Context, in *ResizeVolumeRequest, opts ...grpc.CallOption) (*ResizeVolumeResponse, error)
-	// GetVolumeStats gathers total types and used bytes for a volume.
+	// GetVolumeStats gathers total bytes and used bytes for a volume.
 	GetVolumeStats(ctx context.Context, in *GetVolumeStatsRequest, opts ...grpc.CallOption) (*GetVolumeStatsResponse, error)
 	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
 	GetDiskNumberFromVolumeID(ctx context.Context, in *GetDiskNumberFromVolumeIDRequest, opts ...grpc.CallOption) (*GetDiskNumberFromVolumeIDResponse, error)
-	// GetVolumeIDFromTargetPath gets the volume id for a given mount.
+	// GetVolumeIDFromTargetPath gets the volume id for a given target path.
 	GetVolumeIDFromTargetPath(ctx context.Context, in *GetVolumeIDFromTargetPathRequest, opts ...grpc.CallOption) (*GetVolumeIDFromTargetPathResponse, error)
 	// WriteVolumeCache write volume cache to disk.
 	WriteVolumeCache(ctx context.Context, in *WriteVolumeCacheRequest, opts ...grpc.CallOption) (*WriteVolumeCacheResponse, error)
@@ -1594,7 +1594,7 @@ type VolumeServer interface {
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest) (*ListVolumesOnDiskResponse, error)
 	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error)
-	// UnmountVolume gracefully unmounts a volume.
+	// UnmountVolume flushes data cache to disk and removes the global staging path.
 	UnmountVolume(context.Context, *UnmountVolumeRequest) (*UnmountVolumeResponse, error)
 	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(context.Context, *IsVolumeFormattedRequest) (*IsVolumeFormattedResponse, error)
@@ -1602,11 +1602,11 @@ type VolumeServer interface {
 	FormatVolume(context.Context, *FormatVolumeRequest) (*FormatVolumeResponse, error)
 	// ResizeVolume performs resizing of the partition and file system for a block based volume.
 	ResizeVolume(context.Context, *ResizeVolumeRequest) (*ResizeVolumeResponse, error)
-	// GetVolumeStats gathers total types and used bytes for a volume.
+	// GetVolumeStats gathers total bytes and used bytes for a volume.
 	GetVolumeStats(context.Context, *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error)
 	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
 	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error)
-	// GetVolumeIDFromTargetPath gets the volume id for a given mount.
+	// GetVolumeIDFromTargetPath gets the volume id for a given target path.
 	GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error)
 	// WriteVolumeCache write volume cache to disk.
 	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error)

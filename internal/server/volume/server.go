@@ -25,8 +25,7 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 	klog.V(5).Infof("ListVolumesOnDisk: Request: %+v", request)
 	response := &internal.ListVolumesOnDiskResponse{}
 
-	diskNumber := request.DiskNumber
-	volumeIDs, err := s.hostAPI.ListVolumesOnDisk(diskNumber)
+	volumeIDs, err := s.hostAPI.ListVolumesOnDisk(request.DiskNumber, request.PartitionNumber)
 	if err != nil {
 		klog.Errorf("failed ListVolumeOnDisk %v", err)
 		return response, err
@@ -43,12 +42,12 @@ func (s *Server) MountVolume(context context.Context, request *internal.MountVol
 	volumeID := request.VolumeId
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
-		return response, fmt.Errorf("volume id empty")
+		return response, fmt.Errorf("MountVolumeRequest.VolumeId is empty")
 	}
 	targetPath := request.TargetPath
 	if targetPath == "" {
 		klog.Errorf("targetPath empty")
-		return response, fmt.Errorf("MountVolumeRequest.TargetPath empty")
+		return response, fmt.Errorf("MountVolumeRequest.TargetPath is empty")
 	}
 
 	err := s.hostAPI.MountVolume(volumeID, targetPath)
@@ -170,6 +169,11 @@ func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeV
 }
 
 func (s *Server) VolumeStats(context context.Context, request *internal.VolumeStatsRequest, version apiversion.Version) (*internal.VolumeStatsResponse, error) {
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("VolumeStats requires CSI-Proxy API version v1beta1 or greater")
+	}
+
 	getVolumeStatsRequest := &internal.GetVolumeStatsRequest{
 		VolumeId: request.VolumeId,
 	}
@@ -186,18 +190,12 @@ func (s *Server) VolumeStats(context context.Context, request *internal.VolumeSt
 
 func (s *Server) GetVolumeStats(context context.Context, request *internal.GetVolumeStatsRequest, version apiversion.Version) (*internal.GetVolumeStatsResponse, error) {
 	klog.V(4).Infof("calling VolumeStats with request: %+v", request)
-	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
-	if version.Compare(minimumVersion) < 0 {
-		return nil, fmt.Errorf("VolumeStats requires CSI-Proxy API version v1beta1 or greater")
-	}
-
-	volumeId := request.VolumeId
-	if volumeId == "" {
+	volumeID := request.VolumeId
+	if volumeID == "" {
 		return nil, fmt.Errorf("volume id empty")
 	}
 
-	totalBytes, usedBytes, err := s.hostAPI.GetVolumeStats(request.VolumeId)
-
+	totalBytes, usedBytes, err := s.hostAPI.GetVolumeStats(volumeID)
 	if err != nil {
 		klog.Errorf("failed VolumeStats %v", err)
 		return nil, err
@@ -214,6 +212,11 @@ func (s *Server) GetVolumeStats(context context.Context, request *internal.GetVo
 }
 
 func (s *Server) GetVolumeDiskNumber(context context.Context, request *internal.VolumeDiskNumberRequest, version apiversion.Version) (*internal.VolumeDiskNumberResponse, error) {
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("GetVolumeDiskNumber requires CSI-Proxy API version v1beta1 or greater")
+	}
+
 	getDiskNumberFromVolumeIDRequest := &internal.GetDiskNumberFromVolumeIDRequest{
 		VolumeId: request.VolumeId,
 	}
@@ -228,11 +231,7 @@ func (s *Server) GetVolumeDiskNumber(context context.Context, request *internal.
 }
 
 func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *internal.GetDiskNumberFromVolumeIDRequest, version apiversion.Version) (*internal.GetDiskNumberFromVolumeIDResponse, error) {
-	klog.V(4).Infof("calling GetVolumeDiskNumber with request %+v", request)
-	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
-	if version.Compare(minimumVersion) < 0 {
-		return nil, fmt.Errorf("VolumeDiskNumber requires CSI-Proxy API version v1beta1 or greater")
-	}
+	klog.V(4).Infof("calling GetDiskNumberFromVolumeID with request %+v", request)
 
 	volumeId := request.VolumeId
 	if volumeId == "" {
@@ -241,7 +240,7 @@ func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *int
 
 	diskNumber, err := s.hostAPI.GetDiskNumberFromVolumeID(volumeId)
 	if err != nil {
-		klog.Errorf("failed GetVolumeDiskNumber %v", err)
+		klog.Errorf("failed GetDiskNumberFromVolumeID %v", err)
 		return nil, err
 	}
 
@@ -253,6 +252,11 @@ func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *int
 }
 
 func (s *Server) GetVolumeIDFromMount(context context.Context, request *internal.VolumeIDFromMountRequest, version apiversion.Version) (*internal.VolumeIDFromMountResponse, error) {
+	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
+	if version.Compare(minimumVersion) < 0 {
+		return nil, fmt.Errorf("GetVolumeIDFromMount requires CSI-Proxy API version v1beta1 or greater")
+	}
+
 	getVolumeIDFromTargetPathRequest := &internal.GetVolumeIDFromTargetPathRequest{
 		TargetPath: request.Mount,
 	}
@@ -268,10 +272,6 @@ func (s *Server) GetVolumeIDFromMount(context context.Context, request *internal
 
 func (s *Server) GetVolumeIDFromTargetPath(context context.Context, request *internal.GetVolumeIDFromTargetPathRequest, version apiversion.Version) (*internal.GetVolumeIDFromTargetPathResponse, error) {
 	klog.V(4).Infof("calling GetVolumeIDFromTargetPath with request %+v", request)
-	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
-	if version.Compare(minimumVersion) < 0 {
-		return nil, fmt.Errorf("GetVolumeIDFromTargetPath requires CSI-Proxy API version v1beta1 or greater")
-	}
 
 	targetPath := request.TargetPath
 	if targetPath == "" {
@@ -280,7 +280,7 @@ func (s *Server) GetVolumeIDFromTargetPath(context context.Context, request *int
 
 	volume, err := s.hostAPI.GetVolumeIDFromTargetPath(targetPath)
 	if err != nil {
-		klog.Errorf("failed GetVolumeIDFromTargetPathc: %v", err)
+		klog.Errorf("failed GetVolumeIDFromTargetPath: %v", err)
 		return nil, err
 	}
 
