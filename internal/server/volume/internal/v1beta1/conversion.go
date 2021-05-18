@@ -1,39 +1,49 @@
 package v1beta1
 
-// Add manual conversion functions here to override automatic conversion functions
-
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1"
-	"github.com/kubernetes-csi/csi-proxy/internal/server/volume/internal"
+	internal "github.com/kubernetes-csi/csi-proxy/internal/server/volume/internal"
 )
 
-func Convert_internal_VolumeStatsResponse_To_v1beta1_VolumeStatsResponse(in *internal.VolumeStatsResponse, out *v1beta1.VolumeStatsResponse) error {
-	out.VolumeSize = in.VolumeSize
-	out.VolumeUsedSize = in.VolumeUsedSize
+// Add manual conversion functions here to override automatic conversion functions
+
+func Convert_v1beta1_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskRequest(in *v1beta1.ListVolumesOnDiskRequest, out *internal.ListVolumesOnDiskRequest) error {
+	diskIDUint, err := strconv.ParseUint(in.DiskId, 10, 64)
+	if err != nil {
+		return fmt.Errorf("Failed to parse diskId: err=%+v", err)
+	}
+	out.DiskNumber = uint32(diskIDUint)
 	return nil
 }
 
-func Convert_v1beta1_VolumeStatsRequest_To_internal_VolumeStatsRequest(in *v1beta1.VolumeStatsRequest, out *internal.VolumeStatsRequest) error {
+func Convert_internal_ListVolumesOnDiskRequest_To_v1beta1_ListVolumesOnDiskRequest(in *internal.ListVolumesOnDiskRequest, out *v1beta1.ListVolumesOnDiskRequest) error {
+	out.DiskId = strconv.FormatUint(uint64(in.DiskNumber), 10)
+	return nil
+}
+
+func Convert_v1beta1_MountVolumeRequest_To_internal_MountVolumeRequest(in *v1beta1.MountVolumeRequest, out *internal.MountVolumeRequest) error {
 	out.VolumeId = in.VolumeId
+	out.TargetPath = in.Path
 	return nil
 }
 
-func Convert_internal_VolumeDiskNumberResponse_To_v1beta1_VolumeDiskNumberResponse(in *internal.VolumeDiskNumberResponse, out *v1beta1.VolumeDiskNumberResponse) error {
-	out.DiskNumber = in.DiskNumber
-	return nil
-}
-
-func Convert_v1beta1_VolumeDiskNumberRequest_To_internal_VolumeDiskNumberRequest(in *v1beta1.VolumeDiskNumberRequest, out *internal.VolumeDiskNumberRequest) error {
+func Convert_internal_MountVolumeRequest_To_v1beta1_MountVolumeRequest(in *internal.MountVolumeRequest, out *v1beta1.MountVolumeRequest) error {
 	out.VolumeId = in.VolumeId
+	out.Path = in.TargetPath
 	return nil
 }
 
-func Convert_internal_VolumeIDFromMountResponse_To_v1beta1_VolumeIDFromMountResponse(in *internal.VolumeIDFromMountResponse, out *v1beta1.VolumeIDFromMountResponse) error {
+func Convert_v1beta1_ResizeVolumeRequest_To_internal_ResizeVolumeRequest(in *v1beta1.ResizeVolumeRequest, out *internal.ResizeVolumeRequest) error {
 	out.VolumeId = in.VolumeId
+	out.SizeBytes = in.Size
 	return nil
 }
 
-func Convert_v1beta1_VolumeIDFromMountRequest_To_internal_VolumeIDFromMountRequest(in *v1beta1.VolumeIDFromMountRequest, out *internal.VolumeIDFromMountRequest) error {
-	out.Mount = in.Mount
+func Convert_internal_ResizeVolumeRequest_To_v1beta1_ResizeVolumeRequest(in *internal.ResizeVolumeRequest, out *v1beta1.ResizeVolumeRequest) error {
+	out.VolumeId = in.VolumeId
+	out.Size = in.SizeBytes
 	return nil
 }

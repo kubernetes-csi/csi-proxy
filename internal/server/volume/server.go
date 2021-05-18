@@ -3,7 +3,6 @@ package volume
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/os/volume"
@@ -26,17 +25,7 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 	klog.V(5).Infof("ListVolumesOnDisk: Request: %+v", request)
 	response := &internal.ListVolumesOnDiskResponse{}
 
-	// pre v1beta3 requests are done with diskId instead of diskNumber
 	diskNumber := request.DiskNumber
-	if version.Compare(apiversion.NewVersionOrPanic("v1beta3")) < 0 {
-		diskIDUint, err := strconv.ParseUint(request.DiskId, 10, 64)
-		if err != nil {
-			return response, fmt.Errorf("Failed to parse diskId: err=%+v", err)
-		}
-		diskNumber = uint32(diskIDUint)
-		return nil, fmt.Errorf("VolumeStats requires CSI-Proxy API version v1beta1 or greater")
-	}
-
 	volumeIDs, err := s.hostAPI.ListVolumesOnDisk(diskNumber)
 	if err != nil {
 		klog.Errorf("failed ListVolumeOnDisk %v", err)
@@ -50,11 +39,6 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 func (s *Server) MountVolume(context context.Context, request *internal.MountVolumeRequest, version apiversion.Version) (*internal.MountVolumeResponse, error) {
 	klog.V(5).Infof("MountVolume: Request: %+v", request)
 	response := &internal.MountVolumeResponse{}
-
-	// pre v1beta3 API requests were done with `path` instead of `targetPath`
-	if version.Compare(apiversion.NewVersionOrPanic("v1beta3")) < 0 {
-		request.TargetPath = request.Path
-	}
 
 	volumeID := request.VolumeId
 	if volumeID == "" {
@@ -168,11 +152,6 @@ func (s *Server) WriteVolumeCache(context context.Context, request *internal.Wri
 func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeVolumeRequest, version apiversion.Version) (*internal.ResizeVolumeResponse, error) {
 	klog.V(4).Infof("calling ResizeVolume with request: %+v", request)
 	response := &internal.ResizeVolumeResponse{}
-
-	// pre v1beta3 API requests were done with `size` instead of `sizeBytes`
-	if version.Compare(apiversion.NewVersionOrPanic("v1beta3")) < 0 {
-		request.SizeBytes = request.Size
-	}
 
 	volumeID := request.VolumeId
 	if volumeID == "" {

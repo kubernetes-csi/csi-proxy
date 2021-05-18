@@ -6,8 +6,6 @@
 package internal
 
 type ListVolumesOnDiskRequest struct {
-	// DiskId is deprecated, it's parsed into a DiskNumber in the internal server implementation
-	DiskId          string
 	DiskNumber      uint32
 	PartitionNumber uint32
 }
@@ -17,9 +15,7 @@ type ListVolumesOnDiskResponse struct {
 }
 
 type MountVolumeRequest struct {
-	VolumeId string
-	// Path is deprecated, it's copied to TargetPath in the internal server implementation
-	Path       string
+	VolumeId   string
 	TargetPath string
 }
 
@@ -57,9 +53,7 @@ type UnmountVolumeResponse struct {
 }
 
 type ResizeVolumeRequest struct {
-	VolumeId string
-	// Size is deprecated, it's copied into SizeBytes
-	Size      int64
+	VolumeId  string
 	SizeBytes int64
 }
 
@@ -91,7 +85,7 @@ type GetVolumeIDFromTargetPathResponse struct {
 	VolumeId string
 }
 
-// These structs are deprecated but are needed to provide support for older APIs
+// These structs are used in APIs less than v1beta3 and rerouted internally
 
 type DismountVolumeRequest struct {
 	VolumeId string
