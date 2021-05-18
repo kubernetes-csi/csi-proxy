@@ -27,25 +27,6 @@ func (s *versionedAPI) Register(grpcServer *grpc.Server) {
 	v1beta3.RegisterVolumeServer(grpcServer, s)
 }
 
-func (s *versionedAPI) DismountVolume(context context.Context, versionedRequest *v1beta3.DismountVolumeRequest) (*v1beta3.DismountVolumeResponse, error) {
-	request := &internal.DismountVolumeRequest{}
-	if err := Convert_v1beta3_DismountVolumeRequest_To_internal_DismountVolumeRequest(versionedRequest, request); err != nil {
-		return nil, err
-	}
-
-	response, err := s.apiGroupServer.DismountVolume(context, request, version)
-	if err != nil {
-		return nil, err
-	}
-
-	versionedResponse := &v1beta3.DismountVolumeResponse{}
-	if err := Convert_internal_DismountVolumeResponse_To_v1beta3_DismountVolumeResponse(response, versionedResponse); err != nil {
-		return nil, err
-	}
-
-	return versionedResponse, err
-}
-
 func (s *versionedAPI) FormatVolume(context context.Context, versionedRequest *v1beta3.FormatVolumeRequest) (*v1beta3.FormatVolumeResponse, error) {
 	request := &internal.FormatVolumeRequest{}
 	if err := Convert_v1beta3_FormatVolumeRequest_To_internal_FormatVolumeRequest(versionedRequest, request); err != nil {
@@ -78,44 +59,6 @@ func (s *versionedAPI) GetDiskNumberFromVolumeID(context context.Context, versio
 
 	versionedResponse := &v1beta3.GetDiskNumberFromVolumeIDResponse{}
 	if err := Convert_internal_GetDiskNumberFromVolumeIDResponse_To_v1beta3_GetDiskNumberFromVolumeIDResponse(response, versionedResponse); err != nil {
-		return nil, err
-	}
-
-	return versionedResponse, err
-}
-
-func (s *versionedAPI) GetVolumeDiskNumber(context context.Context, versionedRequest *v1beta3.VolumeDiskNumberRequest) (*v1beta3.VolumeDiskNumberResponse, error) {
-	request := &internal.VolumeDiskNumberRequest{}
-	if err := Convert_v1beta3_VolumeDiskNumberRequest_To_internal_VolumeDiskNumberRequest(versionedRequest, request); err != nil {
-		return nil, err
-	}
-
-	response, err := s.apiGroupServer.GetVolumeDiskNumber(context, request, version)
-	if err != nil {
-		return nil, err
-	}
-
-	versionedResponse := &v1beta3.VolumeDiskNumberResponse{}
-	if err := Convert_internal_VolumeDiskNumberResponse_To_v1beta3_VolumeDiskNumberResponse(response, versionedResponse); err != nil {
-		return nil, err
-	}
-
-	return versionedResponse, err
-}
-
-func (s *versionedAPI) GetVolumeIDFromMount(context context.Context, versionedRequest *v1beta3.VolumeIDFromMountRequest) (*v1beta3.VolumeIDFromMountResponse, error) {
-	request := &internal.VolumeIDFromMountRequest{}
-	if err := Convert_v1beta3_VolumeIDFromMountRequest_To_internal_VolumeIDFromMountRequest(versionedRequest, request); err != nil {
-		return nil, err
-	}
-
-	response, err := s.apiGroupServer.GetVolumeIDFromMount(context, request, version)
-	if err != nil {
-		return nil, err
-	}
-
-	versionedResponse := &v1beta3.VolumeIDFromMountResponse{}
-	if err := Convert_internal_VolumeIDFromMountResponse_To_v1beta3_VolumeIDFromMountResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 
@@ -249,25 +192,6 @@ func (s *versionedAPI) UnmountVolume(context context.Context, versionedRequest *
 
 	versionedResponse := &v1beta3.UnmountVolumeResponse{}
 	if err := Convert_internal_UnmountVolumeResponse_To_v1beta3_UnmountVolumeResponse(response, versionedResponse); err != nil {
-		return nil, err
-	}
-
-	return versionedResponse, err
-}
-
-func (s *versionedAPI) VolumeStats(context context.Context, versionedRequest *v1beta3.VolumeStatsRequest) (*v1beta3.VolumeStatsResponse, error) {
-	request := &internal.VolumeStatsRequest{}
-	if err := Convert_v1beta3_VolumeStatsRequest_To_internal_VolumeStatsRequest(versionedRequest, request); err != nil {
-		return nil, err
-	}
-
-	response, err := s.apiGroupServer.VolumeStats(context, request, version)
-	if err != nil {
-		return nil, err
-	}
-
-	versionedResponse := &v1beta3.VolumeStatsResponse{}
-	if err := Convert_internal_VolumeStatsResponse_To_v1beta3_VolumeStatsResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 

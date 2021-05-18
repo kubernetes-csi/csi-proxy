@@ -65,24 +65,12 @@ func (w *Client) Close() error {
 // ensures we implement all the required methods
 var _ v1beta3.VolumeClient = &Client{}
 
-func (w *Client) DismountVolume(context context.Context, request *v1beta3.DismountVolumeRequest, opts ...grpc.CallOption) (*v1beta3.DismountVolumeResponse, error) {
-	return w.client.DismountVolume(context, request, opts...)
-}
-
 func (w *Client) FormatVolume(context context.Context, request *v1beta3.FormatVolumeRequest, opts ...grpc.CallOption) (*v1beta3.FormatVolumeResponse, error) {
 	return w.client.FormatVolume(context, request, opts...)
 }
 
 func (w *Client) GetDiskNumberFromVolumeID(context context.Context, request *v1beta3.GetDiskNumberFromVolumeIDRequest, opts ...grpc.CallOption) (*v1beta3.GetDiskNumberFromVolumeIDResponse, error) {
 	return w.client.GetDiskNumberFromVolumeID(context, request, opts...)
-}
-
-func (w *Client) GetVolumeDiskNumber(context context.Context, request *v1beta3.VolumeDiskNumberRequest, opts ...grpc.CallOption) (*v1beta3.VolumeDiskNumberResponse, error) {
-	return w.client.GetVolumeDiskNumber(context, request, opts...)
-}
-
-func (w *Client) GetVolumeIDFromMount(context context.Context, request *v1beta3.VolumeIDFromMountRequest, opts ...grpc.CallOption) (*v1beta3.VolumeIDFromMountResponse, error) {
-	return w.client.GetVolumeIDFromMount(context, request, opts...)
 }
 
 func (w *Client) GetVolumeIDFromTargetPath(context context.Context, request *v1beta3.GetVolumeIDFromTargetPathRequest, opts ...grpc.CallOption) (*v1beta3.GetVolumeIDFromTargetPathResponse, error) {
@@ -111,10 +99,6 @@ func (w *Client) ResizeVolume(context context.Context, request *v1beta3.ResizeVo
 
 func (w *Client) UnmountVolume(context context.Context, request *v1beta3.UnmountVolumeRequest, opts ...grpc.CallOption) (*v1beta3.UnmountVolumeResponse, error) {
 	return w.client.UnmountVolume(context, request, opts...)
-}
-
-func (w *Client) VolumeStats(context context.Context, request *v1beta3.VolumeStatsRequest, opts ...grpc.CallOption) (*v1beta3.VolumeStatsResponse, error) {
-	return w.client.VolumeStats(context, request, opts...)
 }
 
 func (w *Client) WriteVolumeCache(context context.Context, request *v1beta3.WriteVolumeCacheRequest, opts ...grpc.CallOption) (*v1beta3.WriteVolumeCacheResponse, error) {

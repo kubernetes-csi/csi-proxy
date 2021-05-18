@@ -99,8 +99,8 @@ func (s *Server) UnmountVolume(context context.Context, request *internal.Unmoun
 	}
 	targetPath := request.TargetPath
 	if targetPath == "" {
-		klog.Errorf("mount target path empty")
-		return response, fmt.Errorf("mount target path empty")
+		klog.Errorf("target path empty")
+		return response, fmt.Errorf("target path empty")
 	}
 	err := s.hostAPI.UnmountVolume(volumeID, targetPath)
 	if err != nil {
@@ -191,7 +191,6 @@ func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeV
 }
 
 func (s *Server) VolumeStats(context context.Context, request *internal.VolumeStatsRequest, version apiversion.Version) (*internal.VolumeStatsResponse, error) {
-	klog.V(5).Infof("VolumeStats is deprecated, use GetVolumeStats instead.")
 	getVolumeStatsRequest := &internal.GetVolumeStatsRequest{
 		VolumeId: request.VolumeId,
 	}
@@ -275,7 +274,6 @@ func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *int
 }
 
 func (s *Server) GetVolumeIDFromMount(context context.Context, request *internal.VolumeIDFromMountRequest, version apiversion.Version) (*internal.VolumeIDFromMountResponse, error) {
-	klog.V(5).Infof("GetVolumeIDFromMount is deprecated, use GetVolumeIDFromTargetPathRequest instead.")
 	getVolumeIDFromTargetPathRequest := &internal.GetVolumeIDFromTargetPathRequest{
 		TargetPath: request.Mount,
 	}
