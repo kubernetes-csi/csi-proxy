@@ -12,12 +12,12 @@ type ListDiskLocationsRequest struct {
 
 type ListDiskLocationsResponse struct {
 	// Map of disk device IDs and <adapter, bus, target, lun ID> associated with each disk device
-	DiskLocations map[string]*DiskLocation
+	DiskLocations map[uint32]*DiskLocation
 }
 
 type PartitionDiskRequest struct {
 	// Disk device ID of the disk to partition
-	DiskID string
+	DiskNumber uint32
 }
 
 type PartitionDiskResponse struct {
@@ -35,7 +35,7 @@ type GetDiskNumberByNameRequest struct {
 }
 
 type GetDiskNumberByNameResponse struct {
-	DiskNumber string
+	DiskNumber uint32
 }
 
 type DiskIDs struct {
@@ -48,8 +48,39 @@ type ListDiskIDsRequest struct {
 
 type ListDiskIDsResponse struct {
 	// Map of disk device numbers and IDs <page83> associated with each disk device
-	DiskIDs map[string]*DiskIDs
+	DiskNumbers map[uint32]*DiskIDs
 }
+
+type GetDiskStatsRequest struct {
+	DiskNumber uint32
+}
+
+type GetDiskStatsResponse struct {
+	TotalBytes int64
+}
+
+type SetDiskStateRequest struct {
+	// Disk device ID of the disk which state will change
+	DiskNumber uint32
+
+	// Online state to set for the disk. true for online, false for offline
+	IsOnline bool
+}
+
+type SetDiskStateResponse struct {
+}
+
+type GetDiskStateRequest struct {
+	// Disk device ID of the disk
+	DiskNumber uint32
+}
+
+type GetDiskStateResponse struct {
+	// Online state of the disk. true for online, false for offline
+	IsOnline bool
+}
+
+// These structs are used in pre v1beta3 API versions
 
 type DiskStatsRequest struct {
 	DiskID string
