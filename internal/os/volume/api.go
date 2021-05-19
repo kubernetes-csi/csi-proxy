@@ -68,9 +68,9 @@ func getVolumeSize(volumeID string) (int64, error) {
 
 // ListVolumesOnDisk - returns back list of volumes(volumeIDs) in a disk and a partition.
 func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error) {
-	// means that the partitionNumber wasn't set so we list all the partitions
 	var cmd string
 	if partitionNumber == 0 {
+		// 0 means that the partitionNumber wasn't set so we list all the partitions
 		cmd = fmt.Sprintf("(Get-Disk -Number %d | Get-Partition | Get-Volume).UniqueId", diskNumber)
 	} else {
 		cmd = fmt.Sprintf("(Get-Disk -Number %d | Get-Partition -PartitionNumber %d | Get-Volume).UniqueId", diskNumber, partitionNumber)

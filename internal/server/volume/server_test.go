@@ -22,7 +22,7 @@ func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[uint32][]string) {
 	}
 }
 
-func (volumeAPI *fakeVolumeAPI) ListVolumesOnDisk(diskNumber uint32) (volumeIDs []string, err error) {
+func (volumeAPI *fakeVolumeAPI) ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error) {
 	v := volumeAPI.diskVolMap[diskNumber]
 	if v == nil {
 		return nil, fmt.Errorf("returning error for %d list", diskNumber)
