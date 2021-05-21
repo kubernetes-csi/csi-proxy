@@ -212,7 +212,7 @@ func (VolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
 	volumeSizeRemaining = getVolume["SizeRemaining"]
 
 	volumeUsedSize := volumeSize - volumeSizeRemaining
-	return volumeSizeRemaining, volumeUsedSize, nil
+	return volumeSize, volumeUsedSize, nil
 }
 
 // GetDiskNumberFromVolumeID - gets the disk number where the volume is.

@@ -58,7 +58,7 @@ func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
 func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 	var cmd, out string
 	var err error
-	const initialSize = 5 * 1024 * 1024 * 1024
+	const initialSize = 1 * 1024 * 1024 * 1024
 	const partitionStyle = "GPT"
 
 	cmd = fmt.Sprintf("mkdir %s", mountPath)
@@ -332,7 +332,7 @@ func simpleE2e(t *testing.T) {
 
 	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
 		VolumeId: volumeID,
-		// Resize from 5G to 2G
+		// Resize from 1G to 2G
 		SizeBytes: 2 * 1024 * 1024 * 1024,
 	}
 
