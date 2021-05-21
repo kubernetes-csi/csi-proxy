@@ -46,9 +46,10 @@ func New() VolumeAPI {
 	return VolumeAPI{}
 }
 
-func runExec(cmd string) ([]byte, error) {
-	klog.V(5).Infof("Executing command: %q", cmd)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func runExec(command string) ([]byte, error) {
+	cmd := exec.Command("powershell", "/c", command)
+	klog.V(4).Infof("Executing command: %q", cmd.String())
+	out, err := cmd.CombinedOutput()
 	return out, err
 }
 

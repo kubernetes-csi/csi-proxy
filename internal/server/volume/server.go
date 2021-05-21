@@ -22,7 +22,7 @@ func NewServer(hostAPI volume.API) (*Server, error) {
 }
 
 func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.ListVolumesOnDiskRequest, version apiversion.Version) (*internal.ListVolumesOnDiskResponse, error) {
-	klog.V(5).Infof("ListVolumesOnDisk: Request: %+v", request)
+	klog.V(2).Infof("ListVolumesOnDisk: Request: %+v", request)
 	response := &internal.ListVolumesOnDiskResponse{}
 
 	volumeIDs, err := s.hostAPI.ListVolumesOnDisk(request.DiskNumber, request.PartitionNumber)
@@ -36,7 +36,7 @@ func (s *Server) ListVolumesOnDisk(context context.Context, request *internal.Li
 }
 
 func (s *Server) MountVolume(context context.Context, request *internal.MountVolumeRequest, version apiversion.Version) (*internal.MountVolumeResponse, error) {
-	klog.V(5).Infof("MountVolume: Request: %+v", request)
+	klog.V(2).Infof("MountVolume: Request: %+v", request)
 	response := &internal.MountVolumeResponse{}
 
 	volumeID := request.VolumeId
@@ -72,7 +72,7 @@ func (s *Server) DismountVolume(context context.Context, request *internal.Dismo
 }
 
 func (s *Server) UnmountVolume(context context.Context, request *internal.UnmountVolumeRequest, version apiversion.Version) (*internal.UnmountVolumeResponse, error) {
-	klog.V(5).Infof("UnmountVolume: Request: %+v", request)
+	klog.V(2).Infof("UnmountVolume: Request: %+v", request)
 	response := &internal.UnmountVolumeResponse{}
 
 	volumeID := request.VolumeId
@@ -94,7 +94,7 @@ func (s *Server) UnmountVolume(context context.Context, request *internal.Unmoun
 }
 
 func (s *Server) IsVolumeFormatted(context context.Context, request *internal.IsVolumeFormattedRequest, version apiversion.Version) (*internal.IsVolumeFormattedResponse, error) {
-	klog.V(4).Infof("calling IsVolumeFormatted with request: %+v", request)
+	klog.V(2).Infof("IsVolumeFormatted: Request: %+v", request)
 	response := &internal.IsVolumeFormattedResponse{}
 
 	volumeID := request.VolumeId
@@ -113,7 +113,7 @@ func (s *Server) IsVolumeFormatted(context context.Context, request *internal.Is
 }
 
 func (s *Server) FormatVolume(context context.Context, request *internal.FormatVolumeRequest, version apiversion.Version) (*internal.FormatVolumeResponse, error) {
-	klog.V(4).Infof("calling FormatVolume with request: %+v", request)
+	klog.V(2).Infof("FormatVolume: Request: %+v", request)
 	response := &internal.FormatVolumeResponse{}
 
 	volumeID := request.VolumeId
@@ -131,7 +131,7 @@ func (s *Server) FormatVolume(context context.Context, request *internal.FormatV
 }
 
 func (s *Server) WriteVolumeCache(context context.Context, request *internal.WriteVolumeCacheRequest, version apiversion.Version) (*internal.WriteVolumeCacheResponse, error) {
-	klog.V(4).Infof("calling WriteVolumeCache with request: %+v", request)
+	klog.V(2).Infof("WriteVolumeCache: Request: %+v", request)
 	response := &internal.WriteVolumeCacheResponse{}
 
 	volumeID := request.VolumeId
@@ -149,7 +149,7 @@ func (s *Server) WriteVolumeCache(context context.Context, request *internal.Wri
 }
 
 func (s *Server) ResizeVolume(context context.Context, request *internal.ResizeVolumeRequest, version apiversion.Version) (*internal.ResizeVolumeResponse, error) {
-	klog.V(4).Infof("calling ResizeVolume with request: %+v", request)
+	klog.V(2).Infof("ResizeVolume: Request: %+v", request)
 	response := &internal.ResizeVolumeResponse{}
 
 	volumeID := request.VolumeId
@@ -189,7 +189,7 @@ func (s *Server) VolumeStats(context context.Context, request *internal.VolumeSt
 }
 
 func (s *Server) GetVolumeStats(context context.Context, request *internal.GetVolumeStatsRequest, version apiversion.Version) (*internal.GetVolumeStatsResponse, error) {
-	klog.V(4).Infof("calling VolumeStats with request: %+v", request)
+	klog.V(2).Infof("GetVolumeStats: Request: %+v", request)
 	volumeID := request.VolumeId
 	if volumeID == "" {
 		return nil, fmt.Errorf("volume id empty")
@@ -197,11 +197,11 @@ func (s *Server) GetVolumeStats(context context.Context, request *internal.GetVo
 
 	totalBytes, usedBytes, err := s.hostAPI.GetVolumeStats(volumeID)
 	if err != nil {
-		klog.Errorf("failed VolumeStats %v", err)
+		klog.Errorf("failed GetVolumeStats %v", err)
 		return nil, err
 	}
 
-	klog.V(5).Infof("VolumeStats: returned: Capacity %v Used %v", totalBytes, usedBytes)
+	klog.V(2).Infof("VolumeStats: returned: Capacity %v Used %v", totalBytes, usedBytes)
 
 	response := &internal.GetVolumeStatsResponse{
 		TotalBytes: totalBytes,
@@ -231,7 +231,7 @@ func (s *Server) GetVolumeDiskNumber(context context.Context, request *internal.
 }
 
 func (s *Server) GetDiskNumberFromVolumeID(context context.Context, request *internal.GetDiskNumberFromVolumeIDRequest, version apiversion.Version) (*internal.GetDiskNumberFromVolumeIDResponse, error) {
-	klog.V(4).Infof("calling GetDiskNumberFromVolumeID with request %+v", request)
+	klog.V(2).Infof("GetDiskNumberFromVolumeID: Request: %+v", request)
 
 	volumeId := request.VolumeId
 	if volumeId == "" {
@@ -271,7 +271,7 @@ func (s *Server) GetVolumeIDFromMount(context context.Context, request *internal
 }
 
 func (s *Server) GetVolumeIDFromTargetPath(context context.Context, request *internal.GetVolumeIDFromTargetPathRequest, version apiversion.Version) (*internal.GetVolumeIDFromTargetPathResponse, error) {
-	klog.V(4).Infof("calling GetVolumeIDFromTargetPath with request %+v", request)
+	klog.V(2).Infof("GetVolumeIDFromTargetPath: Request: %+v", request)
 
 	targetPath := request.TargetPath
 	if targetPath == "" {
