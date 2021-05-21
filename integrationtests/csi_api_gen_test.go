@@ -1,8 +1,6 @@
 package integrationtests
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +18,10 @@ import (
 
 // TestNewAPIGroup tests that bootstraping a new group works as intended.
 func TestNewAPIGroup(t *testing.T) {
-	skipTestOnCondition(t, isRunningOnGhActions())
+	// TODO(mauriciopoppe): this test about the generator isn't working at all
+	// the generator looks like it's working but the steps to make the diffs between the actual and desired
+	// aren't correct, on top of that the generator desired files are out of date
+	t.Skip("Skipping csi-api-generator test (ref 139#)")
 
 	// clean slate
 	require.Nil(t, os.RemoveAll("csiapigen/new_group/actual_output"))
@@ -32,7 +33,7 @@ func TestNewAPIGroup(t *testing.T) {
 	require.Truef(t, err == nil, "expected err=nil, instead got err=%+v", err)
 
 	// run the generator
-	stdout, _ := runGenerator(t, csiAPIGenPath, "TestNewAPIGroup",
+	stdout := runGenerator(t, csiAPIGenPath, "TestNewAPIGroup",
 		"--input-dirs", "github.com/kubernetes-csi/csi-proxy/integrationtests/csiapigen/new_group/api",
 		// might as well check that logging CLI args work as expected
 		"-v=3")
@@ -57,45 +58,15 @@ func TestNewAPIGroup(t *testing.T) {
 // runGenerator runs csi-proxy-api-gen with the given CLI args, and returns stdout and stderr.
 // It will also fail the test immediately if there any panics during the generation (but
 // will handle those graciously).
-func runGenerator(t *testing.T, csiAPIGenPath string, testName string, cliArgs ...string) (string, string) {
-	stdoutFile, err := ioutil.TempFile("", "test-csi-proxy-api-gen-stdout-"+testName)
-	require.Nil(t, err)
-	stderrFile, err := ioutil.TempFile("", "test-csi-proxy-api-gen-stderr-"+testName)
-	require.Nil(t, err)
-
-	defer func() {
-
-		panicErr := recover()
-		failedErrorMsg := ""
-		if panicErr != nil {
-			failedErrorMsg = fmt.Sprintf("panic when generating code: %v\n", panicErr)
-
-			readLogFile := func(logFile *os.File) string {
-				contents, err := ioutil.ReadFile(logFile.Name())
-				if err != nil {
-					return fmt.Sprintf("<unable to read: %v>", err)
-				}
-				return string(contents)
-			}
-
-			failedErrorMsg += fmt.Sprintf("stdout:\n%s\n", readLogFile(stdoutFile))
-			failedErrorMsg += fmt.Sprintf("stderr:\n%s\n", readLogFile(stderrFile))
-		}
-
-		assert.Nil(t, os.Remove(stdoutFile.Name()))
-		assert.Nil(t, os.Remove(stderrFile.Name()))
-
-		require.Fail(t, failedErrorMsg)
-	}()
-
+func runGenerator(t *testing.T, csiAPIGenPath string, testName string, cliArgs ...string) string {
 	// run generator through powershell
-	cmd := exec.Command(csiAPIGenPath)
+	cmd := exec.Command(csiAPIGenPath, cliArgs...)
+	t.Logf("executing command %q", cmd.String())
 	out, err := cmd.CombinedOutput()
 	t.Logf("%s", out)
-	if err := cmd.Run(); err != nil {
+	if err != nil {
 		t.Fatalf("command %q failed with err=%+v", cmd.String(), err)
 	}
 
-	return readFile(t, stdoutFile.Name()),
-		readFile(t, stderrFile.Name())
+	return string(out)
 }

@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"k8s.io/klog/v2"
 )
 
 // API exposes the internal volume operations available in the server
@@ -45,6 +47,7 @@ func New() VolumeAPI {
 }
 
 func runExec(cmd string) ([]byte, error) {
+	klog.V(5).Infof("Executing command: %q", cmd)
 	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
 	return out, err
 }

@@ -63,20 +63,20 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 
 	cmd = fmt.Sprintf("mkdir %s", mountPath)
 	if out, err = runPowershellCmd(cmd); err != nil {
-		t.Fatalf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+		t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
 	}
 
 	// Initialize the tests, using powershell directly.
 	// Create the new vhdx
 	cmd = fmt.Sprintf("New-VHD -Path %s -SizeBytes %d", vhdxPath, initialSize)
 	if out, err = runPowershellCmd(cmd); err != nil {
-		t.Fatalf("Error: %v. Command: %s. Out: %s.", err, cmd, out)
+		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
 
 	// Mount the vhdx as a disk
 	cmd = fmt.Sprintf("Mount-VHD -Path %s", vhdxPath)
 	if out, err = runPowershellCmd(cmd); err != nil {
-		t.Fatalf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+		t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
 	}
 
 	var diskNum uint64
@@ -335,6 +335,8 @@ func simpleE2e(t *testing.T) {
 		// Resize from 5G to 2G
 		SizeBytes: 2 * 1024 * 1024 * 1024,
 	}
+
+	t.Logf("Attempt to resize volume from sizeBytes=%d to sizeBytes=%d", volumeStatsResponse.TotalBytes, resizeVolumeRequest.SizeBytes)
 
 	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
 	if err != nil {

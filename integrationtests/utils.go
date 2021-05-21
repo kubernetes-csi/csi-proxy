@@ -54,6 +54,9 @@ func recursiveDiff(t *testing.T, dir1, dir2 string, fileSuffixesToRemove ...stri
 	hashesDir2, err := fileHashes(dir2, fileSuffixesToRemove...)
 	require.Nil(t, err, "unable to get file hashes for directory %q", dir2)
 
+	t.Logf("Hashes for dir1: %+v", hashesDir1)
+	t.Logf("Hashes for dir2: %+v", hashesDir2)
+
 	for filePath, hash1 := range hashesDir1 {
 		if hash2, present := hashesDir2[filePath]; assert.True(t, present, "%q present in %q but not in %q", filePath, dir1, dir2) {
 			if hash1 != hash2 {
