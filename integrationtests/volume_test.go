@@ -245,10 +245,13 @@ func negativeVolumeTests(t *testing.T) {
 
 // sizeIsAround returns true if the actual size is around the expected size
 // (considers the fact that some bytes were lost)
-func sizeIsAround(actualSize, expectedSize int64) bool {
+func sizeIsAround(t *testing.T, actualSize, expectedSize int64) bool {
 	// An upper bound on the number of bytes that are lost when creating or resizing a partition
 	var volumeSizeBytesLoss int64 = (20 * 1024 * 1024)
-	return actualSize <= expectedSize && actualSize > expectedSize-volumeSizeBytesLoss
+	var lowerBound = expectedSize - volumeSizeBytesLoss
+	var upperBound = expectedSize
+	t.Logf("Checking that the size is inside the bounds: %d < (actual) %d < %d", lowerBound, actualSize, upperBound)
+	return lowerBound <= actualSize && actualSize <= upperBound
 }
 
 // volumeAPICompatibilityTests tests that the API is compatible with versions that are before
@@ -298,8 +301,8 @@ func volumeAPICompatibilityTests(t *testing.T) {
 		t.Fatalf("VolumeStats request error: %v", err)
 	}
 	// For a volume formatted with 1GB it should be around 1GB, in practice it was 1056947712 bytes or 0.9844GB
-	// let's compare with a range of +- 20MB
-	if sizeIsAround(volumeStatsResponse.VolumeSize, vhd.InitialSize) {
+	// let's compare with a range of - 20MB
+	if !sizeIsAround(t, volumeStatsResponse.VolumeSize, vhd.InitialSize) {
 		t.Fatalf("volumeStatsResponse.VolumeSize reported is not valid, it is %v", volumeStatsResponse.VolumeSize)
 	}
 
@@ -412,7 +415,7 @@ func simpleE2e(t *testing.T) {
 	}
 	// For a volume formatted with 1GB it should be around 1GB, in practice it was 1056947712 bytes or 0.9844GB
 	// let's compare with a range of +- 20MB
-	if sizeIsAround(volumeStatsResponse.TotalBytes, vhd.InitialSize) {
+	if !sizeIsAround(t, volumeStatsResponse.TotalBytes, vhd.InitialSize) {
 		t.Fatalf("volumeStatsResponse.TotalBytes reported is not valid, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
@@ -452,7 +455,7 @@ func simpleE2e(t *testing.T) {
 		t.Fatalf("VolumeStats request after resize error: %v", err)
 	}
 	// resizing from 1GB to approximately 1.5GB
-	if sizeIsAround(volumeStatsResponse.TotalBytes, newVolumeSize) {
+	if !sizeIsAround(t, volumeStatsResponse.TotalBytes, newVolumeSize) {
 		t.Fatalf("VolumeSize reported should be greater than the old size, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
