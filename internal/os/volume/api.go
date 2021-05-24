@@ -178,10 +178,11 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 
 	//if the partition's size is already the size we want this is a noop, just return
 	if currentSize >= finalSize {
+		klog.V(2).Infof("Attempted to resize volume %s to a lower size, from currentBytes=%d wantedBytes=%d", volumeID, currentSize, finalSize)
 		return nil
 	}
 
-	cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-partition | Resize-Partition -Size %d", volumeID, finalSize)
+	cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-Partition | Resize-Partition -Size %d", volumeID, finalSize)
 	out, err = runExec(cmd)
 	if err != nil {
 		return fmt.Errorf("error resizing volume. cmd: %s, output: %s size:%v, finalSize %v, error: %v", cmd, string(out), size, finalSize, err)

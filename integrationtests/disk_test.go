@@ -32,7 +32,7 @@ func TestDiskAPIGroup(t *testing.T) {
 		require.Nil(t, err)
 
 		cmd := "hostname"
-		hostname, err := runPowershellCmd(cmd)
+		hostname, err := runPowershellCmd(t, cmd)
 		if err != nil {
 			t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, hostname)
 		}
@@ -76,7 +76,7 @@ func TestDiskAPIGroup(t *testing.T) {
 		diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
 		diskNumAsString := strconv.FormatUint(uint64(diskNum), 10)
 
-		out, err := runPowershellCmd(fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsOffline $true", diskNum))
+		out, err := runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsOffline $true", diskNum))
 		require.NoError(t, err, "failed setting disk offline, out=%v", out)
 
 		getReq := &v1beta3.GetAttachStateRequest{DiskID: diskNumAsString}
@@ -90,7 +90,7 @@ func TestDiskAPIGroup(t *testing.T) {
 		_, err = client.SetAttachState(context.TODO(), setReq)
 		assert.NoError(t, err)
 
-		out, err = runPowershellCmd(fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", diskNum))
+		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", diskNum))
 		assert.NoError(t, err)
 
 		result, err := strconv.ParseBool(strings.TrimSpace(out))
@@ -108,7 +108,7 @@ func TestDiskAPIGroup(t *testing.T) {
 		_, err = client.SetAttachState(context.TODO(), setReq)
 		assert.NoError(t, err)
 
-		out, err = runPowershellCmd(fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", diskNum))
+		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", diskNum))
 		assert.NoError(t, err)
 
 		result, err = strconv.ParseBool(strings.TrimSpace(out))

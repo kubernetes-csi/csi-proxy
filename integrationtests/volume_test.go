@@ -20,8 +20,10 @@ import (
 	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2"
 )
 
-func runPowershellCmd(cmd string) (string, error) {
-	result, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func runPowershellCmd(t *testing.T, command string) (string, error) {
+	cmd := exec.Command("powershell", "/c", command)
+	t.Logf("Executing command: %q", cmd.String())
+	result, err := cmd.CombinedOutput()
 	return string(result), err
 }
 
@@ -36,20 +38,20 @@ func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
 	var err error
 
 	cmd = fmt.Sprintf("Dismount-VHD -Path %s", vhdxPath)
-	if out, err = runPowershellCmd(cmd); err != nil {
+	if out, err = runPowershellCmd(t, cmd); err != nil {
 		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 	}
 	cmd = fmt.Sprintf("rm %s", vhdxPath)
-	if out, err = runPowershellCmd(cmd); err != nil {
+	if out, err = runPowershellCmd(t, cmd); err != nil {
 		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 	}
 	cmd = fmt.Sprintf("rmdir %s", mountPath)
-	if out, err = runPowershellCmd(cmd); err != nil {
+	if out, err = runPowershellCmd(t, cmd); err != nil {
 		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 	}
 	if testPluginPath != "" {
 		cmd = fmt.Sprintf("rmdir %s", testPluginPath)
-		if out, err = runPowershellCmd(cmd); err != nil {
+		if out, err = runPowershellCmd(t, cmd); err != nil {
 			t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
 		}
 	}
@@ -62,20 +64,20 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 	const partitionStyle = "GPT"
 
 	cmd = fmt.Sprintf("mkdir %s", mountPath)
-	if out, err = runPowershellCmd(cmd); err != nil {
+	if out, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
 	}
 
 	// Initialize the tests, using powershell directly.
 	// Create the new vhdx
 	cmd = fmt.Sprintf("New-VHD -Path %s -SizeBytes %d", vhdxPath, initialSize)
-	if out, err = runPowershellCmd(cmd); err != nil {
+	if out, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
 
 	// Mount the vhdx as a disk
 	cmd = fmt.Sprintf("Mount-VHD -Path %s", vhdxPath)
-	if out, err = runPowershellCmd(cmd); err != nil {
+	if out, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
 	}
 
@@ -83,7 +85,7 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 	var diskNumUnparsed string
 	cmd = fmt.Sprintf("(Get-VHD -Path %s).DiskNumber", vhdxPath)
 
-	if diskNumUnparsed, err = runPowershellCmd(cmd); err != nil {
+	if diskNumUnparsed, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
 	if diskNum, err = strconv.ParseUint(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 32); err != nil {
@@ -91,12 +93,12 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 	}
 
 	cmd = fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle %s", diskNum, partitionStyle)
-	if _, err = runPowershellCmd(cmd); err != nil {
+	if _, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
 
 	cmd = fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNum)
-	if _, err = runPowershellCmd(cmd); err != nil {
+	if _, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
 	return uint32(diskNum)
@@ -328,15 +330,22 @@ func simpleE2e(t *testing.T) {
 		t.Fatalf("volumeStatsResponse.TotalBytes reported is not valid, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
+	// Resize from 1G to 2G
 	oldSize := volumeStatsResponse.TotalBytes
+	newSize := int64(2 * 1024 * 1024 * 1024)
 
-	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
-		VolumeId: volumeID,
-		// Resize from 1G to 2G
-		SizeBytes: 2 * 1024 * 1024 * 1024,
+	// To resize a volume we need to resize the virtual hard disk first and then the partition
+	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhdxPath, newSize)
+	if out, err := runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
 
-	t.Logf("Attempt to resize volume from sizeBytes=%d to sizeBytes=%d", volumeStatsResponse.TotalBytes, resizeVolumeRequest.SizeBytes)
+	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
+		VolumeId:  volumeID,
+		SizeBytes: newSize,
+	}
+
+	t.Logf("Attempt to resize volume from sizeBytes=%d to sizeBytes=%d", oldSize, newSize)
 
 	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
 	if err != nil {
