@@ -505,21 +505,20 @@ func simpleE2e(t *testing.T) {
 }
 
 func TestVolumeAPIs(t *testing.T) {
-	// TODO: This test will fail on Github Actions because Hyper-V is disabled
-	// see https://github.com/actions/virtual-environments/pull/2525
-	// Skip on GH actions till we find a better solution
-	t.Run("E2E", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-		simpleE2e(t)
-	})
-
 	t.Run("NegativeDiskTests", func(t *testing.T) {
 		negativeDiskTests(t)
 	})
 	t.Run("NegativeVolumeTests", func(t *testing.T) {
 		negativeVolumeTests(t)
 	})
+	// TODO: These tests will fail on Github Actions because Hyper-V is disabled
+	// see https://github.com/actions/virtual-environments/pull/2525
+	t.Run("E2E", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+		simpleE2e(t)
+	})
 	t.Run("VolumeAPICompatibilityTests", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
 		volumeAPICompatibilityTests(t)
 	})
 }
