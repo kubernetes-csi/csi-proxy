@@ -57,7 +57,22 @@ func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
 	}
 }
 
-func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
+type VHDDisk struct {
+	DiskNumber     uint32
+	Path           string
+	Mount          string
+	TestPluginPath string
+	InitialSize    int64
+}
+
+func diskInit(t *testing.T) (*VHDDisk, func()) {
+	s1 := rand.NewSource(time.Now().UTC().UnixNano())
+	r1 := rand.New(s1)
+
+	testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", r1.Intn(100))
+	mountPath := fmt.Sprintf("%smount-%d", testPluginPath, r1.Intn(100))
+	vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, r1.Intn(100))
+
 	var cmd, out string
 	var err error
 	const initialSize = 1 * 1024 * 1024 * 1024
@@ -101,7 +116,20 @@ func diskInit(t *testing.T, vhdxPath, mountPath, testPluginPath string) uint32 {
 	if _, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
-	return uint32(diskNum)
+
+	cleanup := func() {
+		diskCleanup(t, vhdxPath, mountPath, testPluginPath)
+	}
+
+	vhd := &VHDDisk{
+		DiskNumber:     uint32(diskNum),
+		Path:           vhdxPath,
+		Mount:          mountPath,
+		TestPluginPath: testPluginPath,
+		InitialSize:    initialSize,
+	}
+
+	return vhd, cleanup
 }
 
 func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum uint32) {
@@ -215,9 +243,17 @@ func negativeVolumeTests(t *testing.T) {
 	runNegativeVolumeStatsRequest(t, client, "-1")
 }
 
-// clientCompatibilityTests tests that the API is compatible with versions that are before
+// sizeIsAround returns true if the actual size is around the expected size
+// (considers the fact that some bytes were lost)
+func sizeIsAround(actualSize, expectedSize int64) bool {
+	// An upper bound on the number of bytes that are lost when creating or resizing a partition
+	var volumeSizeBytesLoss int64 = (20 * 1024 * 1024)
+	return actualSize <= expectedSize && actualSize > expectedSize-volumeSizeBytesLoss
+}
+
+// volumeAPICompatibilityTests tests that the API is compatible with versions that are before
 // the latest, e.g. that a v1beta2 client can still use the server csi-proxy v1beta3
-func clientCompatibilityTests(t *testing.T) {
+func volumeAPICompatibilityTests(t *testing.T) {
 	// it's intended for this client to be before v1beta3!
 	// i.e. don't change it if there are upgrades
 	var err error
@@ -226,17 +262,73 @@ func clientCompatibilityTests(t *testing.T) {
 		t.Fatalf("Failed to create new v1beta2 client, err=%+v", err)
 	}
 
-	var dismountVolumeRequest *v1beta2.DismountVolumeRequest
-	dismountVolumeRequest = &v1beta2.DismountVolumeRequest{
-		VolumeId: "",
-		Path:     "",
+	vhd, vhdCleanup := diskInit(t)
+	defer vhdCleanup()
+
+	// get first volume
+	listRequest := &v1beta2.ListVolumesOnDiskRequest{
+		DiskId: strconv.FormatUint(uint64(vhd.DiskNumber), 10),
+	}
+	listResponse, err := v1beta2Client.ListVolumesOnDisk(context.TODO(), listRequest)
+	if err != nil {
+		t.Fatalf("List response: %v", err)
 	}
 
-	var wanted string
-	wanted = "volume id empty"
+	volumeIDsLen := len(listResponse.VolumeIds)
+	if volumeIDsLen != 1 {
+		t.Fatalf("Number of volumes not equal to 1: %d", volumeIDsLen)
+	}
+	volumeID := listResponse.VolumeIds[0]
+
+	// format volume (skip IsVolumeFormatted calls)
+	formatVolumeRequest := &v1beta2.FormatVolumeRequest{
+		VolumeId: volumeID,
+	}
+	_, err = v1beta2Client.FormatVolume(context.TODO(), formatVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume format failed. Error: %v", err)
+	}
+
+	// VolumeStats (volume was formatted to 1GB)
+	volumeStatsRequest := &v1beta2.VolumeStatsRequest{
+		VolumeId: volumeID,
+	}
+	volumeStatsResponse, err := v1beta2Client.VolumeStats(context.TODO(), volumeStatsRequest)
+	if err != nil {
+		t.Fatalf("VolumeStats request error: %v", err)
+	}
+	// For a volume formatted with 1GB it should be around 1GB, in practice it was 1056947712 bytes or 0.9844GB
+	// let's compare with a range of +- 20MB
+	if sizeIsAround(volumeStatsResponse.VolumeSize, vhd.InitialSize) {
+		t.Fatalf("volumeStatsResponse.VolumeSize reported is not valid, it is %v", volumeStatsResponse.VolumeSize)
+	}
+
+	volumeDiskNumberRequest := &v1beta2.VolumeDiskNumberRequest{
+		VolumeId: volumeID,
+	}
+	_, err = v1beta2Client.GetVolumeDiskNumber(context.TODO(), volumeDiskNumberRequest)
+	if err != nil {
+		t.Fatalf("GetVolumeDiskNumber failed: %v", err)
+	}
+
+	// Mount the volume
+	mountVolumeRequest := &v1beta2.MountVolumeRequest{
+		VolumeId: volumeID,
+		Path:     vhd.Mount,
+	}
+	_, err = v1beta2Client.MountVolume(context.TODO(), mountVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+	}
+
+	// Unmount the volume
+	dismountVolumeRequest := &v1beta2.DismountVolumeRequest{
+		VolumeId: volumeID,
+		Path:     vhd.Mount,
+	}
 	_, err = v1beta2Client.DismountVolume(context.TODO(), dismountVolumeRequest)
-	if err == nil || !strings.Contains(err.Error(), wanted) {
-		t.Fatalf("Expected error to contain wanted=%s", wanted)
+	if err != nil {
+		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
 	}
 }
 
@@ -265,18 +357,11 @@ func simpleE2e(t *testing.T) {
 	}
 	defer diskClient.Close()
 
-	s1 := rand.NewSource(time.Now().UTC().UnixNano())
-	r1 := rand.New(s1)
-
-	testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", r1.Intn(100))
-	mountPath := fmt.Sprintf("%smount-%d", testPluginPath, r1.Intn(100))
-	vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, r1.Intn(100))
-
-	defer diskCleanup(t, vhdxPath, mountPath, testPluginPath)
-	diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
+	vhd, vhdCleanup := diskInit(t)
+	defer vhdCleanup()
 
 	listRequest := &v1beta3.ListVolumesOnDiskRequest{
-		DiskNumber: diskNum,
+		DiskNumber: vhd.DiskNumber,
 	}
 	listResponse, err := volumeClient.ListVolumesOnDisk(context.TODO(), listRequest)
 	if err != nil {
@@ -325,22 +410,24 @@ func simpleE2e(t *testing.T) {
 	if err != nil {
 		t.Fatalf("VolumeStats request error: %v", err)
 	}
-
-	if volumeStatsResponse.TotalBytes == -1 {
+	// For a volume formatted with 1GB it should be around 1GB, in practice it was 1056947712 bytes or 0.9844GB
+	// let's compare with a range of +- 20MB
+	if sizeIsAround(volumeStatsResponse.TotalBytes, vhd.InitialSize) {
 		t.Fatalf("volumeStatsResponse.TotalBytes reported is not valid, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
 	// Resize the disk to twice its size (from 1GB to 2GB)
-	oldSize := volumeStatsResponse.TotalBytes
-	newSize := int64(oldSize * 2)
-
 	// To resize a volume we need to resize the virtual hard disk first and then the partition
-	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhdxPath, newSize)
+	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhd.Path, int64(volumeStatsResponse.TotalBytes*2))
 	if out, err := runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
 
-	// This is the max size a partition may be resized to (less than 2GB)
+	// Resize the volume to 1.5GB
+	oldVolumeSize := volumeStatsResponse.TotalBytes
+	newVolumeSize := int64(float32(oldVolumeSize) * 1.5)
+
+	// This is the max partition size when doing a resize to 2GB
 	//
 	//    Get-PartitionSupportedSize -DiskNumber 7 -PartitionNumber 2 | ConvertTo-Json
 	//    {
@@ -350,10 +437,10 @@ func simpleE2e(t *testing.T) {
 	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
 		VolumeId: volumeID,
 		// resize the partition to 1.5x times instead
-		SizeBytes: int64(float32(oldSize) * 1.5),
+		SizeBytes: newVolumeSize,
 	}
 
-	t.Logf("Attempt to resize volume from sizeBytes=%d to sizeBytes=%d", oldSize, newSize)
+	t.Logf("Attempt to resize volume from sizeBytes=%d to sizeBytes=%d", oldVolumeSize, newVolumeSize)
 
 	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
 	if err != nil {
@@ -364,8 +451,8 @@ func simpleE2e(t *testing.T) {
 	if err != nil {
 		t.Fatalf("VolumeStats request after resize error: %v", err)
 	}
-
-	if volumeStatsResponse.TotalBytes <= oldSize {
+	// resizing from 1GB to approximately 1.5GB
+	if sizeIsAround(volumeStatsResponse.TotalBytes, newVolumeSize) {
 		t.Fatalf("VolumeSize reported should be greater than the old size, it is %v", volumeStatsResponse.TotalBytes)
 	}
 
@@ -396,21 +483,21 @@ func simpleE2e(t *testing.T) {
 	// Mount the volume
 	mountVolumeRequest := &v1beta3.MountVolumeRequest{
 		VolumeId:   volumeID,
-		TargetPath: mountPath,
+		TargetPath: vhd.Mount,
 	}
 	_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
 	if err != nil {
-		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
+		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
 	}
 
 	// Unmount the volume
 	unmountVolumeRequest := &v1beta3.UnmountVolumeRequest{
 		VolumeId:   volumeID,
-		TargetPath: mountPath,
+		TargetPath: vhd.Mount,
 	}
 	_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
 	if err != nil {
-		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, mountPath, err)
+		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
 	}
 }
 
@@ -418,7 +505,7 @@ func TestVolumeAPIs(t *testing.T) {
 	// TODO: This test will fail on Github Actions because Hyper-V is disabled
 	// see https://github.com/actions/virtual-environments/pull/2525
 	// Skip on GH actions till we find a better solution
-	t.Run("SimpleE2E", func(t *testing.T) {
+	t.Run("E2E", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
 		simpleE2e(t)
 	})
@@ -429,7 +516,7 @@ func TestVolumeAPIs(t *testing.T) {
 	t.Run("NegativeVolumeTests", func(t *testing.T) {
 		negativeVolumeTests(t)
 	})
-	t.Run("API Compatibility Tests", func(t *testing.T) {
-		clientCompatibilityTests(t)
+	t.Run("VolumeAPICompatibilityTests", func(t *testing.T) {
+		volumeAPICompatibilityTests(t)
 	})
 }

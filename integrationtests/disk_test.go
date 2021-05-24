@@ -3,11 +3,9 @@ package integrationtests
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
 	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
@@ -65,18 +63,13 @@ func TestDiskAPIGroup(t *testing.T) {
 
 		defer client.Close()
 
-		s1 := rand.NewSource(time.Now().UTC().UnixNano())
-		r1 := rand.New(s1)
+		// initialize disk
+		vhd, vhdCleanup := diskInit(t)
+		defer vhdCleanup()
 
-		testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", r1.Intn(100))
-		mountPath := fmt.Sprintf("%smount-%d", testPluginPath, r1.Intn(100))
-		vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, r1.Intn(100))
+		diskNumAsString := strconv.FormatUint(uint64(vhd.DiskNumber), 10)
 
-		defer diskCleanup(t, vhdxPath, mountPath, testPluginPath)
-		diskNum := diskInit(t, vhdxPath, mountPath, testPluginPath)
-		diskNumAsString := strconv.FormatUint(uint64(diskNum), 10)
-
-		out, err := runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsOffline $true", diskNum))
+		out, err := runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsOffline $true", vhd.DiskNumber))
 		require.NoError(t, err, "failed setting disk offline, out=%v", out)
 
 		getReq := &v1beta3.GetAttachStateRequest{DiskID: diskNumAsString}
@@ -90,7 +83,7 @@ func TestDiskAPIGroup(t *testing.T) {
 		_, err = client.SetAttachState(context.TODO(), setReq)
 		assert.NoError(t, err)
 
-		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", diskNum))
+		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", vhd.DiskNumber))
 		assert.NoError(t, err)
 
 		result, err := strconv.ParseBool(strings.TrimSpace(out))
@@ -108,7 +101,7 @@ func TestDiskAPIGroup(t *testing.T) {
 		_, err = client.SetAttachState(context.TODO(), setReq)
 		assert.NoError(t, err)
 
-		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", diskNum))
+		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", vhd.DiskNumber))
 		assert.NoError(t, err)
 
 		result, err = strconv.ParseBool(strings.TrimSpace(out))
