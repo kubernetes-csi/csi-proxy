@@ -2,6 +2,7 @@ package integrationtests
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -55,8 +56,15 @@ func v1alpha1VolumeTests(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Is volume formatted request error: %v", err)
 	}
-	if isVolumeFormattedResponse.Formatted {
-		t.Fatal("Volume formatted. Unexpected !!")
+	if !isVolumeFormattedResponse.Formatted {
+		t.Fatal("Volume must be formatted at this point")
+	}
+
+	// Resize the disk to twice its size (from 1GB to 2GB)
+	// To resize a volume we need to resize the virtual hard disk first and then the partition
+	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhd.Path, int64(vhd.InitialSize*2))
+	if out, err := runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
 
 	// in v1alpha1 there's no stats call, just make sure that we can resize a volume without problems

@@ -2,6 +2,7 @@ package integrationtests
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -47,6 +48,18 @@ func v1beta2VolumeTests(t *testing.T) {
 		t.Fatalf("Volume format failed. Error: %v", err)
 	}
 
+	// check that the volume is formatted now
+	isVolumeFormattedRequest := &v1beta2.IsVolumeFormattedRequest{
+		VolumeId: volumeID,
+	}
+	isVolumeFormattedResponse, err := v1beta2Client.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	if err != nil {
+		t.Fatalf("Is volume formatted request error: %v", err)
+	}
+	if !isVolumeFormattedResponse.Formatted {
+		t.Fatal("Volume must be formatted at this point")
+	}
+
 	// VolumeStats (volume was formatted to 1GB)
 	volumeStatsRequest := &v1beta2.VolumeStatsRequest{
 		VolumeId: volumeID,
@@ -67,6 +80,13 @@ func v1beta2VolumeTests(t *testing.T) {
 	_, err = v1beta2Client.GetVolumeDiskNumber(context.TODO(), volumeDiskNumberRequest)
 	if err != nil {
 		t.Fatalf("GetVolumeDiskNumber failed: %v", err)
+	}
+
+	// Resize the disk to twice its size (from 1GB to 2GB)
+	// To resize a volume we need to resize the virtual hard disk first and then the partition
+	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhd.Path, int64(vhd.InitialSize*2))
+	if out, err := runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
 
 	// Resize the volume to 1.5GB

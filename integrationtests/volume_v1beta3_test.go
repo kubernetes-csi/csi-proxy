@@ -87,7 +87,7 @@ func v1beta3VolumeTests(t *testing.T) {
 
 	// Resize the disk to twice its size (from 1GB to 2GB)
 	// To resize a volume we need to resize the virtual hard disk first and then the partition
-	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhd.Path, int64(volumeStatsResponse.TotalBytes*2))
+	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhd.Path, int64(vhd.InitialSize*2))
 	if out, err := runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
 	}
