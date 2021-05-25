@@ -49,6 +49,8 @@ github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha2
 github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/system/v1alpha1
+github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1
+github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3
 # github.com/pkg/errors v0.9.1
