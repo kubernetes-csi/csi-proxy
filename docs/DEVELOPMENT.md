@@ -90,3 +90,27 @@ If there are any non-backward compatible changes (for example renaming a paramet
 - Remap old parameters in previous API versions e.g. let's say that we make a remap in `v1beta3` then we need to updated `v1alpha1`, `v1beta1`, etc. using the `conversion.go` file. (see #138)
 - Update `internal/<group>/server.go` if there are new methods, the old methods should forward the request (see #138)
 
+## Running E2E tests
+
+There are a few presubmit tests that run in Github Actions, E2E tests need to run in a Windows VM with Hyper-V enabled, to run the E2E tests in Google Cloud follow this workflow:
+
+- Modify scripts/e2e-runner.ps1 to use your repo/branch
+- Create a windows VM for csi-proxy with scripts/e2e-tests.sh, after the instance is initialized it'll build csi-proxy and attempt to run the E2E tests
+
+During development we need to iterate faster, I follow this workflow during development:
+
+- Make changes to the codebase locally and push to the remote
+- RDP to the VM and open a few powershell terminals (with `start powershell`)
+- Pull the changes from the remote, recompile and start csi-proxy and run the E2E tests
+
+```bash
+cd ~/go/src/github.com/kubernetes-csi/csi-proxy
+git fetch; git pull --rebase origin $BRANCH
+
+# terminal 1 (build and start CSI proxy)
+go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
+.\bin\csi-proxy.exe --kubelet-csi-plugins-path $pwd --kubelet-pod-path $pwd --v=5
+
+# terminal 2 (run E2E tests)
+go test -v .\integrationtests\ -run TestVolumeAPIs
+```
