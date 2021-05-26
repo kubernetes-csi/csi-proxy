@@ -39,7 +39,7 @@ func v1beta3DiskTests(t *testing.T) {
 		}
 
 		hostname = strings.TrimSpace(hostname)
-		diskIDsMap := diskIDsResponse.DiskIds
+		diskIDsMap := diskIDsResponse.DiskIDs
 		if len(diskIDsMap) == 0 {
 			t.Errorf("Expected to get diskIDs, instead got diskIDsResponse.DiskIds=%+v", diskIDsMap)
 		}

@@ -130,7 +130,9 @@ func (s *Server) ListDiskIDs(context context.Context, request *internal.ListDisk
 			SerialNumber: v.SerialNumber,
 		}
 	}
-	return &internal.ListDiskIDsResponse{DiskIDs: responseDiskIDs}, nil
+	response := &internal.ListDiskIDsResponse{DiskIDs: responseDiskIDs}
+	klog.V(5).Infof("Response=%v", response)
+	return response, nil
 }
 
 func (s *Server) DiskStats(context context.Context, request *internal.DiskStatsRequest, version apiversion.Version) (*internal.DiskStatsResponse, error) {
