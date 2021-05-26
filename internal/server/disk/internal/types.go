@@ -49,7 +49,6 @@ type DiskIDs struct {
 
 type ListDiskIDsResponse struct {
 	// Map of disk device numbers and IDs associated with each disk device
-	// +k8s:conversion-gen=false
 	DiskIDs map[uint32]*DiskIDs
 }
 

@@ -154,6 +154,19 @@ func Convert_internal_ListDiskIDsRequest_To_v1beta3_ListDiskIDsRequest(in *inter
 }
 
 func autoConvert_v1beta3_ListDiskIDsResponse_To_internal_ListDiskIDsResponse(in *v1beta3.ListDiskIDsResponse, out *internal.ListDiskIDsResponse) error {
+	if in.DiskIDs != nil {
+		in, out := &in.DiskIDs, &out.DiskIDs
+		*out = make(map[uint32]*internal.DiskIDs, len(*in))
+		for key, val := range *in {
+			newVal := new(*internal.DiskIDs)
+			if err := Convert_v1beta3_DiskIDs_To_internal_DiskIDs(*&val, *newVal); err != nil {
+				return err
+			}
+			(*out)[key] = *newVal
+		}
+	} else {
+		out.DiskIDs = nil
+	}
 	return nil
 }
 
@@ -163,6 +176,19 @@ func Convert_v1beta3_ListDiskIDsResponse_To_internal_ListDiskIDsResponse(in *v1b
 }
 
 func autoConvert_internal_ListDiskIDsResponse_To_v1beta3_ListDiskIDsResponse(in *internal.ListDiskIDsResponse, out *v1beta3.ListDiskIDsResponse) error {
+	if in.DiskIDs != nil {
+		in, out := &in.DiskIDs, &out.DiskIDs
+		*out = make(map[uint32]*v1beta3.DiskIDs, len(*in))
+		for key, val := range *in {
+			newVal := new(*v1beta3.DiskIDs)
+			if err := Convert_internal_DiskIDs_To_v1beta3_DiskIDs(*&val, *newVal); err != nil {
+				return err
+			}
+			(*out)[key] = *newVal
+		}
+	} else {
+		out.DiskIDs = nil
+	}
 	return nil
 }
 

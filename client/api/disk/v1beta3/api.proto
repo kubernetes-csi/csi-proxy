@@ -75,7 +75,7 @@ message DiskIDs {
 
 message ListDiskIDsResponse {
     // Map of disk numbers and disk identifiers associated with each disk device.
-    map <uint32, DiskIDs> disk_ids = 1;
+    map <uint32, DiskIDs> diskIDs = 1;  // the case is intentional for protoc to generate the field as DiskIDs
 }
 
 message GetDiskStatsRequest {

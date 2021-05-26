@@ -196,7 +196,7 @@ func (s *Server) SetAttachState(context context.Context, request *internal.SetAt
 }
 
 func (s *Server) SetDiskState(context context.Context, request *internal.SetDiskStateRequest, version apiversion.Version) (*internal.SetDiskStateResponse, error) {
-	klog.V(2).Infof("Request: SetDiskState with diskNumber=%q and isOnline=%v", request.DiskNumber, request.IsOnline)
+	klog.V(2).Infof("Request: SetDiskState with diskNumber=%d and isOnline=%v", request.DiskNumber, request.IsOnline)
 	err := s.hostAPI.SetDiskState(request.DiskNumber, request.IsOnline)
 	if err != nil {
 		klog.Errorf("SetDiskState failed: %v", err)

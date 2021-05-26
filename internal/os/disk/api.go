@@ -311,6 +311,16 @@ func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
 // as the value. The DiskID struct has a field for the page83 ID.
 func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
+	// sample response
+	// [
+	// {
+	//     "Path":  "\\\\?\\scsi#disk\u0026ven_google\u0026prod_persistentdisk#4\u002621cb0360\u00260\u0026000100#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
+	//     "SerialNumber":  "                    "
+	// },
+	// {
+	//     "Path":  "\\\\?\\scsi#disk\u0026ven_msft\u0026prod_virtual_disk#2\u00261f4adffe\u00260\u0026000001#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
+	//     "SerialNumber":  null
+	// },
 	cmd := "(Get-Disk | Select Path, SerialNumber) | ConvertTo-Json"
 	out, err := runExec(cmd)
 	if err != nil {
