@@ -46,6 +46,7 @@ func Convert_internal_ListDiskIDsResponse_To_v1beta1_ListDiskIDsResponse(in *int
 			newVal := new(v1beta1.DiskIDs)
 
 			// copy internal.DiskIDs struct to a map by known keys (page83 and serialNumber)
+			newVal.Identifiers = make(map[string]string)
 			newVal.Identifiers["page83"] = val.Page83
 			newVal.Identifiers["serialNumber"] = val.SerialNumber
 			(*out)[strconv.FormatUint(uint64(key), 10)] = newVal
