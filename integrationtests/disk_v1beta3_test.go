@@ -15,15 +15,22 @@ import (
 
 func v1beta3DiskTests(t *testing.T) {
 	t.Run("ListDiskIDs", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+
 		client, err := diskv1beta3client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
+
+		// initialize disk
+		_, vhdCleanup := diskInit(t)
+		defer vhdCleanup()
 
 		diskNumber := 0
 		id := "page83"
 		listRequest := &v1beta3.ListDiskIDsRequest{}
 		diskIDsResponse, err := client.ListDiskIDs(context.TODO(), listRequest)
 		require.Nil(t, err)
+		t.Logf("diskIDsResponse=%v", diskIDsResponse)
 
 		cmd := "hostname"
 		hostname, err := runPowershellCmd(t, cmd)
@@ -32,8 +39,11 @@ func v1beta3DiskTests(t *testing.T) {
 		}
 
 		hostname = strings.TrimSpace(hostname)
-
 		diskIDsMap := diskIDsResponse.DiskIds
+		if len(diskIDsMap) == 0 {
+			t.Errorf("Expected to get diskIDs, instead got diskIDsResponse.DiskIds=%+v", diskIDsMap)
+		}
+
 		if diskIDsMap != nil {
 			diskIDs, found := diskIDsMap[uint32(diskNumber)]
 			if !found {
@@ -58,6 +68,8 @@ func v1beta3DiskTests(t *testing.T) {
 	})
 
 	t.Run("Get/SetAttachState", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+
 		client, err := diskv1beta3client.NewClient()
 		require.NoError(t, err)
 
