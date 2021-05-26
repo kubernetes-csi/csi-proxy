@@ -5,7 +5,8 @@ package v1beta3;
 option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3";
 
 service Volume {
-    // ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes on a Disk device.
+    // ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes from a
+    // given disk number and partition number (optional)
     rpc ListVolumesOnDisk(ListVolumesOnDiskRequest) returns (ListVolumesOnDiskResponse) {}
     // MountVolume mounts the volume at the requested global staging path.
     rpc MountVolume(MountVolumeRequest) returns (MountVolumeResponse) {}

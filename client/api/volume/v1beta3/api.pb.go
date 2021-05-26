@@ -506,7 +506,7 @@ type ResizeVolumeRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Volume device ID of the volume to dismount.
+	// Volume device ID of the volume to resize.
 	VolumeId string `protobuf:"bytes,1,opt,name=volume_id,json=volumeId,proto3" json:"volume_id,omitempty"`
 	// New size in bytes of the volume.
 	SizeBytes int64 `protobuf:"varint,2,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
@@ -1468,7 +1468,8 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type VolumeClient interface {
-	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes on a Disk device.
+	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes from a
+	// given disk number and partition number (optional)
 	ListVolumesOnDisk(ctx context.Context, in *ListVolumesOnDiskRequest, opts ...grpc.CallOption) (*ListVolumesOnDiskResponse, error)
 	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(ctx context.Context, in *MountVolumeRequest, opts ...grpc.CallOption) (*MountVolumeResponse, error)
@@ -1590,7 +1591,8 @@ func (c *volumeClient) WriteVolumeCache(ctx context.Context, in *WriteVolumeCach
 
 // VolumeServer is the server API for Volume service.
 type VolumeServer interface {
-	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes on a Disk device.
+	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes from a
+	// given disk number and partition number (optional)
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest) (*ListVolumesOnDiskResponse, error)
 	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error)

@@ -127,13 +127,13 @@ func Convert_internal_IsVolumeFormattedResponse_To_v1beta1_IsVolumeFormattedResp
 	return autoConvert_internal_IsVolumeFormattedResponse_To_v1beta1_IsVolumeFormattedResponse(in, out)
 }
 
-func autoConvert_v1beta1_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskRequest(in *v1beta1.ListVolumesOnDiskRequest, out *internal.ListVolumesOnDiskRequest) error {
-	return nil
-}
+// detected external conversion function
+// Convert_v1beta1_ListVolumesOnDiskRequest_To_internal_ListVolumesOnDiskRequest(in *v1beta1.ListVolumesOnDiskRequest, out *internal.ListVolumesOnDiskRequest) error
+// skipping generation of the auto function
 
-func autoConvert_internal_ListVolumesOnDiskRequest_To_v1beta1_ListVolumesOnDiskRequest(in *internal.ListVolumesOnDiskRequest, out *v1beta1.ListVolumesOnDiskRequest) error {
-	return nil
-}
+// detected external conversion function
+// Convert_internal_ListVolumesOnDiskRequest_To_v1beta1_ListVolumesOnDiskRequest(in *internal.ListVolumesOnDiskRequest, out *v1beta1.ListVolumesOnDiskRequest) error
+// skipping generation of the auto function
 
 func autoConvert_v1beta1_ListVolumesOnDiskResponse_To_internal_ListVolumesOnDiskResponse(in *v1beta1.ListVolumesOnDiskResponse, out *internal.ListVolumesOnDiskResponse) error {
 	out.VolumeIds = *(*[]string)(unsafe.Pointer(&in.VolumeIds))
@@ -155,15 +155,13 @@ func Convert_internal_ListVolumesOnDiskResponse_To_v1beta1_ListVolumesOnDiskResp
 	return autoConvert_internal_ListVolumesOnDiskResponse_To_v1beta1_ListVolumesOnDiskResponse(in, out)
 }
 
-func autoConvert_v1beta1_MountVolumeRequest_To_internal_MountVolumeRequest(in *v1beta1.MountVolumeRequest, out *internal.MountVolumeRequest) error {
-	out.VolumeId = in.VolumeId
-	return nil
-}
+// detected external conversion function
+// Convert_v1beta1_MountVolumeRequest_To_internal_MountVolumeRequest(in *v1beta1.MountVolumeRequest, out *internal.MountVolumeRequest) error
+// skipping generation of the auto function
 
-func autoConvert_internal_MountVolumeRequest_To_v1beta1_MountVolumeRequest(in *internal.MountVolumeRequest, out *v1beta1.MountVolumeRequest) error {
-	out.VolumeId = in.VolumeId
-	return nil
-}
+// detected external conversion function
+// Convert_internal_MountVolumeRequest_To_v1beta1_MountVolumeRequest(in *internal.MountVolumeRequest, out *v1beta1.MountVolumeRequest) error
+// skipping generation of the auto function
 
 func autoConvert_v1beta1_MountVolumeResponse_To_internal_MountVolumeResponse(in *v1beta1.MountVolumeResponse, out *internal.MountVolumeResponse) error {
 	return nil
@@ -183,15 +181,13 @@ func Convert_internal_MountVolumeResponse_To_v1beta1_MountVolumeResponse(in *int
 	return autoConvert_internal_MountVolumeResponse_To_v1beta1_MountVolumeResponse(in, out)
 }
 
-func autoConvert_v1beta1_ResizeVolumeRequest_To_internal_ResizeVolumeRequest(in *v1beta1.ResizeVolumeRequest, out *internal.ResizeVolumeRequest) error {
-	out.VolumeId = in.VolumeId
-	return nil
-}
+// detected external conversion function
+// Convert_v1beta1_ResizeVolumeRequest_To_internal_ResizeVolumeRequest(in *v1beta1.ResizeVolumeRequest, out *internal.ResizeVolumeRequest) error
+// skipping generation of the auto function
 
-func autoConvert_internal_ResizeVolumeRequest_To_v1beta1_ResizeVolumeRequest(in *internal.ResizeVolumeRequest, out *v1beta1.ResizeVolumeRequest) error {
-	out.VolumeId = in.VolumeId
-	return nil
-}
+// detected external conversion function
+// Convert_internal_ResizeVolumeRequest_To_v1beta1_ResizeVolumeRequest(in *internal.ResizeVolumeRequest, out *v1beta1.ResizeVolumeRequest) error
+// skipping generation of the auto function
 
 func autoConvert_v1beta1_ResizeVolumeResponse_To_internal_ResizeVolumeResponse(in *v1beta1.ResizeVolumeResponse, out *internal.ResizeVolumeResponse) error {
 	return nil
