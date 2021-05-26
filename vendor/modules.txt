@@ -44,6 +44,7 @@ github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/apiversion
+github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha2
