@@ -232,7 +232,7 @@ func (s *Server) GetAttachState(context context.Context, request *internal.GetAt
 }
 
 func (s *Server) GetDiskState(context context.Context, request *internal.GetDiskStateRequest, version apiversion.Version) (*internal.GetDiskStateResponse, error) {
-	klog.V(4).Infof("calling GetDiskState with diskNumber %q", request.DiskNumber)
+	klog.V(4).Infof("Request: GetDiskState with diskNumber=%d", request.DiskNumber)
 	isOnline, err := s.hostAPI.GetDiskState(request.DiskNumber)
 	if err != nil {
 		klog.Errorf("GetDiskState failed with: %v", err)
