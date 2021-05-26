@@ -94,7 +94,7 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 	m := make(map[uint32]shared.DiskLocation)
 	for _, v := range getDisk {
 		str := v["location"].(string)
-		num := v["number"].(uint32)
+		num := v["number"].(float64)
 
 		found := false
 		s := strings.Split(str, ":")
@@ -119,7 +119,7 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 			}
 
 			if found {
-				m[num] = d
+				m[uint32(num)] = d
 			}
 		}
 	}
