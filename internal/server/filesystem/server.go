@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 	"github.com/kubernetes-csi/csi-proxy/internal/utils"
 	"k8s.io/klog/v2"
@@ -15,22 +16,16 @@ import (
 type Server struct {
 	kubeletCSIPluginsPath string
 	kubeletPodPath        string
-	hostAPI               API
+	hostAPI               filesystem.API
 }
+
+// check that Server fulfills internal.ServerInterface
+var _ internal.ServerInterface = &Server{}
 
 var invalidPathCharsRegexWindows = regexp.MustCompile(`["/\:\?\*|]`)
 var absPathRegexWindows = regexp.MustCompile(`^[a-zA-Z]:\\`)
 
-type API interface {
-	PathExists(path string) (bool, error)
-	PathValid(path string) (bool, error)
-	Mkdir(path string) error
-	Rmdir(path string, force bool) error
-	LinkPath(tgt string, src string) error
-	IsMountPoint(path string) (bool, error)
-}
-
-func NewServer(kubeletCSIPluginsPath string, kubeletPodPath string, hostAPI API) (*Server, error) {
+func NewServer(kubeletCSIPluginsPath string, kubeletPodPath string, hostAPI filesystem.API) (*Server, error) {
 	return &Server{
 		kubeletCSIPluginsPath: kubeletCSIPluginsPath,
 		kubeletPodPath:        kubeletPodPath,
@@ -119,115 +114,87 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 
 // PathExists checks if the given path exists on the host.
 func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsRequest, version apiversion.Version) (*internal.PathExistsResponse, error) {
-	klog.V(4).Infof("calling PathExists with path %q", request.Path)
+	klog.V(2).Infof("Request: PathExists with path=%q", request.Path)
 	err := s.validatePathWindows(request.Context, request.Path)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows %v", err)
-		return &internal.PathExistsResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 	exists, err := s.hostAPI.PathExists(request.Path)
 	if err != nil {
 		klog.Errorf("failed check PathExists %v", err)
-		return &internal.PathExistsResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 	return &internal.PathExistsResponse{
-		Error:  "",
 		Exists: exists,
 	}, err
 }
 
 // PathValid checks if the given path is accessiable.
 func (s *Server) PathValid(ctx context.Context, path string) (bool, error) {
-	klog.V(4).Infof("calling PathValid with path %q", path)
+	klog.V(2).Infof("Request: PathValid with path %q", path)
 	return s.hostAPI.PathValid(path)
 }
 
 func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, version apiversion.Version) (*internal.MkdirResponse, error) {
-	klog.V(4).Infof("calling Mkdir with path %q", request.Path)
+	klog.V(2).Infof("Request: Mkdir with path=%q", request.Path)
 	err := s.validatePathWindows(request.Context, request.Path)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows %v", err)
-		return &internal.MkdirResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 	err = s.hostAPI.Mkdir(request.Path)
 	if err != nil {
 		klog.Errorf("failed Mkdir %v", err)
-		return &internal.MkdirResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 
-	return &internal.MkdirResponse{
-		Error: "",
-	}, err
+	return &internal.MkdirResponse{}, err
 }
 
 func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, version apiversion.Version) (*internal.RmdirResponse, error) {
-	klog.V(2).Infof("calling Rmdir with path %q", request.Path)
+	klog.V(2).Infof("Request: Rmdir with path=%q", request.Path)
 	err := s.validatePathWindows(request.Context, request.Path)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows %v", err)
-		return &internal.RmdirResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 	err = s.hostAPI.Rmdir(request.Path, request.Force)
 	if err != nil {
 		klog.Errorf("failed Rmdir %v", err)
-		return &internal.RmdirResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
-	return &internal.RmdirResponse{
-		Error: "",
-	}, err
+	return nil, err
 }
 
 func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest, version apiversion.Version) (*internal.LinkPathResponse, error) {
-	klog.V(4).Infof("calling LinkPath with targetPath %q sourcePath %q", request.TargetPath, request.SourcePath)
+	klog.V(2).Infof("Request: LinkPath with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
 	err := s.validatePathWindows(internal.POD, request.TargetPath)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows for target path %v", err)
-		return &internal.LinkPathResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 	err = s.validatePathWindows(internal.PLUGIN, request.SourcePath)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows for source path %v", err)
-		return &internal.LinkPathResponse{
-			Error: err.Error(),
-		}, err
+		return nil, err
 	}
 	err = s.hostAPI.LinkPath(request.SourcePath, request.TargetPath)
-	errString := ""
 	if err != nil {
 		klog.Errorf("failed LinkPath %v", err)
-		errString = err.Error()
+		return nil, err
 	}
-	return &internal.LinkPathResponse{
-		Error: errString,
-	}, err
+	return nil, err
 }
 
 func (s *Server) IsMountPoint(ctx context.Context, request *internal.IsMountPointRequest, version apiversion.Version) (*internal.IsMountPointResponse, error) {
-	klog.V(4).Infof("calling IsMountPoint with path %q", request.Path)
+	klog.V(2).Infof("Request: IsMountPoint with path=%q", request.Path)
 	isMount, err := s.hostAPI.IsMountPoint(request.Path)
 	if err != nil {
 		klog.Errorf("failed IsMountPoint %v", err)
-		return &internal.IsMountPointResponse{
-			IsMountPoint: false,
-			Error:        err.Error(),
-		}, err
+		return nil, err
 	}
 	return &internal.IsMountPointResponse{
-		Error:        "",
 		IsMountPoint: isMount,
 	}, err
 }

@@ -38,37 +38,31 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		r1 := rand.New(s1)
 
 		// simulate FS operations around staging a volume on a node
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
+		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d\\", r1.Intn(100), r1.Intn(100)), t)
 		mkdirReq := &v1beta2.MkdirRequest{
 			Path:    stagepath,
 			Context: v1beta2.PathContext_PLUGIN,
 		}
-		mkdirRsp, err := client.Mkdir(context.Background(), mkdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", mkdirRsp.Error)
-		}
+		_, err = client.Mkdir(context.Background(), mkdirReq)
+		require.NoError(t, err)
 
 		exists, err := pathExists(stagepath)
 		assert.True(t, exists, err)
 
 		// simulate operations around publishing a volume to a pod
-		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
+		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d\\", r1.Intn(100)), t)
 		mkdirReq = &v1beta2.MkdirRequest{
 			Path:    podpath,
 			Context: v1beta2.PathContext_POD,
 		}
-		mkdirRsp, err = client.Mkdir(context.Background(), mkdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", mkdirRsp.Error)
-		}
+		_, err = client.Mkdir(context.Background(), mkdirReq)
+		require.NoError(t, err)
 		linkReq := &v1beta2.LinkPathRequest{
 			TargetPath: stagepath,
 			SourcePath: podpath + "\\rootvol",
 		}
-		linkRsp, err := client.LinkPath(context.Background(), linkReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", linkRsp.Error)
-		}
+		_, err = client.LinkPath(context.Background(), linkReq)
+		require.NoError(t, err)
 
 		exists, err = pathExists(podpath + "\\rootvol")
 		assert.True(t, exists, err)
@@ -79,10 +73,8 @@ func TestFilesystemAPIGroup(t *testing.T) {
 			Context: v1beta2.PathContext_POD,
 			Force:   true,
 		}
-		rmdirRsp, err := client.Rmdir(context.Background(), rmdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", rmdirRsp.Error)
-		}
+		_, err = client.Rmdir(context.Background(), rmdirReq)
+		require.NoError(t, err)
 
 		exists, err = pathExists(podpath)
 		assert.False(t, exists, err)
@@ -93,10 +85,8 @@ func TestFilesystemAPIGroup(t *testing.T) {
 			Context: v1beta2.PathContext_PLUGIN,
 			Force:   true,
 		}
-		rmdirRsp, err = client.Rmdir(context.Background(), rmdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", rmdirRsp.Error)
-		}
+		_, err = client.Rmdir(context.Background(), rmdirReq)
+		require.NoError(t, err)
 
 		exists, err = pathExists(stagepath)
 		assert.False(t, exists, err)

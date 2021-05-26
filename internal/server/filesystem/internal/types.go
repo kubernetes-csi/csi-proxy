@@ -20,8 +20,6 @@ type PathExistsRequest struct {
 
 // PathExistsResponse is the internal representation of responses from the PathExists endpoint.
 type PathExistsResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 	// Indicates whether the path in PathExistsRequest exists in the host's filesystem
 	Exists bool
 }
@@ -54,8 +52,6 @@ type MkdirRequest struct {
 }
 
 type MkdirResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 }
 
 type RmdirRequest struct {
@@ -85,8 +81,6 @@ type RmdirRequest struct {
 }
 
 type RmdirResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 }
 
 type LinkPathRequest struct {
@@ -120,8 +114,6 @@ type LinkPathRequest struct {
 }
 
 type LinkPathResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 }
 
 type IsMountPointRequest struct {
@@ -129,6 +121,5 @@ type IsMountPointRequest struct {
 }
 
 type IsMountPointResponse struct {
-	Error        string
 	IsMountPoint bool
 }

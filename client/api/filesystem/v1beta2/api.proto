@@ -5,21 +5,21 @@ package v1beta2;
 option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta2";
 
 service Filesystem {
-    // PathExists checks if the requested path exists in the host's filesystem
+    // PathExists checks if the requested path exists in the host filesystem.
     rpc PathExists(PathExistsRequest) returns (PathExistsResponse) {}
 
-    // Mkdir creates a directory at the requested path in the host's filesystem
+    // Mkdir creates a directory at the requested path in the host filesystem
     rpc Mkdir(MkdirRequest) returns (MkdirResponse) {}
 
-    // Rmdir removes the directory at the requested path in the host's filesystem.
-    // This may be used for unlinking a symlink created through LinkPath
+    // Rmdir removes the directory at the requested path in the host filesystem.
+    // This may be used for unlinking a symlink created through LinkPath.
     rpc Rmdir(RmdirRequest) returns (RmdirResponse) {}
 
     // LinkPath creates a local directory symbolic link between a source path
-    // and target path in the host's filesystem
+    // and target path in the host's filesystem.
     rpc LinkPath(LinkPathRequest) returns (LinkPathResponse) {}
 
-    //IsMountPoint checks if a given path is mount or not
+    // IsMountPoint checks if a given path is a mount point.
     rpc IsMountPoint(IsMountPointRequest) returns (IsMountPointResponse) {}
 }
 
@@ -47,11 +47,8 @@ message PathExistsRequest {
 }
 
 message PathExistsResponse {
-    // Error message if any. Empty string indicates success
-    string error = 1;
-
     // Indicates whether the path in PathExistsRequest exists in the host's filesystem
-    bool exists = 2;
+    bool exists = 1;
 }
 
 message MkdirRequest {
@@ -81,8 +78,7 @@ message MkdirRequest {
 }
 
 message MkdirResponse {
-    // Error message if any. Empty string indicates success
-    string error = 1;
+    // Intentionally empty.
 }
 
 message RmdirRequest {
@@ -112,8 +108,7 @@ message RmdirRequest {
 }
 
 message RmdirResponse {
-    // Error message if any. Empty string indicates success
-    string error = 1;
+    // Intentionally empty.
 }
 
 message LinkPathRequest {
@@ -152,8 +147,7 @@ message LinkPathRequest {
 }
 
 message LinkPathResponse {
-    // Error message if any. Empty string indicates success
-    string error = 1;
+    // Intentionally empty.
 }
 
 message IsMountPointRequest {
@@ -162,9 +156,6 @@ message IsMountPointRequest {
 }
 
 message IsMountPointResponse {
-    // Error message if any. Empty string indicates success
-    string error = 1;
-
     // Indicates whether the path in PathExistsRequest exists in the host's filesystem
-    bool is_mount_point = 2;
+    bool is_mount_point = 1;
 }

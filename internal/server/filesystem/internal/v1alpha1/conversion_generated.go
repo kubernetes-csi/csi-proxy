@@ -28,7 +28,6 @@ func Convert_internal_IsMountPointRequest_To_v1alpha1_IsMountPointRequest(in *in
 }
 
 func autoConvert_v1alpha1_IsMountPointResponse_To_internal_IsMountPointResponse(in *v1alpha1.IsMountPointResponse, out *internal.IsMountPointResponse) error {
-	out.Error = in.Error
 	out.IsMountPoint = in.IsMountPoint
 	return nil
 }
@@ -39,7 +38,6 @@ func Convert_v1alpha1_IsMountPointResponse_To_internal_IsMountPointResponse(in *
 }
 
 func autoConvert_internal_IsMountPointResponse_To_v1alpha1_IsMountPointResponse(in *internal.IsMountPointResponse, out *v1alpha1.IsMountPointResponse) error {
-	out.Error = in.Error
 	out.IsMountPoint = in.IsMountPoint
 	return nil
 }
@@ -72,7 +70,6 @@ func Convert_internal_LinkPathRequest_To_v1alpha1_LinkPathRequest(in *internal.L
 }
 
 func autoConvert_v1alpha1_LinkPathResponse_To_internal_LinkPathResponse(in *v1alpha1.LinkPathResponse, out *internal.LinkPathResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -82,7 +79,6 @@ func Convert_v1alpha1_LinkPathResponse_To_internal_LinkPathResponse(in *v1alpha1
 }
 
 func autoConvert_internal_LinkPathResponse_To_v1alpha1_LinkPathResponse(in *internal.LinkPathResponse, out *v1alpha1.LinkPathResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -114,7 +110,6 @@ func Convert_internal_MkdirRequest_To_v1alpha1_MkdirRequest(in *internal.MkdirRe
 }
 
 func autoConvert_v1alpha1_MkdirResponse_To_internal_MkdirResponse(in *v1alpha1.MkdirResponse, out *internal.MkdirResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -124,7 +119,6 @@ func Convert_v1alpha1_MkdirResponse_To_internal_MkdirResponse(in *v1alpha1.Mkdir
 }
 
 func autoConvert_internal_MkdirResponse_To_v1alpha1_MkdirResponse(in *internal.MkdirResponse, out *v1alpha1.MkdirResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -156,7 +150,6 @@ func Convert_internal_PathExistsRequest_To_v1alpha1_PathExistsRequest(in *intern
 }
 
 func autoConvert_v1alpha1_PathExistsResponse_To_internal_PathExistsResponse(in *v1alpha1.PathExistsResponse, out *internal.PathExistsResponse) error {
-	out.Error = in.Error
 	out.Exists = in.Exists
 	return nil
 }
@@ -167,7 +160,6 @@ func Convert_v1alpha1_PathExistsResponse_To_internal_PathExistsResponse(in *v1al
 }
 
 func autoConvert_internal_PathExistsResponse_To_v1alpha1_PathExistsResponse(in *internal.PathExistsResponse, out *v1alpha1.PathExistsResponse) error {
-	out.Error = in.Error
 	out.Exists = in.Exists
 	return nil
 }
@@ -202,7 +194,6 @@ func Convert_internal_RmdirRequest_To_v1alpha1_RmdirRequest(in *internal.RmdirRe
 }
 
 func autoConvert_v1alpha1_RmdirResponse_To_internal_RmdirResponse(in *v1alpha1.RmdirResponse, out *internal.RmdirResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -212,7 +203,6 @@ func Convert_v1alpha1_RmdirResponse_To_internal_RmdirResponse(in *v1alpha1.Rmdir
 }
 
 func autoConvert_internal_RmdirResponse_To_v1alpha1_RmdirResponse(in *internal.RmdirResponse, out *v1alpha1.RmdirResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
