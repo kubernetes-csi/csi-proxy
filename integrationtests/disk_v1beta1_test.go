@@ -9,23 +9,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
-	diskv1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3"
-	"github.com/stretchr/testify/assert"
+	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1"
+	diskv1beta1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1"
 	"github.com/stretchr/testify/require"
 )
 
-func v1beta3DiskTests(t *testing.T) {
+func v1beta1DiskTests(t *testing.T) {
 	t.Run("ListDiskIDs,ListDiskLocations", func(t *testing.T) {
 		// even though this test doesn't need the VHD API it failed in Github Actions
 		// see https://github.com/kubernetes-csi/csi-proxy/pull/140/checks?check_run_id=2671787129
 		skipTestOnCondition(t, isRunningOnGhActions())
 
-		client, err := diskv1beta3client.NewClient()
+		client, err := diskv1beta1client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
 
-		listRequest := &v1beta3.ListDiskIDsRequest{}
+		listRequest := &v1beta1.ListDiskIDsRequest{}
 		diskIDsResponse, err := client.ListDiskIDs(context.TODO(), listRequest)
 		require.Nil(t, err)
 
@@ -50,20 +49,20 @@ func v1beta3DiskTests(t *testing.T) {
 
 		// first disk is the VM disk (other disks might be VHD)
 		diskNumber := 0
-		diskIDs, found := diskIDsMap[uint32(diskNumber)]
+		diskIDs, found := diskIDsMap[strconv.FormatUint(uint64(diskNumber), 10)]
 		if !found {
 			t.Errorf("Cannot find Disk %d", diskNumber)
 		}
-		page83 := diskIDs.Page83
+		page83 := diskIDs.Identifiers["page83"]
 		if page83 == "" {
 			t.Errorf("page83 field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
 		}
-		serialNumber := diskIDs.SerialNumber
+		serialNumber := diskIDs.Identifiers["serialNumber"]
 		if serialNumber == "" {
 			t.Errorf("serialNumber field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
 		}
 
-		listDiskLocationsRequest := &v1beta3.ListDiskLocationsRequest{}
+		listDiskLocationsRequest := &v1beta1.ListDiskLocationsRequest{}
 		listDiskLocationsResponse, err := client.ListDiskLocations(context.TODO(), listDiskLocationsRequest)
 		require.Nil(t, err)
 		t.Logf("listDiskLocationsResponse=%v", listDiskLocationsResponse)
@@ -75,7 +74,7 @@ func v1beta3DiskTests(t *testing.T) {
 	t.Run("Get/SetDiskState", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
 
-		client, err := diskv1beta3client.NewClient()
+		client, err := diskv1beta1client.NewClient()
 		require.NoError(t, err)
 
 		defer client.Close()
@@ -84,66 +83,28 @@ func v1beta3DiskTests(t *testing.T) {
 		vhd, vhdCleanup := diskInit(t)
 		defer vhdCleanup()
 
+		diskID := strconv.FormatUint(uint64(vhd.DiskNumber), 10)
+
 		// disk stats
-		diskStatsRequest := &v1beta3.GetDiskStatsRequest{
-			DiskNumber: vhd.DiskNumber,
+		diskStatsRequest := &v1beta1.DiskStatsRequest{
+			DiskID: diskID,
 		}
-		diskStatsResponse, err := client.GetDiskStats(context.TODO(), diskStatsRequest)
+		diskStatsResponse, err := client.DiskStats(context.TODO(), diskStatsRequest)
 		require.NoError(t, err)
-		if !sizeIsAround(t, diskStatsResponse.TotalBytes, vhd.InitialSize) {
-			t.Fatalf("DiskStats doesn't have the expected size, wanted (close to)=%d got=%d", vhd.InitialSize, diskStatsResponse.TotalBytes)
+		if !sizeIsAround(t, diskStatsResponse.DiskSize, vhd.InitialSize) {
+			t.Fatalf("DiskStats doesn't have the expected size, wanted (close to)=%d got=%d", vhd.InitialSize, diskStatsResponse.DiskSize)
 		}
 
 		// Rescan
-		_, err = client.Rescan(context.TODO(), &v1beta3.RescanRequest{})
+		_, err = client.Rescan(context.TODO(), &v1beta1.RescanRequest{})
 		require.NoError(t, err)
-
-		// change disk state
-		out, err := runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsOffline $true", vhd.DiskNumber))
-		require.NoError(t, err, "failed setting disk offline, out=%v", out)
-
-		getReq := &v1beta3.GetDiskStateRequest{DiskNumber: vhd.DiskNumber}
-		getResp, err := client.GetDiskState(context.TODO(), getReq)
-
-		if assert.NoError(t, err) {
-			assert.False(t, getResp.IsOnline, "Expected disk to be offline")
-		}
-
-		setReq := &v1beta3.SetDiskStateRequest{DiskNumber: vhd.DiskNumber, IsOnline: true}
-		_, err = client.SetDiskState(context.TODO(), setReq)
-		assert.NoError(t, err)
-
-		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", vhd.DiskNumber))
-		assert.NoError(t, err)
-
-		result, err := strconv.ParseBool(strings.TrimSpace(out))
-		assert.NoError(t, err)
-		assert.False(t, result, "Expected disk to be online")
-
-		getReq = &v1beta3.GetDiskStateRequest{DiskNumber: vhd.DiskNumber}
-		getResp, err = client.GetDiskState(context.TODO(), getReq)
-
-		if assert.NoError(t, err) {
-			assert.True(t, getResp.IsOnline, "Expected disk is online")
-		}
-
-		setReq = &v1beta3.SetDiskStateRequest{DiskNumber: vhd.DiskNumber, IsOnline: false}
-		_, err = client.SetDiskState(context.TODO(), setReq)
-		assert.NoError(t, err)
-
-		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsOffline", vhd.DiskNumber))
-		assert.NoError(t, err)
-
-		result, err = strconv.ParseBool(strings.TrimSpace(out))
-		assert.NoError(t, err)
-		assert.True(t, result, "Expected disk to be offline")
 	})
 
 	t.Run("PartitionDisk", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
 
 		var err error
-		client, err := diskv1beta3client.NewClient()
+		client, err := diskv1beta1client.NewClient()
 		require.NoError(t, err)
 		defer client.Close()
 
@@ -172,19 +133,15 @@ func v1beta3DiskTests(t *testing.T) {
 			t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
 		}
 
-		var diskNum uint64
 		var diskNumUnparsed string
 		cmd = fmt.Sprintf("(Get-VHD -Path %s).DiskNumber", vhdxPath)
 		if diskNumUnparsed, err = runPowershellCmd(t, cmd); err != nil {
 			t.Fatalf("Error: %v. Command: %s", err, cmd)
 		}
-		if diskNum, err = strconv.ParseUint(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 32); err != nil {
-			t.Fatalf("Error: %v", err)
-		}
 
 		// make disk partition request
-		diskPartitionRequest := &v1beta3.PartitionDiskRequest{
-			DiskNumber: uint32(diskNum),
+		diskPartitionRequest := &v1beta1.PartitionDiskRequest{
+			DiskID: strings.TrimSpace(diskNumUnparsed),
 		}
 		_, err = client.PartitionDisk(context.TODO(), diskPartitionRequest)
 		require.NoError(t, err)

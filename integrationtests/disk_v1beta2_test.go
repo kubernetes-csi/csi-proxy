@@ -17,7 +17,9 @@ import (
 
 func v1beta2DiskTests(t *testing.T) {
 	t.Run("ListDiskIDs,ListDiskLocations", func(t *testing.T) {
-		// NOTE: this test can run in Github Actions because it doesn't use VHDs
+		// even though this test doesn't need the VHD API it failed in Github Actions
+		// see https://github.com/kubernetes-csi/csi-proxy/pull/140/checks?check_run_id=2671787129
+		skipTestOnCondition(t, isRunningOnGhActions())
 
 		client, err := diskv1beta2client.NewClient()
 		require.Nil(t, err)
@@ -180,7 +182,7 @@ func v1beta2DiskTests(t *testing.T) {
 
 		// make disk partition request
 		diskPartitionRequest := &v1beta2.PartitionDiskRequest{
-			DiskID: diskNumUnparsed,
+			DiskID: strings.TrimSpace(diskNumUnparsed),
 		}
 		_, err = client.PartitionDisk(context.TODO(), diskPartitionRequest)
 		require.NoError(t, err)
