@@ -3,14 +3,13 @@
 package v1beta3
 
 import (
-	unsafe "unsafe"
-
 	v1beta3 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
 	internal "github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
 )
 
 func autoConvert_v1beta3_DiskIDs_To_internal_DiskIDs(in *v1beta3.DiskIDs, out *internal.DiskIDs) error {
-	out.Identifiers = *(*map[string]string)(unsafe.Pointer(&in.Identifiers))
+	out.Page83 = in.Page83
+	out.SerialNumber = in.SerialNumber
 	return nil
 }
 
@@ -20,7 +19,8 @@ func Convert_v1beta3_DiskIDs_To_internal_DiskIDs(in *v1beta3.DiskIDs, out *inter
 }
 
 func autoConvert_internal_DiskIDs_To_v1beta3_DiskIDs(in *internal.DiskIDs, out *v1beta3.DiskIDs) error {
-	out.Identifiers = *(*map[string]string)(unsafe.Pointer(&in.Identifiers))
+	out.Page83 = in.Page83
+	out.SerialNumber = in.SerialNumber
 	return nil
 }
 

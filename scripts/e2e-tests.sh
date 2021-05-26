@@ -4,7 +4,7 @@ set -o nounset
 set -ex
 
 # the Google Storage bucket
-: $CSI_PROXY_BUCKET
+: "${CSI_PROXY_BUCKET:?CSI_PROXY_BUCKET not set}"
 
 # The bucket url of this script in Google Cloud, set in sync_scripts
 SCRIPT_URL=

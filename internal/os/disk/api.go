@@ -330,10 +330,10 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 			return m, fmt.Errorf("Could not get disk number: %v", err)
 		}
 
-		diskIDs := make(map[string]string)
-		diskIDs["page83"] = page83
-		diskIDs["serialNumber"] = disks[i].SerialNumber
-		m[diskNumber] = shared.DiskIDs{Identifiers: diskIDs}
+		m[diskNumber] = shared.DiskIDs{
+			Page83:       page83,
+			SerialNumber: disks[i].SerialNumber,
+		}
 	}
 
 	return m, nil

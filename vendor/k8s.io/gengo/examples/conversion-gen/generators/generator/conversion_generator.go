@@ -288,6 +288,15 @@ func (g *ConversionGenerator) GenerateType(context *generator.Context, t *types.
 }
 
 func (g *ConversionGenerator) generateConversion(inType, outType *types.Type, sw *generator.SnippetWriter) {
+	if _, found := g.preexists(inType, outType); found {
+		// there is a public manual Conversion method: use it.
+		sw.Do("\n// detected external conversion function ", nil)
+		sw.Do("\n// ", nil)
+		g.writeConversionFunctionSignature(inType, outType, sw, true)
+		sw.Do("\n// skipping generation of the auto function\n\n", nil)
+		return
+	}
+
 	// function signature
 	sw.Do("func auto", nil)
 	g.writeConversionFunctionSignature(inType, outType, sw, true)
@@ -299,11 +308,6 @@ func (g *ConversionGenerator) generateConversion(inType, outType *types.Type, sw
 	// close function body
 	sw.Do("return nil\n", nil)
 	sw.Do("}\n\n", nil)
-
-	if _, found := g.preexists(inType, outType); found {
-		// there is a public manual Conversion method: use it.
-		return
-	}
 
 	if len(errors) == 0 {
 		// Emit a public conversion function.

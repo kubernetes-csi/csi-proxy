@@ -9,8 +9,8 @@ service Disk {
     // disk devices enumerated by the host.
     rpc ListDiskLocations(ListDiskLocationsRequest) returns (ListDiskLocationsResponse) {}
 
-    // PartitionDisk initializes and partitions a disk device (if the disk has not
-    // been partitioned already) and returns the resulting volume device ID.
+    // PartitionDisk initializes and partitions a disk device with the GPT partition style
+    // (if the disk has not been partitioned already) and returns the resulting volume device ID.
     rpc PartitionDisk(PartitionDiskRequest) returns (PartitionDiskResponse) {}
 
     // Rescan refreshes the host's storage cache.
@@ -41,7 +41,7 @@ message DiskLocation {
 }
 
 message ListDiskLocationsResponse {
-    // Map of disk device number and <adapter, bus, target, lun ID> associated with each disk device.
+    // Map of disk number and <adapter, bus, target, lun ID> associated with each disk device.
     map <uint32, DiskLocation> disk_locations = 1;
 }
 
@@ -67,12 +67,14 @@ message ListDiskIDsRequest {
 }
 
 message DiskIDs {
-    // Map of Disk ID types and Disk ID values.
-    map <string, string> identifiers = 1;
+    // The disk page83 id.
+    string page83 = 1;
+    // The disk serial number.
+    string serial_number = 2;
 }
 
 message ListDiskIDsResponse {
-    // Map of disk device numbers and IDs <page83> associated with each disk device.
+    // Map of disk numbers and disk identifiers associated with each disk device.
     map <uint32, DiskIDs> disk_ids = 1;
 }
 

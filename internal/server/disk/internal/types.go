@@ -12,6 +12,7 @@ type ListDiskLocationsRequest struct {
 
 type ListDiskLocationsResponse struct {
 	// Map of disk device IDs and <adapter, bus, target, lun ID> associated with each disk device
+	// +k8s:conversion-gen=false
 	DiskLocations map[uint32]*DiskLocation
 }
 
@@ -38,17 +39,19 @@ type GetDiskNumberByNameResponse struct {
 	DiskNumber uint32
 }
 
-type DiskIDs struct {
-	// Map of Disk ID types and Disk ID values
-	Identifiers map[string]string
-}
-
 type ListDiskIDsRequest struct {
 }
 
+type DiskIDs struct {
+	// Map of Disk ID types and Disk ID values
+	Page83       string
+	SerialNumber string
+}
+
 type ListDiskIDsResponse struct {
-	// Map of disk device numbers and IDs <page83> associated with each disk device
-	DiskNumbers map[uint32]*DiskIDs
+	// Map of disk device numbers and IDs associated with each disk device
+	// +k8s:conversion-gen=false
+	DiskIDs map[uint32]*DiskIDs
 }
 
 type GetDiskStatsRequest struct {

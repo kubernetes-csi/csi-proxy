@@ -11,8 +11,8 @@ type DiskLocation struct {
 	LUNID   string
 }
 
-// DiskID definition
+// DiskIDs definition
 type DiskIDs struct {
-	// Map of Disk ID types and Disk ID values
-	Identifiers map[string]string
+	Page83       string
+	SerialNumber string
 }
