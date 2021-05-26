@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta2"
-	internal "github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
+	"github.com/kubernetes-csi/csi-proxy/internal/server/disk/internal"
 )
 
 // Add manual conversion functions here to override automatic conversion functions

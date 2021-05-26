@@ -12,7 +12,6 @@ type ListDiskLocationsRequest struct {
 
 type ListDiskLocationsResponse struct {
 	// Map of disk device IDs and <adapter, bus, target, lun ID> associated with each disk device
-	// +k8s:conversion-gen=false
 	DiskLocations map[uint32]*DiskLocation
 }
 
