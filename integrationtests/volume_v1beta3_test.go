@@ -134,19 +134,17 @@ func v1beta3VolumeTests(t *testing.T) {
 		t.Fatalf("GetDiskNumberFromVolumeID failed: %v", err)
 	}
 
-	diskNumberString := fmt.Sprintf("%d", volumeDiskNumberResponse.DiskNumber)
-
-	diskStatsRequest := &diskv1beta3.DiskStatsRequest{
-		DiskID: diskNumberString,
+	diskStatsRequest := &diskv1beta3.GetDiskStatsRequest{
+		DiskNumber: volumeDiskNumberResponse.DiskNumber,
 	}
 
-	diskStatsResponse, err := diskClient.DiskStats(context.TODO(), diskStatsRequest)
+	diskStatsResponse, err := diskClient.GetDiskStats(context.TODO(), diskStatsRequest)
 	if err != nil {
 		t.Fatalf("DiskStats request error: %v", err)
 	}
 
-	if diskStatsResponse.DiskSize < 0 {
-		t.Fatalf("Invalid disk size was returned %v", diskStatsResponse.DiskSize)
+	if diskStatsResponse.TotalBytes < 0 {
+		t.Fatalf("Invalid disk size was returned %v", diskStatsResponse.TotalBytes)
 	}
 
 	// Mount the volume
