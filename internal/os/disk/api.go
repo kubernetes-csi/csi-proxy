@@ -5,6 +5,7 @@ package disk
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -253,18 +254,34 @@ func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
 	json.Unmarshal([]byte(outString), &disks)
 
 	for i := range disks {
-		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
-		if err != nil {
+		diskNumber, err := imp.getDiskNumberByID(disks[i].Path, page83ID)
+		if err == ErrNotFound {
+			continue
+		} else if err != nil {
 			return 0, err
-		}
-
-		found, err := imp.DiskHasPage83ID(h, page83ID)
-		if found {
-			return imp.GetDiskNumber(h)
+		} else {
+			return diskNumber, nil
 		}
 	}
 
 	return 0, fmt.Errorf("Could not find disk with Page83 ID %s", page83ID)
+}
+
+var ErrNotFound = errors.New("not found")
+
+func (imp APIImplementor) getDiskNumberByID(path string, page83ID string) (uint32, error) {
+	h, err := syscall.Open(path, syscall.O_RDONLY, 0)
+	defer syscall.Close(h)
+	if err != nil {
+		return 0, err
+	}
+
+	found, err := imp.DiskHasPage83ID(h, page83ID)
+	if found {
+		return imp.GetDiskNumber(h)
+	}
+
+	return 0, ErrNotFound
 }
 
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
@@ -282,19 +299,9 @@ func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
 	m := make(map[string]shared.DiskIDs)
 
 	for i := range disks {
-		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
+		diskNumber, page83, err := imp.getDiskNumberAndIDByPath(disks[i].Path)
 		if err != nil {
 			return nil, err
-		}
-
-		page83, err := imp.GetDiskPage83ID(h)
-		if err != nil {
-			return m, fmt.Errorf("Could not get page83 ID: %v", err)
-		}
-
-		diskNumber, err := imp.GetDiskNumber(h)
-		if err != nil {
-			return m, fmt.Errorf("Could not get disk number: %v", err)
 		}
 
 		diskNumString := strconv.FormatUint(uint64(diskNumber), 10)
@@ -306,6 +313,26 @@ func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
 	}
 
 	return m, nil
+}
+
+func (imp APIImplementor) getDiskNumberAndIDByPath(path string) (uint32, string, error) {
+	h, err := syscall.Open(path, syscall.O_RDONLY, 0)
+	defer syscall.Close(h)
+	if err != nil {
+		return 0, "", err
+	}
+
+	page83, err := imp.GetDiskPage83ID(h)
+	if err != nil {
+		return 0, "", fmt.Errorf("Could not get page83 ID: %v", err)
+	}
+
+	diskNumber, err := imp.GetDiskNumber(h)
+	if err != nil {
+		return 0, "", fmt.Errorf("Could not get disk number: %v", err)
+	}
+
+	return diskNumber, page83, nil
 }
 
 func (imp APIImplementor) DiskStats(diskID string) (int64, error) {
