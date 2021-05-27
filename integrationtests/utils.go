@@ -132,7 +132,7 @@ func getWorkDirPath(dir string, t *testing.T) string {
 	if err != nil {
 		t.Fatalf("failed to get working directory: %s", err)
 	}
-	return filepath.Join(path, path, dir)
+	return filepath.Join(path, "testdir", dir)
 }
 
 // returns true if CSI_PROXY_GH_ACTIONS is set to "TRUE"

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -38,7 +39,7 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		r1 := rand.New(s1)
 
 		// simulate FS operations around staging a volume on a node
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d\\", r1.Intn(100), r1.Intn(100)), t)
+		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
 		mkdirReq := &v1beta2.MkdirRequest{
 			Path:    stagepath,
 			Context: v1beta2.PathContext_PLUGIN,
@@ -50,16 +51,23 @@ func TestFilesystemAPIGroup(t *testing.T) {
 		assert.True(t, exists, err)
 
 		// simulate operations around publishing a volume to a pod
-		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d\\", r1.Intn(100)), t)
+		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
 		mkdirReq = &v1beta2.MkdirRequest{
 			Path:    podpath,
 			Context: v1beta2.PathContext_POD,
 		}
 		_, err = client.Mkdir(context.Background(), mkdirReq)
 		require.NoError(t, err)
+
+		exists, err = pathExists(podpath)
+		assert.True(t, exists, err)
+
+		sourcePath := stagepath
+		targetPath := filepath.Join(podpath, "rootvol")
+		// source <- target
 		linkReq := &v1beta2.LinkPathRequest{
-			TargetPath: stagepath,
-			SourcePath: podpath + "\\rootvol",
+			SourcePath: sourcePath,
+			TargetPath: targetPath,
 		}
 		_, err = client.LinkPath(context.Background(), linkReq)
 		require.NoError(t, err)
