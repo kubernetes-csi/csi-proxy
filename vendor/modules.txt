@@ -48,6 +48,8 @@ github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3
+github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1
+github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha2
 github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta2
