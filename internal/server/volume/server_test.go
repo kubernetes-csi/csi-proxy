@@ -6,23 +6,26 @@ import (
 	"testing"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/internal/os/volume"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/volume/internal"
 )
 
 type fakeVolumeAPI struct {
-	diskVolMap map[string][]string
+	diskVolMap map[uint32][]string
 }
 
-func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[string][]string) {
+var _ volume.API = &fakeVolumeAPI{}
+
+func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[uint32][]string) {
 	for d, v := range diskToVolMapIn {
 		volumeAPI.diskVolMap[d] = v
 	}
 }
 
-func (volumeAPI *fakeVolumeAPI) ListVolumesOnDisk(diskID string) (volumeIDs []string, err error) {
-	v := volumeAPI.diskVolMap[diskID]
+func (volumeAPI *fakeVolumeAPI) ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error) {
+	v := volumeAPI.diskVolMap[diskNumber]
 	if v == nil {
-		return nil, fmt.Errorf("returning error for %s list", diskID)
+		return nil, fmt.Errorf("returning error for %d list", diskNumber)
 	}
 	return v, nil
 }
@@ -31,7 +34,7 @@ func (volumeAPI *fakeVolumeAPI) MountVolume(volumeID, path string) error {
 	return nil
 }
 
-func (volumeAPI *fakeVolumeAPI) DismountVolume(volumeID, path string) error {
+func (volumeAPI *fakeVolumeAPI) UnmountVolume(volumeID, path string) error {
 	return nil
 }
 
@@ -47,17 +50,15 @@ func (volumeAPI *fakeVolumeAPI) ResizeVolume(volumeID string, size int64) error 
 	return nil
 }
 
-func (volumeAPI *fakeVolumeAPI) GetVolumeDiskNumber(volumeID string) (int64, error) {
-	return -1, nil
-
+func (volumeAPI *fakeVolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
+	return 0, nil
 }
 
-func (volumeAPI *fakeVolumeAPI) GetVolumeIDFromMount(mount string) (string, error) {
+func (volumeAPI *fakeVolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
 	return "id", nil
-
 }
 
-func (volumeAPI *fakeVolumeAPI) VolumeStats(volumeID string) (int64, int64, error) {
+func (volumeAPI *fakeVolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
 	return -1, -1, nil
 }
 
@@ -73,40 +74,40 @@ func TestListVolumesOnDisk(t *testing.T) {
 
 	testCases := []struct {
 		name              string
-		inputDiskID       string
+		inputDiskNumber   uint32
 		expectedVolumeIds []string
 		isErrorExpected   bool
 		expectedError     error
 	}{
 		{
 			name:              "return two volumeIDs",
-			inputDiskID:       "diskID1",
+			inputDiskNumber:   1,
 			expectedVolumeIds: []string{"volumeID1", "volumeID2"},
 			isErrorExpected:   false,
 			expectedError:     nil,
 		},
 		{
 			name:              "return one volumeIDs",
-			inputDiskID:       "diskID2",
+			inputDiskNumber:   2,
 			expectedVolumeIds: []string{"volumeID3"},
 			isErrorExpected:   false,
 			expectedError:     nil,
 		},
 		{
 			name:              "return error",
-			inputDiskID:       "diskID3",
+			inputDiskNumber:   3,
 			expectedVolumeIds: nil,
 			isErrorExpected:   true,
-			expectedError:     fmt.Errorf("returning error for diskID3 list"),
+			expectedError:     fmt.Errorf("returning error for 3 list"),
 		},
 	}
 
-	diskToVolMap := map[string][]string{
-		"diskID1": {"volumeID1", "volumeID2"},
-		"diskID2": {"volumeID3"},
+	diskToVolMap := map[uint32][]string{
+		1: {"volumeID1", "volumeID2"},
+		2: {"volumeID3"},
 	}
 	volAPI := &fakeVolumeAPI{
-		diskVolMap: make(map[string][]string),
+		diskVolMap: make(map[uint32][]string),
 	}
 	volAPI.Fill(diskToVolMap)
 
@@ -118,7 +119,7 @@ func TestListVolumesOnDisk(t *testing.T) {
 	for _, tc := range testCases {
 		t.Logf("test case: %s", tc.name)
 		listInput := &internal.ListVolumesOnDiskRequest{
-			DiskId: tc.inputDiskID,
+			DiskNumber: tc.inputDiskNumber,
 		}
 		volumeListResponse, err := volumeSrv.ListVolumesOnDisk(context.TODO(), listInput, v1)
 		if tc.isErrorExpected {

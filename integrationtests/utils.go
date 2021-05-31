@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -53,6 +56,9 @@ func recursiveDiff(t *testing.T, dir1, dir2 string, fileSuffixesToRemove ...stri
 	require.Nil(t, err, "unable to get file hashes for directory %q", dir1)
 	hashesDir2, err := fileHashes(dir2, fileSuffixesToRemove...)
 	require.Nil(t, err, "unable to get file hashes for directory %q", dir2)
+
+	t.Logf("Hashes for dir1: %+v", hashesDir1)
+	t.Logf("Hashes for dir2: %+v", hashesDir2)
 
 	for filePath, hash1 := range hashesDir1 {
 		if hash2, present := hashesDir2[filePath]; assert.True(t, present, "%q present in %q but not in %q", filePath, dir1, dir2) {
@@ -151,4 +157,117 @@ func skipTestOnCondition(t *testing.T, condition bool) {
 // Take care to use disposable clean VMs for tests
 func shouldRunIscsiTests() bool {
 	return os.Getenv("ENABLE_ISCSI_TESTS") == "TRUE"
+}
+
+func runPowershellCmd(t *testing.T, command string) (string, error) {
+	cmd := exec.Command("powershell", "/c", command)
+	t.Logf("Executing command: %q", cmd.String())
+	result, err := cmd.CombinedOutput()
+	return string(result), err
+}
+
+func diskCleanup(t *testing.T, vhdxPath, mountPath, testPluginPath string) {
+	if t.Failed() {
+		t.Logf("Test failed. Skipping cleanup!")
+		t.Logf("Mount path located at %s", mountPath)
+		t.Logf("VHDx path located at %s", vhdxPath)
+		return
+	}
+	var cmd, out string
+	var err error
+
+	cmd = fmt.Sprintf("Dismount-VHD -Path %s", vhdxPath)
+	if out, err = runPowershellCmd(t, cmd); err != nil {
+		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+	}
+	cmd = fmt.Sprintf("rm %s", vhdxPath)
+	if out, err = runPowershellCmd(t, cmd); err != nil {
+		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+	}
+	cmd = fmt.Sprintf("rmdir %s", mountPath)
+	if out, err = runPowershellCmd(t, cmd); err != nil {
+		t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+	}
+	if testPluginPath != "" {
+		cmd = fmt.Sprintf("rmdir %s", testPluginPath)
+		if out, err = runPowershellCmd(t, cmd); err != nil {
+			t.Errorf("Error: %v. Command: %s. Out: %s", err, cmd, out)
+		}
+	}
+}
+
+// VirtualHardDisk represents a VHD used for e2e tests
+type VirtualHardDisk struct {
+	DiskNumber     uint32
+	Path           string
+	Mount          string
+	TestPluginPath string
+	InitialSize    int64
+}
+
+func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
+	s1 := rand.NewSource(time.Now().UTC().UnixNano())
+	r1 := rand.New(s1)
+
+	testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", r1.Intn(100))
+	mountPath := fmt.Sprintf("%smount-%d", testPluginPath, r1.Intn(100))
+	vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, r1.Intn(100))
+
+	var cmd, out string
+	var err error
+	const initialSize = 1 * 1024 * 1024 * 1024
+	const partitionStyle = "GPT"
+
+	cmd = fmt.Sprintf("mkdir %s", mountPath)
+	if out, err = runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
+	}
+
+	// Initialize the tests, using powershell directly.
+	// Create the new vhdx
+	cmd = fmt.Sprintf("New-VHD -Path %s -SizeBytes %d", vhdxPath, initialSize)
+	if out, err = runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
+	}
+
+	// Mount the vhdx as a disk
+	cmd = fmt.Sprintf("Mount-VHD -Path %s", vhdxPath)
+	if out, err = runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
+	}
+
+	var diskNum uint64
+	var diskNumUnparsed string
+	cmd = fmt.Sprintf("(Get-VHD -Path %s).DiskNumber", vhdxPath)
+
+	if diskNumUnparsed, err = runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %s", err, cmd)
+	}
+	if diskNum, err = strconv.ParseUint(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 32); err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+
+	cmd = fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle %s", diskNum, partitionStyle)
+	if _, err = runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %s", err, cmd)
+	}
+
+	cmd = fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNum)
+	if _, err = runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %s", err, cmd)
+	}
+
+	cleanup := func() {
+		diskCleanup(t, vhdxPath, mountPath, testPluginPath)
+	}
+
+	vhd := &VirtualHardDisk{
+		DiskNumber:     uint32(diskNum),
+		Path:           vhdxPath,
+		Mount:          mountPath,
+		TestPluginPath: testPluginPath,
+		InitialSize:    initialSize,
+	}
+
+	return vhd, cleanup
 }

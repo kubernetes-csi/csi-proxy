@@ -43,7 +43,7 @@ func TestServiceCommands(t *testing.T) {
 		defer client.Close()
 
 		// Make sure service is stopped
-		_, err = runPowershellCmd(fmt.Sprintf(`Stop-Service -Name "%s"`, ServiceName))
+		_, err = runPowershellCmd(t, fmt.Sprintf(`Stop-Service -Name "%s"`, ServiceName))
 		require.NoError(t, err)
 		assertServiceStopped(t, ServiceName)
 
@@ -52,7 +52,7 @@ func TestServiceCommands(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, response)
 
-		out, err := runPowershellCmd(fmt.Sprintf(`Get-Service -Name "%s" `+
+		out, err := runPowershellCmd(t, fmt.Sprintf(`Get-Service -Name "%s" `+
 			`| Select-Object DisplayName, Status, StartType | ConvertTo-Json`,
 			ServiceName))
 		require.NoError(t, err)
@@ -78,7 +78,7 @@ func TestServiceCommands(t *testing.T) {
 		require.Nil(t, err)
 		defer client.Close()
 
-		_, err = runPowershellCmd(fmt.Sprintf(`Stop-Service -Name "%s"`, ServiceName))
+		_, err = runPowershellCmd(t, fmt.Sprintf(`Stop-Service -Name "%s"`, ServiceName))
 		require.NoError(t, err)
 		assertServiceStopped(t, ServiceName)
 
@@ -108,7 +108,7 @@ func assertServiceStopped(t *testing.T, serviceName string) {
 }
 
 func assertServiceStatus(t *testing.T, serviceName string, status string) {
-	out, err := runPowershellCmd(fmt.Sprintf(`Get-Service -Name "%s" | `+
+	out, err := runPowershellCmd(t, fmt.Sprintf(`Get-Service -Name "%s" | `+
 		`Select-Object -ExpandProperty Status`, serviceName))
 	if !assert.NoError(t, err, "Failed getting service out=%s", out) {
 		return
