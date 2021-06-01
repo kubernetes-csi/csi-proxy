@@ -1,10 +1,15 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 approvers:
-  - andyzhangx
-  - ddebroy
-  - PatrickLang
-  - msau42
-  - yujuhong
-  - jingxu97
-  - kkmsft
+- kubernetes-csi-approvers
+- andyzhangx
+- ddebroy
+- PatrickLang
+- jingxu97
+- kkmsft
+
+reviewers:
+- kubernetes-csi-reviewers
+- ddebroy
+- PatrickLang
+- kkmsft
