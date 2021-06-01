@@ -33,10 +33,10 @@ type API interface {
 	IsDiskInitialized(diskNumber uint32) (bool, error)
 	// InitializeDisk initializes the disk `diskNumber`
 	InitializeDisk(diskNumber uint32) error
-	// PartitionsExist checks if the disk `diskNumber` has any partitions.
-	PartitionsExist(diskNumber uint32) (bool, error)
-	// CreatePartitoin creates a partition in disk `diskNumber`
-	CreatePartition(diskNumber uint32) error
+	// BasicPartitionsExist checks if the disk `diskNumber` has any basic partitions.
+	BasicPartitionsExist(diskNumber uint32) (bool, error)
+	// CreateBasicPartition creates a partition in disk `diskNumber`
+	CreateBasicPartition(diskNumber uint32) error
 	// Rescan updates the host storage cache (re-enumerates disk, partition and volume objects)
 	Rescan() error
 	// GetDiskNumberByName gets a disk number by page83 ID (disk name)
@@ -157,8 +157,8 @@ func (DiskAPI) InitializeDisk(diskNumber uint32) error {
 	return nil
 }
 
-func (DiskAPI) PartitionsExist(diskNumber uint32) (bool, error) {
-	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %d", diskNumber)
+func (DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
+	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %d | Where Type -eq Basic", diskNumber)
 	out, err := runExec(cmd)
 	if err != nil {
 		return false, fmt.Errorf("error checking presence of partitions on disk %d: %v, %v", diskNumber, out, err)
@@ -170,7 +170,7 @@ func (DiskAPI) PartitionsExist(diskNumber uint32) (bool, error) {
 	return false, nil
 }
 
-func (DiskAPI) CreatePartition(diskNumber uint32) error {
+func (DiskAPI) CreateBasicPartition(diskNumber uint32) error {
 	cmd := fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNumber)
 	out, err := runExec(cmd)
 	if err != nil {
