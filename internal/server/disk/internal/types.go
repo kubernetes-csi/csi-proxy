@@ -30,7 +30,7 @@ type RescanResponse struct {
 }
 
 type GetDiskNumberByNameRequest struct {
-	// Disk device ID of the disk to partition
+	// Disk name is the page83 ID of the disk
 	DiskName string
 }
 

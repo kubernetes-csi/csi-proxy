@@ -39,8 +39,8 @@ type API interface {
 	CreatePartition(diskNumber uint32) error
 	// Rescan updates the host storage cache (re-enumerates disk, partition and volume objects)
 	Rescan() error
-	// GetDiskNumberByName gets a disk number by `diskName`.
-	GetDiskNumberByName(diskName string) (uint32, error)
+	// GetDiskNumberByName gets a disk number by page83 ID (disk name)
+	GetDiskNumberByName(page83ID string) (uint32, error)
 	// ListDiskIDs list all disks by disk number.
 	ListDiskIDs() (map[uint32]shared.DiskIDs, error)
 	// GetDiskStats gets the disk stats of the disk `diskNumber`.
@@ -179,8 +179,8 @@ func (DiskAPI) CreatePartition(diskNumber uint32) error {
 	return nil
 }
 
-func (imp DiskAPI) GetDiskNumberByName(diskName string) (uint32, error) {
-	diskNumber, err := imp.GetDiskNumberWithID(diskName)
+func (imp DiskAPI) GetDiskNumberByName(page83ID string) (uint32, error) {
+	diskNumber, err := imp.GetDiskNumberWithID(page83ID)
 	return diskNumber, err
 }
 
