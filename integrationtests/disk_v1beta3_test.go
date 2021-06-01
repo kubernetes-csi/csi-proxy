@@ -18,8 +18,11 @@ import (
 func v1beta3DiskTests(t *testing.T) {
 	t.Run("ListDiskIDs,ListDiskLocations", func(t *testing.T) {
 		// even though this test doesn't need the VHD API it failed in Github Actions
-		// see https://github.com/kubernetes-csi/csi-proxy/pull/140/checks?check_run_id=2671787129
-		// skipTestOnCondition(t, isRunningOnGhActions())
+		//     disk_v1beta3_test.go:30:
+		// Error Trace:	disk_v1beta3_test.go:30
+		// Error:      	Expected nil, but got: &status.statusError{state:impl.MessageState{NoUnkeyedLiterals:pragma.NoUnkeyedLiterals{}, DoNotCompare:pragma.DoNotCompare{}, DoNotCopy:pragma.DoNotCopy{}, atomicMessageInfo:(*impl.MessageInfo)(nil)}, sizeCache:0, unknownFields:[]uint8(nil), Code:2, Message:"Could not get page83 ID: IOCTL_STORAGE_QUERY_PROPERTY failed: Incorrect function.", Details:[]*anypb.Any(nil)}
+		// Test:       	TestDiskAPIGroup/v1beta3Tests/ListDiskIDs,ListDiskLocations
+		skipTestOnCondition(t, isRunningOnGhActions())
 
 		client, err := diskv1beta3client.NewClient()
 		require.Nil(t, err)

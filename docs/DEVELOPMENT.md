@@ -118,3 +118,5 @@ go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
 # terminal 2 (run E2E tests)
 go test -v .\integrationtests\ -run TestVolumeAPIs
 ```
+
+You can also edit the files directly in the VM using vim or a similar editor.

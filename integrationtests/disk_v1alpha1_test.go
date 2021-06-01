@@ -14,11 +14,7 @@ import (
 )
 
 func v1alpha1DiskTests(t *testing.T) {
-	t.Run("ListDiskIDs,ListDiskLocations", func(t *testing.T) {
-		// even though this test doesn't need the VHD API it failed in Github Actions
-		// see https://github.com/kubernetes-csi/csi-proxy/pull/140/checks?check_run_id=2671787129
-		skipTestOnCondition(t, isRunningOnGhActions())
-
+	t.Run("ListDiskLocations", func(t *testing.T) {
 		client, err := diskv1alpha1client.NewClient()
 		require.Nil(t, err)
 		defer client.Close()
