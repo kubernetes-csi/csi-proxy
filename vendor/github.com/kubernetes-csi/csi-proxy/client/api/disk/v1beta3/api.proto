@@ -19,7 +19,7 @@ service Disk {
     // ListDiskIDs returns a map of DiskID objects where the key is the disk number.
     rpc ListDiskIDs(ListDiskIDsRequest) returns (ListDiskIDsResponse) {}
 
-    // GetDiskStats returns the stats of a disk.
+    // GetDiskStats returns the stats of a disk (currently it returns the disk size).
     rpc GetDiskStats(GetDiskStatsRequest) returns (GetDiskStatsResponse) {}
 
     // SetDiskState sets the offline/online state of a disk.

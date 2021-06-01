@@ -1189,7 +1189,7 @@ type DiskClient interface {
 	Rescan(ctx context.Context, in *RescanRequest, opts ...grpc.CallOption) (*RescanResponse, error)
 	// ListDiskIDs returns a map of DiskID objects where the key is the disk number.
 	ListDiskIDs(ctx context.Context, in *ListDiskIDsRequest, opts ...grpc.CallOption) (*ListDiskIDsResponse, error)
-	// GetDiskStats returns the stats of a disk.
+	// GetDiskStats returns the stats of a disk (currently it returns the disk size).
 	GetDiskStats(ctx context.Context, in *GetDiskStatsRequest, opts ...grpc.CallOption) (*GetDiskStatsResponse, error)
 	// SetDiskState sets the offline/online state of a disk.
 	SetDiskState(ctx context.Context, in *SetDiskStateRequest, opts ...grpc.CallOption) (*SetDiskStateResponse, error)
@@ -1280,7 +1280,7 @@ type DiskServer interface {
 	Rescan(context.Context, *RescanRequest) (*RescanResponse, error)
 	// ListDiskIDs returns a map of DiskID objects where the key is the disk number.
 	ListDiskIDs(context.Context, *ListDiskIDsRequest) (*ListDiskIDsResponse, error)
-	// GetDiskStats returns the stats of a disk.
+	// GetDiskStats returns the stats of a disk (currently it returns the disk size).
 	GetDiskStats(context.Context, *GetDiskStatsRequest) (*GetDiskStatsResponse, error)
 	// SetDiskState sets the offline/online state of a disk.
 	SetDiskState(context.Context, *SetDiskStateRequest) (*SetDiskStateResponse, error)
