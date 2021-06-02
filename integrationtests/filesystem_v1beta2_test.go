@@ -52,11 +52,11 @@ func v1beta2FilesystemTests(t *testing.T) {
 		sourcePath := stagepath
 		targetPath := filepath.Join(podpath, "rootvol")
 		// source <- target
-		linkReq := &v1beta2.LinkPathRequest{
+		linkReq := &v1beta2.CreateSymlinkRequest{
 			SourcePath: sourcePath,
 			TargetPath: targetPath,
 		}
-		_, err = client.LinkPath(context.Background(), linkReq)
+		_, err = client.CreateSymlink(context.Background(), linkReq)
 		require.NoError(t, err)
 
 		exists, err = pathExists(podpath + "\\rootvol")
@@ -103,22 +103,22 @@ func v1beta2FilesystemTests(t *testing.T) {
 
 		// 1. Check the isMount on a path which does not exist. Failure scenario.
 		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
-		isMountRequest := &v1beta2.IsMountPointRequest{
+		IsSymlinkRequest := &v1beta2.IsSymlinkRequest{
 			Path: stagepath,
 		}
-		isMountResponse, err := client.IsMountPoint(context.Background(), isMountRequest)
+		isSymlink, err := client.IsSymlink(context.Background(), IsSymlinkRequest)
 		require.NotNil(t, err)
 
 		// 2. Create the directory. This time its not a mount point. Failure scenario.
 		err = os.Mkdir(stagepath, os.ModeDir)
 		require.Nil(t, err)
 		defer os.Remove(stagepath)
-		isMountRequest = &v1beta2.IsMountPointRequest{
+		IsSymlinkRequest = &v1beta2.IsSymlinkRequest{
 			Path: stagepath,
 		}
-		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
+		isSymlink, err = client.IsSymlink(context.Background(), IsSymlinkRequest)
 		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, false)
+		require.Equal(t, isSymlink.IsSymlink, false)
 
 		err = os.Remove(stagepath)
 		require.Nil(t, err)
@@ -134,21 +134,21 @@ func v1beta2FilesystemTests(t *testing.T) {
 		require.Nil(t, err)
 		defer os.Remove(lnTargetStagePath)
 
-		isMountRequest = &v1beta2.IsMountPointRequest{
+		IsSymlinkRequest = &v1beta2.IsSymlinkRequest{
 			Path: lnTargetStagePath,
 		}
-		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
+		isSymlink, err = client.IsSymlink(context.Background(), IsSymlinkRequest)
 		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, true)
+		require.Equal(t, isSymlink.IsSymlink, true)
 
 		// 4. Remove the path. Failure scenario.
 		err = os.Remove(targetStagePath)
 		require.Nil(t, err)
-		isMountRequest = &v1beta2.IsMountPointRequest{
+		IsSymlinkRequest = &v1beta2.IsSymlinkRequest{
 			Path: lnTargetStagePath,
 		}
-		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
+		isSymlink, err = client.IsSymlink(context.Background(), IsSymlinkRequest)
 		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, false)
+		require.Equal(t, isSymlink.IsSymlink, false)
 	})
 }

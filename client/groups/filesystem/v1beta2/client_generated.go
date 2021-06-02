@@ -65,12 +65,12 @@ func (w *Client) Close() error {
 // ensures we implement all the required methods
 var _ v1beta2.FilesystemClient = &Client{}
 
-func (w *Client) IsMountPoint(context context.Context, request *v1beta2.IsMountPointRequest, opts ...grpc.CallOption) (*v1beta2.IsMountPointResponse, error) {
-	return w.client.IsMountPoint(context, request, opts...)
+func (w *Client) CreateSymlink(context context.Context, request *v1beta2.CreateSymlinkRequest, opts ...grpc.CallOption) (*v1beta2.CreateSymlinkResponse, error) {
+	return w.client.CreateSymlink(context, request, opts...)
 }
 
-func (w *Client) LinkPath(context context.Context, request *v1beta2.LinkPathRequest, opts ...grpc.CallOption) (*v1beta2.LinkPathResponse, error) {
-	return w.client.LinkPath(context, request, opts...)
+func (w *Client) IsSymlink(context context.Context, request *v1beta2.IsSymlinkRequest, opts ...grpc.CallOption) (*v1beta2.IsSymlinkResponse, error) {
+	return w.client.IsSymlink(context, request, opts...)
 }
 
 func (w *Client) Mkdir(context context.Context, request *v1beta2.MkdirRequest, opts ...grpc.CallOption) (*v1beta2.MkdirResponse, error) {

@@ -25,11 +25,11 @@ func (fakeFileSystemAPI) Mkdir(path string) error {
 func (fakeFileSystemAPI) Rmdir(path string, force bool) error {
 	return nil
 }
-func (fakeFileSystemAPI) LinkPath(tgt string, src string) error {
+func (fakeFileSystemAPI) CreateSymlink(tgt string, src string) error {
 	return nil
 }
 
-func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
+func (fakeFileSystemAPI) IsSymlink(path string) (bool, error) {
 	return true, nil
 }
 

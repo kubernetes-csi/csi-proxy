@@ -166,9 +166,21 @@ func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, vers
 	}
 	return nil, err
 }
-
 func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest, version apiversion.Version) (*internal.LinkPathResponse, error) {
 	klog.V(2).Infof("Request: LinkPath with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
+	createSymlinkRequest := &internal.CreateSymlinkRequest{
+		SourcePath: request.SourcePath,
+		TargetPath: request.TargetPath,
+	}
+	if _, err := s.CreateSymlink(ctx, createSymlinkRequest, version); err != nil {
+		klog.Errorf("Failed to forward to CreateSymlink: %v", err)
+		return nil, err
+	}
+	return &internal.LinkPathResponse{}, nil
+}
+
+func (s *Server) CreateSymlink(ctx context.Context, request *internal.CreateSymlinkRequest, version apiversion.Version) (*internal.CreateSymlinkResponse, error) {
+	klog.V(2).Infof("Request: CreateSymlink with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
 	err := s.validatePathWindows(internal.POD, request.TargetPath)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows for target path %v", err)
@@ -179,22 +191,37 @@ func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest
 		klog.Errorf("failed validatePathWindows for source path %v", err)
 		return nil, err
 	}
-	err = s.hostAPI.LinkPath(request.SourcePath, request.TargetPath)
+	err = s.hostAPI.CreateSymlink(request.SourcePath, request.TargetPath)
 	if err != nil {
-		klog.Errorf("failed LinkPath %v", err)
+		klog.Errorf("failed CreateSymlink: %v", err)
 		return nil, err
 	}
-	return nil, err
+	return &internal.CreateSymlinkResponse{}, nil
 }
 
 func (s *Server) IsMountPoint(ctx context.Context, request *internal.IsMountPointRequest, version apiversion.Version) (*internal.IsMountPointResponse, error) {
 	klog.V(2).Infof("Request: IsMountPoint with path=%q", request.Path)
-	isMount, err := s.hostAPI.IsMountPoint(request.Path)
+	isSymlinkRequest := &internal.IsSymlinkRequest{
+		Path: request.Path,
+	}
+	isSymlinkResponse, err := s.IsSymlink(ctx, isSymlinkRequest, version)
 	if err != nil {
-		klog.Errorf("failed IsMountPoint %v", err)
+		klog.Errorf("Failed to forward to IsSymlink: %v", err)
 		return nil, err
 	}
 	return &internal.IsMountPointResponse{
-		IsMountPoint: isMount,
-	}, err
+		IsMountPoint: isSymlinkResponse.IsSymlink,
+	}, nil
+}
+
+func (s *Server) IsSymlink(ctx context.Context, request *internal.IsSymlinkRequest, version apiversion.Version) (*internal.IsSymlinkResponse, error) {
+	klog.V(2).Infof("Request: IsSymlink with path=%q", request.Path)
+	isSymlink, err := s.hostAPI.IsSymlink(request.Path)
+	if err != nil {
+		klog.Errorf("failed IsSymlink %v", err)
+		return nil, err
+	}
+	return &internal.IsSymlinkResponse{
+		IsSymlink: isSymlink,
+	}, nil
 }

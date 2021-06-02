@@ -8,19 +8,20 @@ service Filesystem {
     // PathExists checks if the requested path exists in the host filesystem.
     rpc PathExists(PathExistsRequest) returns (PathExistsResponse) {}
 
-    // Mkdir creates a directory at the requested path in the host filesystem
+    // Mkdir creates a directory at the requested path in the host filesystem.
     rpc Mkdir(MkdirRequest) returns (MkdirResponse) {}
 
     // Rmdir removes the directory at the requested path in the host filesystem.
-    // This may be used for unlinking a symlink created through LinkPath.
+    // This may be used for unlinking a symlink created through CreateSymlink.
     rpc Rmdir(RmdirRequest) returns (RmdirResponse) {}
 
-    // LinkPath creates a local directory symbolic link between a source path
-    // and target path in the host's filesystem.
-    rpc LinkPath(LinkPathRequest) returns (LinkPathResponse) {}
+    // CreateSymlink creates a symbolic link called target_path that points to source_path
+    // in the host filesystem (target_path is the name of the symbolic link created,
+    // source_path is the existing path).
+    rpc CreateSymlink(CreateSymlinkRequest) returns (CreateSymlinkResponse) {}
 
-    // IsMountPoint checks if a given path is a mount point.
-    rpc IsMountPoint(IsMountPointRequest) returns (IsMountPointResponse) {}
+    // IsSymlink checks if a given path is a symlink.
+    rpc IsSymlink(IsSymlinkRequest) returns (IsSymlinkResponse) {}
 }
 
 // Context of the paths used for path prefix validation
@@ -111,8 +112,8 @@ message RmdirResponse {
     // Intentionally empty.
 }
 
-message LinkPathRequest {
-    // The path where the symlink is created in the host's filesystem.
+message CreateSymlinkRequest {
+    // The path of the existing directory to be linked.
     // All special characters allowed by Windows in path names will be allowed
     // except for restrictions noted below. For details, please check:
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -128,7 +129,7 @@ message LinkPathRequest {
     // Maximum path length will be capped to 260 characters.
     string source_path = 1;
 
-    // Target path in the host's filesystem used for the symlink creation.
+    // Target path is the location of the new directory entry to be created in the host's filesystem.
     // All special characters allowed by Windows in path names will be allowed
     // except for restrictions noted below. For details, please check:
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -146,16 +147,16 @@ message LinkPathRequest {
     string target_path = 2;
 }
 
-message LinkPathResponse {
+message CreateSymlinkResponse {
     // Intentionally empty.
 }
 
-message IsMountPointRequest {
-    // The path whose existence we want to check in the host's filesystem
+message IsSymlinkRequest {
+    // The path whose existence as a symlink we want to check in the host's filesystem.
     string path = 1;
 }
 
-message IsMountPointResponse {
-    // Indicates whether the path in PathExistsRequest exists in the host's filesystem
-    bool is_mount_point = 1;
+message IsSymlinkResponse {
+    // Indicates whether the path in IsSymlinkRequest is a symlink.
+    bool is_symlink = 1;
 }

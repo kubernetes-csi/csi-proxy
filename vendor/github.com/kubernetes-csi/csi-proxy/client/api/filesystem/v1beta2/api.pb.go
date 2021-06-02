@@ -417,12 +417,12 @@ func (*RmdirResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_rawDescGZIP(), []int{5}
 }
 
-type LinkPathRequest struct {
+type CreateSymlinkRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The path where the symlink is created in the host's filesystem.
+	// The path of the existing directory to be linked.
 	// All special characters allowed by Windows in path names will be allowed
 	// except for restrictions noted below. For details, please check:
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -437,7 +437,7 @@ type LinkPathRequest struct {
 	// source_path cannot already exist in the host filesystem.
 	// Maximum path length will be capped to 260 characters.
 	SourcePath string `protobuf:"bytes,1,opt,name=source_path,json=sourcePath,proto3" json:"source_path,omitempty"`
-	// Target path in the host's filesystem used for the symlink creation.
+	// Target path is the location of the new directory entry to be created in the host's filesystem.
 	// All special characters allowed by Windows in path names will be allowed
 	// except for restrictions noted below. For details, please check:
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -455,8 +455,8 @@ type LinkPathRequest struct {
 	TargetPath string `protobuf:"bytes,2,opt,name=target_path,json=targetPath,proto3" json:"target_path,omitempty"`
 }
 
-func (x *LinkPathRequest) Reset() {
-	*x = LinkPathRequest{}
+func (x *CreateSymlinkRequest) Reset() {
+	*x = CreateSymlinkRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -464,13 +464,13 @@ func (x *LinkPathRequest) Reset() {
 	}
 }
 
-func (x *LinkPathRequest) String() string {
+func (x *CreateSymlinkRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LinkPathRequest) ProtoMessage() {}
+func (*CreateSymlinkRequest) ProtoMessage() {}
 
-func (x *LinkPathRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateSymlinkRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -482,33 +482,33 @@ func (x *LinkPathRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LinkPathRequest.ProtoReflect.Descriptor instead.
-func (*LinkPathRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateSymlinkRequest.ProtoReflect.Descriptor instead.
+func (*CreateSymlinkRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *LinkPathRequest) GetSourcePath() string {
+func (x *CreateSymlinkRequest) GetSourcePath() string {
 	if x != nil {
 		return x.SourcePath
 	}
 	return ""
 }
 
-func (x *LinkPathRequest) GetTargetPath() string {
+func (x *CreateSymlinkRequest) GetTargetPath() string {
 	if x != nil {
 		return x.TargetPath
 	}
 	return ""
 }
 
-type LinkPathResponse struct {
+type CreateSymlinkResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *LinkPathResponse) Reset() {
-	*x = LinkPathResponse{}
+func (x *CreateSymlinkResponse) Reset() {
+	*x = CreateSymlinkResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -516,13 +516,13 @@ func (x *LinkPathResponse) Reset() {
 	}
 }
 
-func (x *LinkPathResponse) String() string {
+func (x *CreateSymlinkResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LinkPathResponse) ProtoMessage() {}
+func (*CreateSymlinkResponse) ProtoMessage() {}
 
-func (x *LinkPathResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateSymlinkResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -534,22 +534,22 @@ func (x *LinkPathResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LinkPathResponse.ProtoReflect.Descriptor instead.
-func (*LinkPathResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateSymlinkResponse.ProtoReflect.Descriptor instead.
+func (*CreateSymlinkResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_rawDescGZIP(), []int{7}
 }
 
-type IsMountPointRequest struct {
+type IsSymlinkRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The path whose existence we want to check in the host's filesystem
+	// The path whose existence as a symlink we want to check in the host's filesystem.
 	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 }
 
-func (x *IsMountPointRequest) Reset() {
-	*x = IsMountPointRequest{}
+func (x *IsSymlinkRequest) Reset() {
+	*x = IsSymlinkRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -557,13 +557,13 @@ func (x *IsMountPointRequest) Reset() {
 	}
 }
 
-func (x *IsMountPointRequest) String() string {
+func (x *IsSymlinkRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IsMountPointRequest) ProtoMessage() {}
+func (*IsSymlinkRequest) ProtoMessage() {}
 
-func (x *IsMountPointRequest) ProtoReflect() protoreflect.Message {
+func (x *IsSymlinkRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -575,29 +575,29 @@ func (x *IsMountPointRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IsMountPointRequest.ProtoReflect.Descriptor instead.
-func (*IsMountPointRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use IsSymlinkRequest.ProtoReflect.Descriptor instead.
+func (*IsSymlinkRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *IsMountPointRequest) GetPath() string {
+func (x *IsSymlinkRequest) GetPath() string {
 	if x != nil {
 		return x.Path
 	}
 	return ""
 }
 
-type IsMountPointResponse struct {
+type IsSymlinkResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Indicates whether the path in PathExistsRequest exists in the host's filesystem
-	IsMountPoint bool `protobuf:"varint,1,opt,name=is_mount_point,json=isMountPoint,proto3" json:"is_mount_point,omitempty"`
+	// Indicates whether the path in IsSymlinkRequest is a symlink.
+	IsSymlink bool `protobuf:"varint,1,opt,name=is_symlink,json=isSymlink,proto3" json:"is_symlink,omitempty"`
 }
 
-func (x *IsMountPointResponse) Reset() {
-	*x = IsMountPointResponse{}
+func (x *IsSymlinkResponse) Reset() {
+	*x = IsSymlinkResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -605,13 +605,13 @@ func (x *IsMountPointResponse) Reset() {
 	}
 }
 
-func (x *IsMountPointResponse) String() string {
+func (x *IsSymlinkResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IsMountPointResponse) ProtoMessage() {}
+func (*IsSymlinkResponse) ProtoMessage() {}
 
-func (x *IsMountPointResponse) ProtoReflect() protoreflect.Message {
+func (x *IsSymlinkResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -623,14 +623,14 @@ func (x *IsMountPointResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IsMountPointResponse.ProtoReflect.Descriptor instead.
-func (*IsMountPointResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use IsSymlinkResponse.ProtoReflect.Descriptor instead.
+func (*IsSymlinkResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *IsMountPointResponse) GetIsMountPoint() bool {
+func (x *IsSymlinkResponse) GetIsSymlink() bool {
 	if x != nil {
-		return x.IsMountPoint
+		return x.IsSymlink
 	}
 	return false
 }
@@ -665,49 +665,50 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_p
 	0x32, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74, 0x52, 0x07, 0x63,
 	0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x18,
 	0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x22, 0x0f, 0x0a, 0x0d,
-	0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x53, 0x0a,
-	0x0f, 0x4c, 0x69, 0x6e, 0x6b, 0x50, 0x61, 0x74, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x61, 0x74,
-	0x68, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x5f, 0x70, 0x61, 0x74, 0x68,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61,
-	0x74, 0x68, 0x22, 0x12, 0x0a, 0x10, 0x4c, 0x69, 0x6e, 0x6b, 0x50, 0x61, 0x74, 0x68, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x29, 0x0a, 0x13, 0x49, 0x73, 0x4d, 0x6f, 0x75, 0x6e,
-	0x74, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a,
-	0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74,
-	0x68, 0x22, 0x3c, 0x0a, 0x14, 0x49, 0x73, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x50, 0x6f, 0x69, 0x6e,
-	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x0e, 0x69, 0x73, 0x5f,
-	0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x08, 0x52, 0x0c, 0x69, 0x73, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x2a,
-	0x22, 0x0a, 0x0b, 0x50, 0x61, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74, 0x12, 0x0a,
-	0x0a, 0x06, 0x50, 0x4c, 0x55, 0x47, 0x49, 0x4e, 0x10, 0x00, 0x12, 0x07, 0x0a, 0x03, 0x50, 0x4f,
-	0x44, 0x10, 0x01, 0x32, 0xdb, 0x02, 0x0a, 0x0a, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74,
-	0x65, 0x6d, 0x12, 0x47, 0x0a, 0x0a, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73,
-	0x12, 0x1a, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45,
-	0x78, 0x69, 0x73, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74,
-	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x05, 0x4d,
-	0x6b, 0x64, 0x69, 0x72, 0x12, 0x15, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x4d,
-	0x6b, 0x64, 0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x4d, 0x6b, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x05, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x12, 0x15,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e,
-	0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
-	0x41, 0x0a, 0x08, 0x4c, 0x69, 0x6e, 0x6b, 0x50, 0x61, 0x74, 0x68, 0x12, 0x18, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x4c, 0x69, 0x6e, 0x6b, 0x50, 0x61, 0x74, 0x68, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e,
-	0x4c, 0x69, 0x6e, 0x6b, 0x50, 0x61, 0x74, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0c, 0x49, 0x73, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x50, 0x6f, 0x69,
-	0x6e, 0x74, 0x12, 0x1c, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x49, 0x73, 0x4d,
-	0x6f, 0x75, 0x6e, 0x74, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x49, 0x73, 0x4d, 0x6f, 0x75,
-	0x6e, 0x74, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63, 0x73, 0x69, 0x2f, 0x63,
-	0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x2f, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x58, 0x0a,
+	0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x5f,
+	0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73, 0x6f, 0x75, 0x72,
+	0x63, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x74, 0x61, 0x72,
+	0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x22, 0x17, 0x0a, 0x15, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x26, 0x0a, 0x10, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x22, 0x32, 0x0a, 0x11, 0x49, 0x73, 0x53, 0x79,
+	0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a,
+	0x0a, 0x69, 0x73, 0x5f, 0x73, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x08, 0x52, 0x09, 0x69, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x2a, 0x22, 0x0a, 0x0b,
+	0x50, 0x61, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74, 0x12, 0x0a, 0x0a, 0x06, 0x50,
+	0x4c, 0x55, 0x47, 0x49, 0x4e, 0x10, 0x00, 0x12, 0x07, 0x0a, 0x03, 0x50, 0x4f, 0x44, 0x10, 0x01,
+	0x32, 0xe1, 0x02, 0x0a, 0x0a, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x12,
+	0x47, 0x0a, 0x0a, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x12, 0x1a, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73,
+	0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x32, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x05, 0x4d, 0x6b, 0x64, 0x69,
+	0x72, 0x12, 0x15, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x4d, 0x6b, 0x64, 0x69,
+	0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x32, 0x2e, 0x4d, 0x6b, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x38, 0x0a, 0x05, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x12, 0x15, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x16, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x52, 0x6d, 0x64,
+	0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x0d,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x12, 0x1d, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79,
+	0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d,
+	0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x44,
+	0x0a, 0x09, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x12, 0x19, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x32, 0x2e, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32,
+	0x2e, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63, 0x73,
+	0x69, 0x2f, 0x63, 0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69, 0x65,
+	0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65,
+	0x6d, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x32, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -725,17 +726,17 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_
 var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_goTypes = []interface{}{
-	(PathContext)(0),             // 0: v1beta2.PathContext
-	(*PathExistsRequest)(nil),    // 1: v1beta2.PathExistsRequest
-	(*PathExistsResponse)(nil),   // 2: v1beta2.PathExistsResponse
-	(*MkdirRequest)(nil),         // 3: v1beta2.MkdirRequest
-	(*MkdirResponse)(nil),        // 4: v1beta2.MkdirResponse
-	(*RmdirRequest)(nil),         // 5: v1beta2.RmdirRequest
-	(*RmdirResponse)(nil),        // 6: v1beta2.RmdirResponse
-	(*LinkPathRequest)(nil),      // 7: v1beta2.LinkPathRequest
-	(*LinkPathResponse)(nil),     // 8: v1beta2.LinkPathResponse
-	(*IsMountPointRequest)(nil),  // 9: v1beta2.IsMountPointRequest
-	(*IsMountPointResponse)(nil), // 10: v1beta2.IsMountPointResponse
+	(PathContext)(0),              // 0: v1beta2.PathContext
+	(*PathExistsRequest)(nil),     // 1: v1beta2.PathExistsRequest
+	(*PathExistsResponse)(nil),    // 2: v1beta2.PathExistsResponse
+	(*MkdirRequest)(nil),          // 3: v1beta2.MkdirRequest
+	(*MkdirResponse)(nil),         // 4: v1beta2.MkdirResponse
+	(*RmdirRequest)(nil),          // 5: v1beta2.RmdirRequest
+	(*RmdirResponse)(nil),         // 6: v1beta2.RmdirResponse
+	(*CreateSymlinkRequest)(nil),  // 7: v1beta2.CreateSymlinkRequest
+	(*CreateSymlinkResponse)(nil), // 8: v1beta2.CreateSymlinkResponse
+	(*IsSymlinkRequest)(nil),      // 9: v1beta2.IsSymlinkRequest
+	(*IsSymlinkResponse)(nil),     // 10: v1beta2.IsSymlinkResponse
 }
 var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_depIdxs = []int32{
 	0,  // 0: v1beta2.PathExistsRequest.context:type_name -> v1beta2.PathContext
@@ -744,13 +745,13 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_p
 	1,  // 3: v1beta2.Filesystem.PathExists:input_type -> v1beta2.PathExistsRequest
 	3,  // 4: v1beta2.Filesystem.Mkdir:input_type -> v1beta2.MkdirRequest
 	5,  // 5: v1beta2.Filesystem.Rmdir:input_type -> v1beta2.RmdirRequest
-	7,  // 6: v1beta2.Filesystem.LinkPath:input_type -> v1beta2.LinkPathRequest
-	9,  // 7: v1beta2.Filesystem.IsMountPoint:input_type -> v1beta2.IsMountPointRequest
+	7,  // 6: v1beta2.Filesystem.CreateSymlink:input_type -> v1beta2.CreateSymlinkRequest
+	9,  // 7: v1beta2.Filesystem.IsSymlink:input_type -> v1beta2.IsSymlinkRequest
 	2,  // 8: v1beta2.Filesystem.PathExists:output_type -> v1beta2.PathExistsResponse
 	4,  // 9: v1beta2.Filesystem.Mkdir:output_type -> v1beta2.MkdirResponse
 	6,  // 10: v1beta2.Filesystem.Rmdir:output_type -> v1beta2.RmdirResponse
-	8,  // 11: v1beta2.Filesystem.LinkPath:output_type -> v1beta2.LinkPathResponse
-	10, // 12: v1beta2.Filesystem.IsMountPoint:output_type -> v1beta2.IsMountPointResponse
+	8,  // 11: v1beta2.Filesystem.CreateSymlink:output_type -> v1beta2.CreateSymlinkResponse
+	10, // 12: v1beta2.Filesystem.IsSymlink:output_type -> v1beta2.IsSymlinkResponse
 	8,  // [8:13] is the sub-list for method output_type
 	3,  // [3:8] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
@@ -837,7 +838,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LinkPathRequest); i {
+			switch v := v.(*CreateSymlinkRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -849,7 +850,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LinkPathResponse); i {
+			switch v := v.(*CreateSymlinkResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -861,7 +862,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsMountPointRequest); i {
+			switch v := v.(*IsSymlinkRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -873,7 +874,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v1beta2_api_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsMountPointResponse); i {
+			switch v := v.(*IsSymlinkResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -920,16 +921,17 @@ const _ = grpc.SupportPackageIsVersion6
 type FilesystemClient interface {
 	// PathExists checks if the requested path exists in the host filesystem.
 	PathExists(ctx context.Context, in *PathExistsRequest, opts ...grpc.CallOption) (*PathExistsResponse, error)
-	// Mkdir creates a directory at the requested path in the host filesystem
+	// Mkdir creates a directory at the requested path in the host filesystem.
 	Mkdir(ctx context.Context, in *MkdirRequest, opts ...grpc.CallOption) (*MkdirResponse, error)
 	// Rmdir removes the directory at the requested path in the host filesystem.
-	// This may be used for unlinking a symlink created through LinkPath.
+	// This may be used for unlinking a symlink created through CreateSymlink.
 	Rmdir(ctx context.Context, in *RmdirRequest, opts ...grpc.CallOption) (*RmdirResponse, error)
-	// LinkPath creates a local directory symbolic link between a source path
-	// and target path in the host's filesystem.
-	LinkPath(ctx context.Context, in *LinkPathRequest, opts ...grpc.CallOption) (*LinkPathResponse, error)
-	// IsMountPoint checks if a given path is a mount point.
-	IsMountPoint(ctx context.Context, in *IsMountPointRequest, opts ...grpc.CallOption) (*IsMountPointResponse, error)
+	// CreateSymlink creates a symbolic link called target_path that points to source_path
+	// in the host filesystem (target_path is the name of the symbolic link created,
+	// source_path is the existing path).
+	CreateSymlink(ctx context.Context, in *CreateSymlinkRequest, opts ...grpc.CallOption) (*CreateSymlinkResponse, error)
+	// IsSymlink checks if a given path is a symlink.
+	IsSymlink(ctx context.Context, in *IsSymlinkRequest, opts ...grpc.CallOption) (*IsSymlinkResponse, error)
 }
 
 type filesystemClient struct {
@@ -967,18 +969,18 @@ func (c *filesystemClient) Rmdir(ctx context.Context, in *RmdirRequest, opts ...
 	return out, nil
 }
 
-func (c *filesystemClient) LinkPath(ctx context.Context, in *LinkPathRequest, opts ...grpc.CallOption) (*LinkPathResponse, error) {
-	out := new(LinkPathResponse)
-	err := c.cc.Invoke(ctx, "/v1beta2.Filesystem/LinkPath", in, out, opts...)
+func (c *filesystemClient) CreateSymlink(ctx context.Context, in *CreateSymlinkRequest, opts ...grpc.CallOption) (*CreateSymlinkResponse, error) {
+	out := new(CreateSymlinkResponse)
+	err := c.cc.Invoke(ctx, "/v1beta2.Filesystem/CreateSymlink", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *filesystemClient) IsMountPoint(ctx context.Context, in *IsMountPointRequest, opts ...grpc.CallOption) (*IsMountPointResponse, error) {
-	out := new(IsMountPointResponse)
-	err := c.cc.Invoke(ctx, "/v1beta2.Filesystem/IsMountPoint", in, out, opts...)
+func (c *filesystemClient) IsSymlink(ctx context.Context, in *IsSymlinkRequest, opts ...grpc.CallOption) (*IsSymlinkResponse, error) {
+	out := new(IsSymlinkResponse)
+	err := c.cc.Invoke(ctx, "/v1beta2.Filesystem/IsSymlink", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -989,16 +991,17 @@ func (c *filesystemClient) IsMountPoint(ctx context.Context, in *IsMountPointReq
 type FilesystemServer interface {
 	// PathExists checks if the requested path exists in the host filesystem.
 	PathExists(context.Context, *PathExistsRequest) (*PathExistsResponse, error)
-	// Mkdir creates a directory at the requested path in the host filesystem
+	// Mkdir creates a directory at the requested path in the host filesystem.
 	Mkdir(context.Context, *MkdirRequest) (*MkdirResponse, error)
 	// Rmdir removes the directory at the requested path in the host filesystem.
-	// This may be used for unlinking a symlink created through LinkPath.
+	// This may be used for unlinking a symlink created through CreateSymlink.
 	Rmdir(context.Context, *RmdirRequest) (*RmdirResponse, error)
-	// LinkPath creates a local directory symbolic link between a source path
-	// and target path in the host's filesystem.
-	LinkPath(context.Context, *LinkPathRequest) (*LinkPathResponse, error)
-	// IsMountPoint checks if a given path is a mount point.
-	IsMountPoint(context.Context, *IsMountPointRequest) (*IsMountPointResponse, error)
+	// CreateSymlink creates a symbolic link called target_path that points to source_path
+	// in the host filesystem (target_path is the name of the symbolic link created,
+	// source_path is the existing path).
+	CreateSymlink(context.Context, *CreateSymlinkRequest) (*CreateSymlinkResponse, error)
+	// IsSymlink checks if a given path is a symlink.
+	IsSymlink(context.Context, *IsSymlinkRequest) (*IsSymlinkResponse, error)
 }
 
 // UnimplementedFilesystemServer can be embedded to have forward compatible implementations.
@@ -1014,11 +1017,11 @@ func (*UnimplementedFilesystemServer) Mkdir(context.Context, *MkdirRequest) (*Mk
 func (*UnimplementedFilesystemServer) Rmdir(context.Context, *RmdirRequest) (*RmdirResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Rmdir not implemented")
 }
-func (*UnimplementedFilesystemServer) LinkPath(context.Context, *LinkPathRequest) (*LinkPathResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LinkPath not implemented")
+func (*UnimplementedFilesystemServer) CreateSymlink(context.Context, *CreateSymlinkRequest) (*CreateSymlinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSymlink not implemented")
 }
-func (*UnimplementedFilesystemServer) IsMountPoint(context.Context, *IsMountPointRequest) (*IsMountPointResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsMountPoint not implemented")
+func (*UnimplementedFilesystemServer) IsSymlink(context.Context, *IsSymlinkRequest) (*IsSymlinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsSymlink not implemented")
 }
 
 func RegisterFilesystemServer(s *grpc.Server, srv FilesystemServer) {
@@ -1079,38 +1082,38 @@ func _Filesystem_Rmdir_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Filesystem_LinkPath_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LinkPathRequest)
+func _Filesystem_CreateSymlink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSymlinkRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FilesystemServer).LinkPath(ctx, in)
+		return srv.(FilesystemServer).CreateSymlink(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/v1beta2.Filesystem/LinkPath",
+		FullMethod: "/v1beta2.Filesystem/CreateSymlink",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FilesystemServer).LinkPath(ctx, req.(*LinkPathRequest))
+		return srv.(FilesystemServer).CreateSymlink(ctx, req.(*CreateSymlinkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Filesystem_IsMountPoint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IsMountPointRequest)
+func _Filesystem_IsSymlink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsSymlinkRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FilesystemServer).IsMountPoint(ctx, in)
+		return srv.(FilesystemServer).IsSymlink(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/v1beta2.Filesystem/IsMountPoint",
+		FullMethod: "/v1beta2.Filesystem/IsSymlink",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FilesystemServer).IsMountPoint(ctx, req.(*IsMountPointRequest))
+		return srv.(FilesystemServer).IsSymlink(ctx, req.(*IsSymlinkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1132,12 +1135,12 @@ var _Filesystem_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Filesystem_Rmdir_Handler,
 		},
 		{
-			MethodName: "LinkPath",
-			Handler:    _Filesystem_LinkPath_Handler,
+			MethodName: "CreateSymlink",
+			Handler:    _Filesystem_CreateSymlink_Handler,
 		},
 		{
-			MethodName: "IsMountPoint",
-			Handler:    _Filesystem_IsMountPoint_Handler,
+			MethodName: "IsSymlink",
+			Handler:    _Filesystem_IsSymlink_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

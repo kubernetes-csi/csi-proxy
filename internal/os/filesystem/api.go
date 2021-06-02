@@ -18,8 +18,8 @@ type API interface {
 	PathValid(path string) (bool, error)
 	Mkdir(path string) error
 	Rmdir(path string, force bool) error
-	LinkPath(tgt string, src string) error
-	IsMountPoint(path string) (bool, error)
+	CreateSymlink(oldname string, newname string) error
+	IsSymlink(path string) (bool, error)
 }
 
 type filesystemAPI struct{}
@@ -78,17 +78,19 @@ func (filesystemAPI) Rmdir(path string, force bool) error {
 	return os.Remove(path)
 }
 
-// LinkPath creates newname as a symbolic link to oldname.
-func (filesystemAPI) LinkPath(oldname, newname string) error {
+// CreateSymlink creates newname as a symbolic link to oldname.
+func (filesystemAPI) CreateSymlink(oldname, newname string) error {
 	return os.Symlink(oldname, newname)
 }
 
-// IsMountPoint - returns true if tgt is a mount point.
+// IsSymlink - returns true if tgt is a mount point.
 // A path is considered a mount point if:
 //  - directory exists and
 //  - it is a soft link and
 //  - the target path of the link exists.
-func (filesystemAPI) IsMountPoint(tgt string) (bool, error) {
+// If tgt path does not exist, it returns an error
+// if tgt path exists, but the source path tgt points to does not exist, it returns false without error.
+func (filesystemAPI) IsSymlink(tgt string) (bool, error) {
 	// This code is similar to k8s.io/kubernetes/pkg/util/mount except the pathExists usage.
 	// Also in a remote call environment the os error cannot be passed directly back, hence the callers
 	// are expected to perform the isExists check before calling this call in CSI proxy.
