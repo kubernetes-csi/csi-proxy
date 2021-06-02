@@ -8,7 +8,7 @@ type NewSmbGlobalMappingRequest struct {
 }
 
 type NewSmbGlobalMappingResponse struct {
-	Error string
+	// Intentionally empty.
 }
 
 type RemoveSmbGlobalMappingRequest struct {
@@ -16,5 +16,5 @@ type RemoveSmbGlobalMappingRequest struct {
 }
 
 type RemoveSmbGlobalMappingResponse struct {
-	Error string
+	// Intentionally empty.
 }

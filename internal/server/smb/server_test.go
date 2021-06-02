@@ -6,11 +6,14 @@ import (
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
+	"github.com/kubernetes-csi/csi-proxy/internal/os/smb"
 	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
 )
 
 type fakeSmbAPI struct{}
+
+var _ smb.API = &fakeSmbAPI{}
 
 func (fakeSmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	return nil
@@ -96,12 +99,12 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 			Username:   tc.username,
 			Password:   tc.password,
 		}
-		response, err := srv.NewSmbGlobalMapping(context.TODO(), req, tc.version)
+		_, err := srv.NewSmbGlobalMapping(context.TODO(), req, tc.version)
 		if tc.expectError && err == nil {
 			t.Errorf("Expected error but NewSmbGlobalMapping returned a nil error")
 		}
 		if !tc.expectError && err != nil {
-			t.Errorf("Expected no errors but NewSmbGlobalMapping returned error: %s", response.Error)
+			t.Errorf("Expected no errors but NewSmbGlobalMapping returned error: %v", err)
 		}
 	}
 }

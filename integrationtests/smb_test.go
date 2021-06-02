@@ -1,7 +1,6 @@
 package integrationtests
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -11,11 +10,6 @@ import (
 	"time"
 
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/kubernetes-csi/csi-proxy/client/api/smb/v1beta2"
-	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta2"
 )
 
 const letterset = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -129,69 +123,13 @@ func writeReadFile(path string) error {
 }
 
 func TestSmbAPIGroup(t *testing.T) {
-	t.Run("Smb positive", func(t *testing.T) {
-		client, err := v1beta2client.NewClient()
-		if err != nil {
-			t.Fatalf("Fail to get smb API group client %v", err)
-		}
-		defer client.Close()
-
-		username := randomString(5)
-		password := randomString(10) + "!"
-		sharePath := fmt.Sprintf("C:\\smbshare%s", randomString(5))
-		smbShare := randomString(6)
-
-		localPath := fmt.Sprintf("C:\\localpath%s", randomString(5))
-
-		if err = setupUser(username, password); err != nil {
-			t.Fatalf("TestSmbAPIGroup %v", err)
-		}
-		defer removeUser(t, username)
-
-		if err = setupSmbShare(smbShare, sharePath, username); err != nil {
-			t.Fatalf("TestSmbAPIGroup %v", err)
-		}
-		defer removeSmbShare(t, smbShare)
-
-		hostname, err := os.Hostname()
-		assert.Nil(t, err)
-
-		username = "domain\\" + username
-		remotePath := "\\\\" + hostname + "\\" + smbShare
-		// simulate Mount SMB operations around staging a volume on a node
-		mountSmbShareReq := &v1beta2.NewSmbGlobalMappingRequest{
-			RemotePath: remotePath,
-			Username:   username,
-			Password:   password,
-		}
-		mountSmbShareRsp, err := client.NewSmbGlobalMapping(context.Background(), mountSmbShareReq)
-		if err != nil {
-			t.Fatalf("TestSmbAPIGroup %v", err)
-		}
-		if !assert.Equal(t, "", mountSmbShareRsp.Error) {
-			t.Fatalf("TestSmbAPIGroup %v", mountSmbShareRsp.Error)
-		}
-
-		err = getSmbGlobalMapping(remotePath)
-		assert.Nil(t, err)
-
-		err = writeReadFile(remotePath)
-		assert.Nil(t, err)
-
-		unmountSmbShareReq := &v1beta2.RemoveSmbGlobalMappingRequest{
-			RemotePath: remotePath,
-		}
-		unmountSmbShareRsp, err := client.RemoveSmbGlobalMapping(context.Background(), unmountSmbShareReq)
-		if err != nil {
-			t.Fatalf("TestSmbAPIGroup %v", err)
-		}
-		if !assert.Equal(t, "", unmountSmbShareRsp.Error) {
-			t.Fatalf("TestSmbAPIGroup %v", mountSmbShareRsp.Error)
-		}
-		err = getSmbGlobalMapping(remotePath)
-		assert.NotNil(t, err)
-		err = writeReadFile(localPath)
-		assert.NotNil(t, err)
-
+	t.Run("v1alpha1SmbTests", func(t *testing.T) {
+		v1alpha1SmbTests(t)
+	})
+	t.Run("v1beta1SmbTests", func(t *testing.T) {
+		v1beta1SmbTests(t)
+	})
+	t.Run("v1beta2SmbTests", func(t *testing.T) {
+		v1beta2SmbTests(t)
 	})
 }

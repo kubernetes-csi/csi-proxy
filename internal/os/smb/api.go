@@ -7,13 +7,22 @@ import (
 	"strings"
 )
 
-type APIImplementor struct{}
-
-func New() APIImplementor {
-	return APIImplementor{}
+type API interface {
+	IsSmbMapped(remotePath string) (bool, error)
+	NewSmbLink(remotePath, localPath string) error
+	NewSmbGlobalMapping(remotePath, username, password string) error
+	RemoveSmbGlobalMapping(remotePath string) error
 }
 
-func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
+type SmbAPI struct{}
+
+var _ API = &SmbAPI{}
+
+func New() SmbAPI {
+	return SmbAPI{}
+}
+
+func (SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 	cmdLine := fmt.Sprintf(`$(Get-SmbGlobalMapping -RemotePath $Env:smbremotepath -ErrorAction Stop).Status `)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
@@ -37,7 +46,7 @@ func (APIImplementor) IsSmbMapped(remotePath string) (bool, error) {
 // Since os.Symlink is currently being used in working code paths, no attempt is made in
 // alpha to merge the paths.
 // TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
-func (APIImplementor) NewSmbLink(remotePath, localPath string) error {
+func (SmbAPI) NewSmbLink(remotePath, localPath string) error {
 
 	if !strings.HasSuffix(remotePath, "\\") {
 		// Golang has issues resolving paths mapped to file shares if they do not end in a trailing \
@@ -59,7 +68,7 @@ func (APIImplementor) NewSmbLink(remotePath, localPath string) error {
 	return nil
 }
 
-func (APIImplementor) NewSmbGlobalMapping(remotePath, username, password string) error {
+func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	// use PowerShell Environment Variables to store user input string to prevent command line injection
 	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1
 	cmdLine := fmt.Sprintf(`$PWord = ConvertTo-SecureString -String $Env:smbpassword -AsPlainText -Force` +
@@ -77,7 +86,7 @@ func (APIImplementor) NewSmbGlobalMapping(remotePath, username, password string)
 	return nil
 }
 
-func (APIImplementor) RemoveSmbGlobalMapping(remotePath string) error {
+func (SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
 	cmd := exec.Command("powershell", "/c", `Remove-SmbGlobalMapping -RemotePath $Env:smbremotepath -Force`)
 	cmd.Env = append(os.Environ(), fmt.Sprintf("smbremotepath=%s", remotePath))
 	if output, err := cmd.CombinedOutput(); err != nil {
