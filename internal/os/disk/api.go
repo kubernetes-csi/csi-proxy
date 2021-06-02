@@ -1,5 +1,3 @@
-// +build windows
-
 package disk
 
 import (
@@ -26,21 +24,63 @@ const (
 	IOCTL_STORAGE_QUERY_PROPERTY    = 0x002d1400
 )
 
-// Implements the OS API calls related to Disk Devices. All code here should be very simple
+// API declares the interface exposed by the internal API
+type API interface {
+	// ListDiskLocations - constructs a map with the disk number as the key and the DiskLocation structure
+	// as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
+	ListDiskLocations() (map[uint32]shared.DiskLocation, error)
+	// IsDiskInitialized returns true if the disk identified by `diskNumber` is initialized.
+	IsDiskInitialized(diskNumber uint32) (bool, error)
+	// InitializeDisk initializes the disk `diskNumber`
+	InitializeDisk(diskNumber uint32) error
+	// PartitionsExist checks if the disk `diskNumber` has any partitions.
+	PartitionsExist(diskNumber uint32) (bool, error)
+	// CreatePartitoin creates a partition in disk `diskNumber`
+	CreatePartition(diskNumber uint32) error
+	// Rescan updates the host storage cache (re-enumerates disk, partition and volume objects)
+	Rescan() error
+	// GetDiskNumberByName gets a disk number by page83 ID (disk name)
+	GetDiskNumberByName(page83ID string) (uint32, error)
+	// ListDiskIDs list all disks by disk number.
+	ListDiskIDs() (map[uint32]shared.DiskIDs, error)
+	// GetDiskStats gets the disk stats of the disk `diskNumber`.
+	GetDiskStats(diskNumber uint32) (int64, error)
+	// SetDiskState sets the offline/online state of the disk `diskNumber`.
+	SetDiskState(diskNumber uint32, isOnline bool) error
+	// GetDiskState gets the offline/online state of the disk `diskNumber`.
+	GetDiskState(diskNumber uint32) (bool, error)
+}
+
+// DiskAPI implements the OS API calls related to Disk Devices. All code here should be very simple
 // pass-through to the OS APIs or cmdlets. Any logic around the APIs/cmdlet invocation
 // should go in internal/server/filesystem/disk.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
-type APIImplementor struct{}
+type DiskAPI struct{}
 
-func New() APIImplementor {
-	return APIImplementor{}
+// ensure that DiskAPI implements the exposed API
+var _ API = &DiskAPI{}
+
+func New() DiskAPI {
+	return DiskAPI{}
+}
+
+func runExec(command string) ([]byte, error) {
+	cmd := exec.Command("powershell", "/c", command)
+	klog.V(4).Infof("Executing command: %q", cmd.String())
+	out, err := cmd.CombinedOutput()
+	return out, err
 }
 
 // ListDiskLocations - constructs a map with the disk number as the key and the DiskLocation structure
 // as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
-func (APIImplementor) ListDiskLocations() (map[string]shared.DiskLocation, error) {
+func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
+	// sample response
+	// [{
+	//    "number":  0,
+	//    "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
+	// }, ...]
 	cmd := fmt.Sprintf("Get-Disk | select number, location | ConvertTo-Json")
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+	out, err := runExec(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list disk location. cmd: %q, output: %q, err %v", cmd, string(out), err)
 	}
@@ -51,10 +91,10 @@ func (APIImplementor) ListDiskLocations() (map[string]shared.DiskLocation, error
 		return nil, err
 	}
 
-	m := make(map[string]shared.DiskLocation)
+	m := make(map[uint32]shared.DiskLocation)
 	for _, v := range getDisk {
 		str := v["location"].(string)
-		num := fmt.Sprintf("%d", int(v["number"].(float64)))
+		num := v["number"].(float64)
 
 		found := false
 		s := strings.Split(str, ":")
@@ -79,27 +119,27 @@ func (APIImplementor) ListDiskLocations() (map[string]shared.DiskLocation, error
 			}
 
 			if found {
-				m[num] = d
+				m[uint32(num)] = d
 			}
 		}
 	}
 	return m, nil
 }
 
-func (APIImplementor) Rescan() error {
+func (DiskAPI) Rescan() error {
 	cmd := "Update-HostStorageCache"
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+	out, err := runExec(cmd)
 	if err != nil {
 		return fmt.Errorf("error updating host storage cache output: %q, err: %v", string(out), err)
 	}
 	return nil
 }
 
-func (APIImplementor) IsDiskInitialized(diskID string) (bool, error) {
-	cmd := fmt.Sprintf("Get-Disk -Number %s | Where partitionstyle -eq 'raw'", diskID)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (DiskAPI) IsDiskInitialized(diskNumber uint32) (bool, error) {
+	cmd := fmt.Sprintf("Get-Disk -Number %d | Where partitionstyle -eq 'raw'", diskNumber)
+	out, err := runExec(cmd)
 	if err != nil {
-		return false, fmt.Errorf("error checking initialized status of disk %s: %v, %v", diskID, out, err)
+		return false, fmt.Errorf("error checking initialized status of disk %d: %v, %v", diskNumber, out, err)
 	}
 	if len(out) == 0 {
 		// disks with raw initialization not detected
@@ -108,20 +148,20 @@ func (APIImplementor) IsDiskInitialized(diskID string) (bool, error) {
 	return false, nil
 }
 
-func (APIImplementor) InitializeDisk(diskID string) error {
-	cmd := fmt.Sprintf("Initialize-Disk -Number %s -PartitionStyle GPT", diskID)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (DiskAPI) InitializeDisk(diskNumber uint32) error {
+	cmd := fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle GPT", diskNumber)
+	out, err := runExec(cmd)
 	if err != nil {
-		return fmt.Errorf("error initializing disk %s: %v, %v", diskID, out, err)
+		return fmt.Errorf("error initializing disk %d: %v, %v", diskNumber, out, err)
 	}
 	return nil
 }
 
-func (APIImplementor) PartitionsExist(diskID string) (bool, error) {
-	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %s", diskID)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (DiskAPI) PartitionsExist(diskNumber uint32) (bool, error) {
+	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %d", diskNumber)
+	out, err := runExec(cmd)
 	if err != nil {
-		return false, fmt.Errorf("error checking presence of partitions on disk %s: %v, %v", diskID, out, err)
+		return false, fmt.Errorf("error checking presence of partitions on disk %d: %v, %v", diskNumber, out, err)
 	}
 	if len(out) > 0 {
 		// disk has partitions in it
@@ -130,21 +170,21 @@ func (APIImplementor) PartitionsExist(diskID string) (bool, error) {
 	return false, nil
 }
 
-func (APIImplementor) CreatePartition(diskID string) error {
-	cmd := fmt.Sprintf("New-Partition -DiskNumber %s -UseMaximumSize", diskID)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (DiskAPI) CreatePartition(diskNumber uint32) error {
+	cmd := fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNumber)
+	out, err := runExec(cmd)
 	if err != nil {
-		return fmt.Errorf("error creating parition on disk %s: %v, %v", diskID, out, err)
+		return fmt.Errorf("error creating parition on disk %d: %v, %v", diskNumber, out, err)
 	}
 	return nil
 }
 
-func (imp APIImplementor) GetDiskNumberByName(diskName string) (string, error) {
-	diskNumber, err := imp.GetDiskNumberWithID(diskName)
-	return strconv.FormatUint(uint64(diskNumber), 10), err
+func (imp DiskAPI) GetDiskNumberByName(page83ID string) (uint32, error) {
+	diskNumber, err := imp.GetDiskNumberWithID(page83ID)
+	return diskNumber, err
 }
 
-func (APIImplementor) GetDiskNumber(disk syscall.Handle) (uint32, error) {
+func (DiskAPI) GetDiskNumber(disk syscall.Handle) (uint32, error) {
 	var bytes uint32
 	devNum := StorageDeviceNumber{}
 	buflen := uint32(unsafe.Sizeof(devNum.DeviceType)) + uint32(unsafe.Sizeof(devNum.DeviceNumber)) + uint32(unsafe.Sizeof(devNum.PartitionNumber))
@@ -154,7 +194,7 @@ func (APIImplementor) GetDiskNumber(disk syscall.Handle) (uint32, error) {
 	return devNum.DeviceNumber, err
 }
 
-func (APIImplementor) DiskHasPage83ID(disk syscall.Handle, matchID string) (bool, error) {
+func (DiskAPI) DiskHasPage83ID(disk syscall.Handle, matchID string) (bool, error) {
 	query := StoragePropertyQuery{}
 
 	bufferSize := uint32(4 * 1024)
@@ -200,7 +240,7 @@ func (APIImplementor) DiskHasPage83ID(disk syscall.Handle, matchID string) (bool
 	return false, nil
 }
 
-func (APIImplementor) GetDiskPage83ID(disk syscall.Handle) (string, error) {
+func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	query := StoragePropertyQuery{}
 
 	bufferSize := uint32(4 * 1024)
@@ -242,8 +282,9 @@ func (APIImplementor) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	return "", nil
 }
 
-func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
-	out, err := exec.Command("powershell.exe", "(get-disk | select Path) | ConvertTo-Json").CombinedOutput()
+func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
+	cmd := "(Get-Disk | Select Path) | ConvertTo-Json"
+	out, err := runExec(cmd)
 	if err != nil {
 		return 0, fmt.Errorf("Could not query disk paths")
 	}
@@ -269,8 +310,19 @@ func (imp APIImplementor) GetDiskNumberWithID(page83ID string) (uint32, error) {
 
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
 // as the value. The DiskID struct has a field for the page83 ID.
-func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
-	out, err := exec.Command("powershell.exe", "(get-disk | select Path, SerialNumber) | ConvertTo-Json").CombinedOutput()
+func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
+	// sample response
+	// [
+	// {
+	//     "Path":  "\\\\?\\scsi#disk\u0026ven_google\u0026prod_persistentdisk#4\u002621cb0360\u00260\u0026000100#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
+	//     "SerialNumber":  "                    "
+	// },
+	// {
+	//     "Path":  "\\\\?\\scsi#disk\u0026ven_msft\u0026prod_virtual_disk#2\u00261f4adffe\u00260\u0026000001#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
+	//     "SerialNumber":  null
+	// },
+	cmd := "(Get-Disk | Select Path, SerialNumber) | ConvertTo-Json"
+	out, err := runExec(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not query disk paths")
 	}
@@ -279,7 +331,7 @@ func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
 	disks := []Disk{}
 	json.Unmarshal([]byte(outString), &disks)
 
-	m := make(map[string]shared.DiskIDs)
+	m := make(map[uint32]shared.DiskIDs)
 
 	for i := range disks {
 		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
@@ -297,20 +349,18 @@ func (imp APIImplementor) ListDiskIDs() (map[string]shared.DiskIDs, error) {
 			return m, fmt.Errorf("Could not get disk number: %v", err)
 		}
 
-		diskNumString := strconv.FormatUint(uint64(diskNumber), 10)
-
-		diskIDs := make(map[string]string)
-		diskIDs["page83"] = page83
-		diskIDs["serialNumber"] = disks[i].SerialNumber
-		m[diskNumString] = shared.DiskIDs{Identifiers: diskIDs}
+		m[diskNumber] = shared.DiskIDs{
+			Page83:       page83,
+			SerialNumber: disks[i].SerialNumber,
+		}
 	}
 
 	return m, nil
 }
 
-func (imp APIImplementor) DiskStats(diskID string) (int64, error) {
-	cmd := fmt.Sprintf("(Get-Disk -Number %s).Size", diskID)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (imp DiskAPI) GetDiskStats(diskNumber uint32) (int64, error) {
+	cmd := fmt.Sprintf("(Get-Disk -Number %d).Size", diskNumber)
+	out, err := runExec(cmd)
 	if err != nil || len(out) == 0 {
 		return -1, fmt.Errorf("error getting size of disk. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
@@ -330,9 +380,9 @@ func (imp APIImplementor) DiskStats(diskID string) (int64, error) {
 	return diskSize, nil
 }
 
-func (imp APIImplementor) SetAttachState(diskID string, isOnline bool) error {
-	cmd := fmt.Sprintf("(Get-Disk -Number %s) | Set-Disk -IsOffline $%t", diskID, !isOnline)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (imp DiskAPI) SetDiskState(diskNumber uint32, isOnline bool) error {
+	cmd := fmt.Sprintf("(Get-Disk -Number %d) | Set-Disk -IsOffline $%t", diskNumber, !isOnline)
+	out, err := runExec(cmd)
 	if err != nil {
 		return fmt.Errorf("error setting disk attach state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
@@ -340,9 +390,9 @@ func (imp APIImplementor) SetAttachState(diskID string, isOnline bool) error {
 	return nil
 }
 
-func (imp APIImplementor) GetAttachState(diskID string) (bool, error) {
-	cmd := fmt.Sprintf("(Get-Disk -Number %s) | Select-Object -ExpandProperty IsOffline", diskID)
-	out, err := exec.Command("powershell", "/c", cmd).CombinedOutput()
+func (imp DiskAPI) GetDiskState(diskNumber uint32) (bool, error) {
+	cmd := fmt.Sprintf("(Get-Disk -Number %d) | Select-Object -ExpandProperty IsOffline", diskNumber)
+	out, err := runExec(cmd)
 	if err != nil {
 		return false, fmt.Errorf("error getting disk state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}

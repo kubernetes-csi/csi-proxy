@@ -138,8 +138,8 @@ type ListDiskLocationsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Map of disk device IDs and <adapter, bus, target, lun ID> associated with each disk device
-	DiskLocations map[string]*DiskLocation `protobuf:"bytes,1,rep,name=disk_locations,json=diskLocations,proto3" json:"disk_locations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Map of disk number and <adapter, bus, target, lun ID> associated with each disk device.
+	DiskLocations map[uint32]*DiskLocation `protobuf:"bytes,1,rep,name=disk_locations,json=diskLocations,proto3" json:"disk_locations,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *ListDiskLocationsResponse) Reset() {
@@ -174,7 +174,7 @@ func (*ListDiskLocationsResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ListDiskLocationsResponse) GetDiskLocations() map[string]*DiskLocation {
+func (x *ListDiskLocationsResponse) GetDiskLocations() map[uint32]*DiskLocation {
 	if x != nil {
 		return x.DiskLocations
 	}
@@ -186,8 +186,8 @@ type PartitionDiskRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Disk device ID of the disk to partition
-	DiskID string `protobuf:"bytes,1,opt,name=diskID,proto3" json:"diskID,omitempty"`
+	// Disk device number of the disk to partition.
+	DiskNumber uint32 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
 }
 
 func (x *PartitionDiskRequest) Reset() {
@@ -222,11 +222,11 @@ func (*PartitionDiskRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *PartitionDiskRequest) GetDiskID() string {
+func (x *PartitionDiskRequest) GetDiskNumber() uint32 {
 	if x != nil {
-		return x.DiskID
+		return x.DiskNumber
 	}
-	return ""
+	return 0
 }
 
 type PartitionDiskResponse struct {
@@ -386,8 +386,10 @@ type DiskIDs struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Map of Disk ID types and Disk ID values
-	Identifiers map[string]string `protobuf:"bytes,1,rep,name=identifiers,proto3" json:"identifiers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// The disk page83 id.
+	Page83 string `protobuf:"bytes,1,opt,name=page83,proto3" json:"page83,omitempty"`
+	// The disk serial number.
+	SerialNumber string `protobuf:"bytes,2,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
 }
 
 func (x *DiskIDs) Reset() {
@@ -422,11 +424,18 @@ func (*DiskIDs) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *DiskIDs) GetIdentifiers() map[string]string {
+func (x *DiskIDs) GetPage83() string {
 	if x != nil {
-		return x.Identifiers
+		return x.Page83
 	}
-	return nil
+	return ""
+}
+
+func (x *DiskIDs) GetSerialNumber() string {
+	if x != nil {
+		return x.SerialNumber
+	}
+	return ""
 }
 
 type ListDiskIDsResponse struct {
@@ -434,8 +443,8 @@ type ListDiskIDsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Map of disk device numbers and IDs <page83> associated with each disk device
-	DiskIDs map[string]*DiskIDs `protobuf:"bytes,1,rep,name=diskIDs,proto3" json:"diskIDs,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Map of disk numbers and disk identifiers associated with each disk device.
+	DiskIDs map[uint32]*DiskIDs `protobuf:"bytes,1,rep,name=diskIDs,proto3" json:"diskIDs,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"` // the case is intentional for protoc to generate the field as DiskIDs
 }
 
 func (x *ListDiskIDsResponse) Reset() {
@@ -470,24 +479,24 @@ func (*ListDiskIDsResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *ListDiskIDsResponse) GetDiskIDs() map[string]*DiskIDs {
+func (x *ListDiskIDsResponse) GetDiskIDs() map[uint32]*DiskIDs {
 	if x != nil {
 		return x.DiskIDs
 	}
 	return nil
 }
 
-type DiskStatsRequest struct {
+type GetDiskStatsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Disk device ID of the disk to get the size from
-	DiskID string `protobuf:"bytes,1,opt,name=diskID,proto3" json:"diskID,omitempty"`
+	// Disk device number of the disk to get the stats from.
+	DiskNumber uint32 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
 }
 
-func (x *DiskStatsRequest) Reset() {
-	*x = DiskStatsRequest{}
+func (x *GetDiskStatsRequest) Reset() {
+	*x = GetDiskStatsRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -495,13 +504,13 @@ func (x *DiskStatsRequest) Reset() {
 	}
 }
 
-func (x *DiskStatsRequest) String() string {
+func (x *GetDiskStatsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DiskStatsRequest) ProtoMessage() {}
+func (*GetDiskStatsRequest) ProtoMessage() {}
 
-func (x *DiskStatsRequest) ProtoReflect() protoreflect.Message {
+func (x *GetDiskStatsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -513,29 +522,29 @@ func (x *DiskStatsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DiskStatsRequest.ProtoReflect.Descriptor instead.
-func (*DiskStatsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetDiskStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetDiskStatsRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *DiskStatsRequest) GetDiskID() string {
+func (x *GetDiskStatsRequest) GetDiskNumber() uint32 {
 	if x != nil {
-		return x.DiskID
+		return x.DiskNumber
 	}
-	return ""
+	return 0
 }
 
-type DiskStatsResponse struct {
+type GetDiskStatsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	//Total size of the volume
-	DiskSize int64 `protobuf:"varint,1,opt,name=diskSize,proto3" json:"diskSize,omitempty"`
+	// Total size of the volume.
+	TotalBytes int64 `protobuf:"varint,1,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
 }
 
-func (x *DiskStatsResponse) Reset() {
-	*x = DiskStatsResponse{}
+func (x *GetDiskStatsResponse) Reset() {
+	*x = GetDiskStatsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -543,13 +552,13 @@ func (x *DiskStatsResponse) Reset() {
 	}
 }
 
-func (x *DiskStatsResponse) String() string {
+func (x *GetDiskStatsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DiskStatsResponse) ProtoMessage() {}
+func (*GetDiskStatsResponse) ProtoMessage() {}
 
-func (x *DiskStatsResponse) ProtoReflect() protoreflect.Message {
+func (x *GetDiskStatsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -561,31 +570,31 @@ func (x *DiskStatsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DiskStatsResponse.ProtoReflect.Descriptor instead.
-func (*DiskStatsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetDiskStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetDiskStatsResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *DiskStatsResponse) GetDiskSize() int64 {
+func (x *GetDiskStatsResponse) GetTotalBytes() int64 {
 	if x != nil {
-		return x.DiskSize
+		return x.TotalBytes
 	}
 	return 0
 }
 
-type SetAttachStateRequest struct {
+type SetDiskStateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Disk device ID (number) of the disk which state will change
-	DiskID string `protobuf:"bytes,1,opt,name=diskID,proto3" json:"diskID,omitempty"`
-	// Online state to set for the disk. true for online, false for offline
-	IsOnline bool `protobuf:"varint,2,opt,name=isOnline,proto3" json:"isOnline,omitempty"`
+	// Disk device number of the disk.
+	DiskNumber uint32 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
+	// Online state to set for the disk. true for online, false for offline.
+	IsOnline bool `protobuf:"varint,2,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
 }
 
-func (x *SetAttachStateRequest) Reset() {
-	*x = SetAttachStateRequest{}
+func (x *SetDiskStateRequest) Reset() {
+	*x = SetDiskStateRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -593,13 +602,13 @@ func (x *SetAttachStateRequest) Reset() {
 	}
 }
 
-func (x *SetAttachStateRequest) String() string {
+func (x *SetDiskStateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SetAttachStateRequest) ProtoMessage() {}
+func (*SetDiskStateRequest) ProtoMessage() {}
 
-func (x *SetAttachStateRequest) ProtoReflect() protoreflect.Message {
+func (x *SetDiskStateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -611,33 +620,33 @@ func (x *SetAttachStateRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SetAttachStateRequest.ProtoReflect.Descriptor instead.
-func (*SetAttachStateRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetDiskStateRequest.ProtoReflect.Descriptor instead.
+func (*SetDiskStateRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *SetAttachStateRequest) GetDiskID() string {
+func (x *SetDiskStateRequest) GetDiskNumber() uint32 {
 	if x != nil {
-		return x.DiskID
+		return x.DiskNumber
 	}
-	return ""
+	return 0
 }
 
-func (x *SetAttachStateRequest) GetIsOnline() bool {
+func (x *SetDiskStateRequest) GetIsOnline() bool {
 	if x != nil {
 		return x.IsOnline
 	}
 	return false
 }
 
-type SetAttachStateResponse struct {
+type SetDiskStateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *SetAttachStateResponse) Reset() {
-	*x = SetAttachStateResponse{}
+func (x *SetDiskStateResponse) Reset() {
+	*x = SetDiskStateResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -645,13 +654,13 @@ func (x *SetAttachStateResponse) Reset() {
 	}
 }
 
-func (x *SetAttachStateResponse) String() string {
+func (x *SetDiskStateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SetAttachStateResponse) ProtoMessage() {}
+func (*SetDiskStateResponse) ProtoMessage() {}
 
-func (x *SetAttachStateResponse) ProtoReflect() protoreflect.Message {
+func (x *SetDiskStateResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -663,22 +672,22 @@ func (x *SetAttachStateResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SetAttachStateResponse.ProtoReflect.Descriptor instead.
-func (*SetAttachStateResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetDiskStateResponse.ProtoReflect.Descriptor instead.
+func (*SetDiskStateResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{13}
 }
 
-type GetAttachStateRequest struct {
+type GetDiskStateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Disk device ID (number) of the disk
-	DiskID string `protobuf:"bytes,1,opt,name=diskID,proto3" json:"diskID,omitempty"`
+	// Disk device number of the disk.
+	DiskNumber uint32 `protobuf:"varint,1,opt,name=disk_number,json=diskNumber,proto3" json:"disk_number,omitempty"`
 }
 
-func (x *GetAttachStateRequest) Reset() {
-	*x = GetAttachStateRequest{}
+func (x *GetDiskStateRequest) Reset() {
+	*x = GetDiskStateRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -686,13 +695,13 @@ func (x *GetAttachStateRequest) Reset() {
 	}
 }
 
-func (x *GetAttachStateRequest) String() string {
+func (x *GetDiskStateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAttachStateRequest) ProtoMessage() {}
+func (*GetDiskStateRequest) ProtoMessage() {}
 
-func (x *GetAttachStateRequest) ProtoReflect() protoreflect.Message {
+func (x *GetDiskStateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -704,29 +713,29 @@ func (x *GetAttachStateRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAttachStateRequest.ProtoReflect.Descriptor instead.
-func (*GetAttachStateRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetDiskStateRequest.ProtoReflect.Descriptor instead.
+func (*GetDiskStateRequest) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *GetAttachStateRequest) GetDiskID() string {
+func (x *GetDiskStateRequest) GetDiskNumber() uint32 {
 	if x != nil {
-		return x.DiskID
+		return x.DiskNumber
 	}
-	return ""
+	return 0
 }
 
-type GetAttachStateResponse struct {
+type GetDiskStateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Online state of the disk. true for online, false for offline
-	IsOnline bool `protobuf:"varint,1,opt,name=isOnline,proto3" json:"isOnline,omitempty"`
+	// Online state of the disk. true for online, false for offline.
+	IsOnline bool `protobuf:"varint,1,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
 }
 
-func (x *GetAttachStateResponse) Reset() {
-	*x = GetAttachStateResponse{}
+func (x *GetDiskStateResponse) Reset() {
+	*x = GetDiskStateResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -734,13 +743,13 @@ func (x *GetAttachStateResponse) Reset() {
 	}
 }
 
-func (x *GetAttachStateResponse) String() string {
+func (x *GetDiskStateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAttachStateResponse) ProtoMessage() {}
+func (*GetDiskStateResponse) ProtoMessage() {}
 
-func (x *GetAttachStateResponse) ProtoReflect() protoreflect.Message {
+func (x *GetDiskStateResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -752,12 +761,12 @@ func (x *GetAttachStateResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAttachStateResponse.ProtoReflect.Descriptor instead.
-func (*GetAttachStateResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetDiskStateResponse.ProtoReflect.Descriptor instead.
+func (*GetDiskStateResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *GetAttachStateResponse) GetIsOnline() bool {
+func (x *GetDiskStateResponse) GetIsOnline() bool {
 	if x != nil {
 		return x.IsOnline
 	}
@@ -790,27 +799,23 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_r
 	0x74, 0x72, 0x79, 0x52, 0x0d, 0x64, 0x69, 0x73, 0x6b, 0x4c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x73, 0x1a, 0x57, 0x0a, 0x12, 0x44, 0x69, 0x73, 0x6b, 0x4c, 0x6f, 0x63, 0x61, 0x74, 0x69,
 	0x6f, 0x6e, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2b, 0x0a, 0x05, 0x76, 0x61,
+	0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2b, 0x0a, 0x05, 0x76, 0x61,
 	0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x76, 0x31, 0x62, 0x65,
 	0x74, 0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6b, 0x4c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x2e, 0x0a, 0x14, 0x50,
+	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x37, 0x0a, 0x14, 0x50,
 	0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x22, 0x17, 0x0a, 0x15, 0x50,
-	0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x0f, 0x0a, 0x0d, 0x52, 0x65, 0x73, 0x63, 0x61, 0x6e, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x10, 0x0a, 0x0e, 0x52, 0x65, 0x73, 0x63, 0x61, 0x6e, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x14, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x44,
-	0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x8e, 0x01,
-	0x0a, 0x07, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x12, 0x43, 0x0a, 0x0b, 0x69, 0x64, 0x65,
-	0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73,
-	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74, 0x72,
-	0x79, 0x52, 0x0b, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x73, 0x1a, 0x3e,
-	0x0a, 0x10, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74,
-	0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0xa8,
+	0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62,
+	0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x22, 0x17, 0x0a, 0x15, 0x50, 0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f,
+	0x6e, 0x44, 0x69, 0x73, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x0f, 0x0a,
+	0x0d, 0x52, 0x65, 0x73, 0x63, 0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x10,
+	0x0a, 0x0e, 0x52, 0x65, 0x73, 0x63, 0x61, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x14, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x46, 0x0a, 0x07, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44,
+	0x73, 0x12, 0x16, 0x0a, 0x06, 0x70, 0x61, 0x67, 0x65, 0x38, 0x33, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x06, 0x70, 0x61, 0x67, 0x65, 0x38, 0x33, 0x12, 0x23, 0x0a, 0x0d, 0x73, 0x65, 0x72,
+	0x69, 0x61, 0x6c, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0c, 0x73, 0x65, 0x72, 0x69, 0x61, 0x6c, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x22, 0xa8,
 	0x01, 0x0a, 0x13, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x43, 0x0a, 0x07, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44,
 	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
@@ -818,29 +823,31 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_r
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x45, 0x6e, 0x74,
 	0x72, 0x79, 0x52, 0x07, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x1a, 0x4c, 0x0a, 0x0c, 0x44,
 	0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b,
-	0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x26, 0x0a,
+	0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x26, 0x0a,
 	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x76,
 	0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x52, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x2a, 0x0a, 0x10, 0x44, 0x69, 0x73,
-	0x6b, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a,
-	0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64,
-	0x69, 0x73, 0x6b, 0x49, 0x44, 0x22, 0x2f, 0x0a, 0x11, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61,
-	0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x64, 0x69,
-	0x73, 0x6b, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x64, 0x69,
-	0x73, 0x6b, 0x53, 0x69, 0x7a, 0x65, 0x22, 0x4b, 0x0a, 0x15, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74,
-	0x61, 0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
-	0x16, 0x0a, 0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x12, 0x1a, 0x0a, 0x08, 0x69, 0x73, 0x4f, 0x6e, 0x6c,
-	0x69, 0x6e, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x69, 0x73, 0x4f, 0x6e, 0x6c,
-	0x69, 0x6e, 0x65, 0x22, 0x18, 0x0a, 0x16, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68,
-	0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2f, 0x0a,
-	0x15, 0x47, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x22, 0x34,
-	0x0a, 0x16, 0x47, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x69, 0x73, 0x4f, 0x6e,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x36, 0x0a, 0x13, 0x47, 0x65, 0x74,
+	0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65,
+	0x72, 0x22, 0x37, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x6f, 0x74,
+	0x61, 0x6c, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a,
+	0x74, 0x6f, 0x74, 0x61, 0x6c, 0x42, 0x79, 0x74, 0x65, 0x73, 0x22, 0x53, 0x0a, 0x13, 0x53, 0x65,
+	0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62,
+	0x65, 0x72, 0x12, 0x1b, 0x0a, 0x09, 0x69, 0x73, 0x5f, 0x6f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x22,
+	0x16, 0x0a, 0x14, 0x53, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x36, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x44, 0x69,
+	0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f,
+	0x0a, 0x0b, 0x64, 0x69, 0x73, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0d, 0x52, 0x0a, 0x64, 0x69, 0x73, 0x6b, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x22,
+	0x33, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x69, 0x73, 0x5f, 0x6f, 0x6e,
 	0x6c, 0x69, 0x6e, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x69, 0x73, 0x4f, 0x6e,
-	0x6c, 0x69, 0x6e, 0x65, 0x32, 0xaf, 0x04, 0x0a, 0x04, 0x44, 0x69, 0x73, 0x6b, 0x12, 0x5c, 0x0a,
+	0x6c, 0x69, 0x6e, 0x65, 0x32, 0xac, 0x04, 0x0a, 0x04, 0x44, 0x69, 0x73, 0x6b, 0x12, 0x5c, 0x0a,
 	0x11, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x4c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x73, 0x12, 0x21, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x4c, 0x69, 0x73,
 	0x74, 0x44, 0x69, 0x73, 0x6b, 0x4c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65,
@@ -860,26 +867,26 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_r
 	0x74, 0x61, 0x33, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33,
 	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x49, 0x44, 0x73, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x44, 0x0a, 0x09, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74,
-	0x61, 0x74, 0x73, 0x12, 0x19, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x44, 0x69,
-	0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61,
-	0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x0e,
-	0x53, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x1e,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61,
-	0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61,
-	0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x53, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x53, 0x74,
-	0x61, 0x74, 0x65, 0x12, 0x1e, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65,
-	0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65,
-	0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x3d, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d,
-	0x63, 0x73, 0x69, 0x2f, 0x63, 0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c,
-	0x69, 0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x64, 0x69, 0x73, 0x6b, 0x2f, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0c, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73,
+	0x6b, 0x53, 0x74, 0x61, 0x74, 0x73, 0x12, 0x1c, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33,
+	0x2e, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47,
+	0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0c, 0x53, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b,
+	0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x1c, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e,
+	0x53, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x53, 0x65,
+	0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0c, 0x47, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53,
+	0x74, 0x61, 0x74, 0x65, 0x12, 0x1c, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47,
+	0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x33, 0x2e, 0x47, 0x65, 0x74,
+	0x44, 0x69, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x42, 0x3d, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63, 0x73, 0x69,
+	0x2f, 0x63, 0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e,
+	0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x64, 0x69, 0x73, 0x6b, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -894,7 +901,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDescData
 }
 
-var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_goTypes = []interface{}{
 	(*ListDiskLocationsRequest)(nil),  // 0: v1beta3.ListDiskLocationsRequest
 	(*DiskLocation)(nil),              // 1: v1beta3.DiskLocation
@@ -906,41 +913,39 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_g
 	(*ListDiskIDsRequest)(nil),        // 7: v1beta3.ListDiskIDsRequest
 	(*DiskIDs)(nil),                   // 8: v1beta3.DiskIDs
 	(*ListDiskIDsResponse)(nil),       // 9: v1beta3.ListDiskIDsResponse
-	(*DiskStatsRequest)(nil),          // 10: v1beta3.DiskStatsRequest
-	(*DiskStatsResponse)(nil),         // 11: v1beta3.DiskStatsResponse
-	(*SetAttachStateRequest)(nil),     // 12: v1beta3.SetAttachStateRequest
-	(*SetAttachStateResponse)(nil),    // 13: v1beta3.SetAttachStateResponse
-	(*GetAttachStateRequest)(nil),     // 14: v1beta3.GetAttachStateRequest
-	(*GetAttachStateResponse)(nil),    // 15: v1beta3.GetAttachStateResponse
+	(*GetDiskStatsRequest)(nil),       // 10: v1beta3.GetDiskStatsRequest
+	(*GetDiskStatsResponse)(nil),      // 11: v1beta3.GetDiskStatsResponse
+	(*SetDiskStateRequest)(nil),       // 12: v1beta3.SetDiskStateRequest
+	(*SetDiskStateResponse)(nil),      // 13: v1beta3.SetDiskStateResponse
+	(*GetDiskStateRequest)(nil),       // 14: v1beta3.GetDiskStateRequest
+	(*GetDiskStateResponse)(nil),      // 15: v1beta3.GetDiskStateResponse
 	nil,                               // 16: v1beta3.ListDiskLocationsResponse.DiskLocationsEntry
-	nil,                               // 17: v1beta3.DiskIDs.IdentifiersEntry
-	nil,                               // 18: v1beta3.ListDiskIDsResponse.DiskIDsEntry
+	nil,                               // 17: v1beta3.ListDiskIDsResponse.DiskIDsEntry
 }
 var file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_depIdxs = []int32{
 	16, // 0: v1beta3.ListDiskLocationsResponse.disk_locations:type_name -> v1beta3.ListDiskLocationsResponse.DiskLocationsEntry
-	17, // 1: v1beta3.DiskIDs.identifiers:type_name -> v1beta3.DiskIDs.IdentifiersEntry
-	18, // 2: v1beta3.ListDiskIDsResponse.diskIDs:type_name -> v1beta3.ListDiskIDsResponse.DiskIDsEntry
-	1,  // 3: v1beta3.ListDiskLocationsResponse.DiskLocationsEntry.value:type_name -> v1beta3.DiskLocation
-	8,  // 4: v1beta3.ListDiskIDsResponse.DiskIDsEntry.value:type_name -> v1beta3.DiskIDs
-	0,  // 5: v1beta3.Disk.ListDiskLocations:input_type -> v1beta3.ListDiskLocationsRequest
-	3,  // 6: v1beta3.Disk.PartitionDisk:input_type -> v1beta3.PartitionDiskRequest
-	5,  // 7: v1beta3.Disk.Rescan:input_type -> v1beta3.RescanRequest
-	7,  // 8: v1beta3.Disk.ListDiskIDs:input_type -> v1beta3.ListDiskIDsRequest
-	10, // 9: v1beta3.Disk.DiskStats:input_type -> v1beta3.DiskStatsRequest
-	12, // 10: v1beta3.Disk.SetAttachState:input_type -> v1beta3.SetAttachStateRequest
-	14, // 11: v1beta3.Disk.GetAttachState:input_type -> v1beta3.GetAttachStateRequest
-	2,  // 12: v1beta3.Disk.ListDiskLocations:output_type -> v1beta3.ListDiskLocationsResponse
-	4,  // 13: v1beta3.Disk.PartitionDisk:output_type -> v1beta3.PartitionDiskResponse
-	6,  // 14: v1beta3.Disk.Rescan:output_type -> v1beta3.RescanResponse
-	9,  // 15: v1beta3.Disk.ListDiskIDs:output_type -> v1beta3.ListDiskIDsResponse
-	11, // 16: v1beta3.Disk.DiskStats:output_type -> v1beta3.DiskStatsResponse
-	13, // 17: v1beta3.Disk.SetAttachState:output_type -> v1beta3.SetAttachStateResponse
-	15, // 18: v1beta3.Disk.GetAttachState:output_type -> v1beta3.GetAttachStateResponse
-	12, // [12:19] is the sub-list for method output_type
-	5,  // [5:12] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	17, // 1: v1beta3.ListDiskIDsResponse.diskIDs:type_name -> v1beta3.ListDiskIDsResponse.DiskIDsEntry
+	1,  // 2: v1beta3.ListDiskLocationsResponse.DiskLocationsEntry.value:type_name -> v1beta3.DiskLocation
+	8,  // 3: v1beta3.ListDiskIDsResponse.DiskIDsEntry.value:type_name -> v1beta3.DiskIDs
+	0,  // 4: v1beta3.Disk.ListDiskLocations:input_type -> v1beta3.ListDiskLocationsRequest
+	3,  // 5: v1beta3.Disk.PartitionDisk:input_type -> v1beta3.PartitionDiskRequest
+	5,  // 6: v1beta3.Disk.Rescan:input_type -> v1beta3.RescanRequest
+	7,  // 7: v1beta3.Disk.ListDiskIDs:input_type -> v1beta3.ListDiskIDsRequest
+	10, // 8: v1beta3.Disk.GetDiskStats:input_type -> v1beta3.GetDiskStatsRequest
+	12, // 9: v1beta3.Disk.SetDiskState:input_type -> v1beta3.SetDiskStateRequest
+	14, // 10: v1beta3.Disk.GetDiskState:input_type -> v1beta3.GetDiskStateRequest
+	2,  // 11: v1beta3.Disk.ListDiskLocations:output_type -> v1beta3.ListDiskLocationsResponse
+	4,  // 12: v1beta3.Disk.PartitionDisk:output_type -> v1beta3.PartitionDiskResponse
+	6,  // 13: v1beta3.Disk.Rescan:output_type -> v1beta3.RescanResponse
+	9,  // 14: v1beta3.Disk.ListDiskIDs:output_type -> v1beta3.ListDiskIDsResponse
+	11, // 15: v1beta3.Disk.GetDiskStats:output_type -> v1beta3.GetDiskStatsResponse
+	13, // 16: v1beta3.Disk.SetDiskState:output_type -> v1beta3.SetDiskStateResponse
+	15, // 17: v1beta3.Disk.GetDiskState:output_type -> v1beta3.GetDiskStateResponse
+	11, // [11:18] is the sub-list for method output_type
+	4,  // [4:11] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_init() }
@@ -1070,7 +1075,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DiskStatsRequest); i {
+			switch v := v.(*GetDiskStatsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1082,7 +1087,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DiskStatsResponse); i {
+			switch v := v.(*GetDiskStatsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1094,7 +1099,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetAttachStateRequest); i {
+			switch v := v.(*SetDiskStateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1106,7 +1111,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetAttachStateResponse); i {
+			switch v := v.(*SetDiskStateResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1118,7 +1123,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAttachStateRequest); i {
+			switch v := v.(*GetDiskStateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1130,7 +1135,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAttachStateResponse); i {
+			switch v := v.(*GetDiskStateResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1148,7 +1153,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_kubernetes_csi_csi_proxy_client_api_disk_v1beta3_api_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -1175,21 +1180,21 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DiskClient interface {
 	// ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all
-	// disk devices enumerated by the host
+	// disk devices enumerated by the host.
 	ListDiskLocations(ctx context.Context, in *ListDiskLocationsRequest, opts ...grpc.CallOption) (*ListDiskLocationsResponse, error)
-	// PartitionDisk initializes and partitions a disk device (if the disk has not
-	// been partitioned already) and returns the resulting volume device ID
+	// PartitionDisk initializes and partitions a disk device with the GPT partition style
+	// (if the disk has not been partitioned already) and returns the resulting volume device ID.
 	PartitionDisk(ctx context.Context, in *PartitionDiskRequest, opts ...grpc.CallOption) (*PartitionDiskResponse, error)
-	// Rescan refreshes the host's storage cache
+	// Rescan refreshes the host's storage cache.
 	Rescan(ctx context.Context, in *RescanRequest, opts ...grpc.CallOption) (*RescanResponse, error)
-	// ListDiskIDs returns a map of DiskID objects where the key is the disk number
+	// ListDiskIDs returns a map of DiskID objects where the key is the disk number.
 	ListDiskIDs(ctx context.Context, in *ListDiskIDsRequest, opts ...grpc.CallOption) (*ListDiskIDsResponse, error)
-	// DiskStats returns the stats for the disk
-	DiskStats(ctx context.Context, in *DiskStatsRequest, opts ...grpc.CallOption) (*DiskStatsResponse, error)
-	// SetAttachState sets the offline/online state of a disk
-	SetAttachState(ctx context.Context, in *SetAttachStateRequest, opts ...grpc.CallOption) (*SetAttachStateResponse, error)
-	// GetAttachState gets the offline/online state of a disk
-	GetAttachState(ctx context.Context, in *GetAttachStateRequest, opts ...grpc.CallOption) (*GetAttachStateResponse, error)
+	// GetDiskStats returns the stats of a disk (currently it returns the disk size).
+	GetDiskStats(ctx context.Context, in *GetDiskStatsRequest, opts ...grpc.CallOption) (*GetDiskStatsResponse, error)
+	// SetDiskState sets the offline/online state of a disk.
+	SetDiskState(ctx context.Context, in *SetDiskStateRequest, opts ...grpc.CallOption) (*SetDiskStateResponse, error)
+	// GetDiskState gets the offline/online state of a disk.
+	GetDiskState(ctx context.Context, in *GetDiskStateRequest, opts ...grpc.CallOption) (*GetDiskStateResponse, error)
 }
 
 type diskClient struct {
@@ -1236,27 +1241,27 @@ func (c *diskClient) ListDiskIDs(ctx context.Context, in *ListDiskIDsRequest, op
 	return out, nil
 }
 
-func (c *diskClient) DiskStats(ctx context.Context, in *DiskStatsRequest, opts ...grpc.CallOption) (*DiskStatsResponse, error) {
-	out := new(DiskStatsResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Disk/DiskStats", in, out, opts...)
+func (c *diskClient) GetDiskStats(ctx context.Context, in *GetDiskStatsRequest, opts ...grpc.CallOption) (*GetDiskStatsResponse, error) {
+	out := new(GetDiskStatsResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Disk/GetDiskStats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *diskClient) SetAttachState(ctx context.Context, in *SetAttachStateRequest, opts ...grpc.CallOption) (*SetAttachStateResponse, error) {
-	out := new(SetAttachStateResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Disk/SetAttachState", in, out, opts...)
+func (c *diskClient) SetDiskState(ctx context.Context, in *SetDiskStateRequest, opts ...grpc.CallOption) (*SetDiskStateResponse, error) {
+	out := new(SetDiskStateResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Disk/SetDiskState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *diskClient) GetAttachState(ctx context.Context, in *GetAttachStateRequest, opts ...grpc.CallOption) (*GetAttachStateResponse, error) {
-	out := new(GetAttachStateResponse)
-	err := c.cc.Invoke(ctx, "/v1beta3.Disk/GetAttachState", in, out, opts...)
+func (c *diskClient) GetDiskState(ctx context.Context, in *GetDiskStateRequest, opts ...grpc.CallOption) (*GetDiskStateResponse, error) {
+	out := new(GetDiskStateResponse)
+	err := c.cc.Invoke(ctx, "/v1beta3.Disk/GetDiskState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1266,21 +1271,21 @@ func (c *diskClient) GetAttachState(ctx context.Context, in *GetAttachStateReque
 // DiskServer is the server API for Disk service.
 type DiskServer interface {
 	// ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all
-	// disk devices enumerated by the host
+	// disk devices enumerated by the host.
 	ListDiskLocations(context.Context, *ListDiskLocationsRequest) (*ListDiskLocationsResponse, error)
-	// PartitionDisk initializes and partitions a disk device (if the disk has not
-	// been partitioned already) and returns the resulting volume device ID
+	// PartitionDisk initializes and partitions a disk device with the GPT partition style
+	// (if the disk has not been partitioned already) and returns the resulting volume device ID.
 	PartitionDisk(context.Context, *PartitionDiskRequest) (*PartitionDiskResponse, error)
-	// Rescan refreshes the host's storage cache
+	// Rescan refreshes the host's storage cache.
 	Rescan(context.Context, *RescanRequest) (*RescanResponse, error)
-	// ListDiskIDs returns a map of DiskID objects where the key is the disk number
+	// ListDiskIDs returns a map of DiskID objects where the key is the disk number.
 	ListDiskIDs(context.Context, *ListDiskIDsRequest) (*ListDiskIDsResponse, error)
-	// DiskStats returns the stats for the disk
-	DiskStats(context.Context, *DiskStatsRequest) (*DiskStatsResponse, error)
-	// SetAttachState sets the offline/online state of a disk
-	SetAttachState(context.Context, *SetAttachStateRequest) (*SetAttachStateResponse, error)
-	// GetAttachState gets the offline/online state of a disk
-	GetAttachState(context.Context, *GetAttachStateRequest) (*GetAttachStateResponse, error)
+	// GetDiskStats returns the stats of a disk (currently it returns the disk size).
+	GetDiskStats(context.Context, *GetDiskStatsRequest) (*GetDiskStatsResponse, error)
+	// SetDiskState sets the offline/online state of a disk.
+	SetDiskState(context.Context, *SetDiskStateRequest) (*SetDiskStateResponse, error)
+	// GetDiskState gets the offline/online state of a disk.
+	GetDiskState(context.Context, *GetDiskStateRequest) (*GetDiskStateResponse, error)
 }
 
 // UnimplementedDiskServer can be embedded to have forward compatible implementations.
@@ -1299,14 +1304,14 @@ func (*UnimplementedDiskServer) Rescan(context.Context, *RescanRequest) (*Rescan
 func (*UnimplementedDiskServer) ListDiskIDs(context.Context, *ListDiskIDsRequest) (*ListDiskIDsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDiskIDs not implemented")
 }
-func (*UnimplementedDiskServer) DiskStats(context.Context, *DiskStatsRequest) (*DiskStatsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DiskStats not implemented")
+func (*UnimplementedDiskServer) GetDiskStats(context.Context, *GetDiskStatsRequest) (*GetDiskStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDiskStats not implemented")
 }
-func (*UnimplementedDiskServer) SetAttachState(context.Context, *SetAttachStateRequest) (*SetAttachStateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetAttachState not implemented")
+func (*UnimplementedDiskServer) SetDiskState(context.Context, *SetDiskStateRequest) (*SetDiskStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDiskState not implemented")
 }
-func (*UnimplementedDiskServer) GetAttachState(context.Context, *GetAttachStateRequest) (*GetAttachStateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAttachState not implemented")
+func (*UnimplementedDiskServer) GetDiskState(context.Context, *GetDiskStateRequest) (*GetDiskStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDiskState not implemented")
 }
 
 func RegisterDiskServer(s *grpc.Server, srv DiskServer) {
@@ -1385,56 +1390,56 @@ func _Disk_ListDiskIDs_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Disk_DiskStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiskStatsRequest)
+func _Disk_GetDiskStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDiskStatsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DiskServer).DiskStats(ctx, in)
+		return srv.(DiskServer).GetDiskStats(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/v1beta3.Disk/DiskStats",
+		FullMethod: "/v1beta3.Disk/GetDiskStats",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiskServer).DiskStats(ctx, req.(*DiskStatsRequest))
+		return srv.(DiskServer).GetDiskStats(ctx, req.(*GetDiskStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Disk_SetAttachState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetAttachStateRequest)
+func _Disk_SetDiskState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDiskStateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DiskServer).SetAttachState(ctx, in)
+		return srv.(DiskServer).SetDiskState(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/v1beta3.Disk/SetAttachState",
+		FullMethod: "/v1beta3.Disk/SetDiskState",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiskServer).SetAttachState(ctx, req.(*SetAttachStateRequest))
+		return srv.(DiskServer).SetDiskState(ctx, req.(*SetDiskStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Disk_GetAttachState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAttachStateRequest)
+func _Disk_GetDiskState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDiskStateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DiskServer).GetAttachState(ctx, in)
+		return srv.(DiskServer).GetDiskState(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/v1beta3.Disk/GetAttachState",
+		FullMethod: "/v1beta3.Disk/GetDiskState",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiskServer).GetAttachState(ctx, req.(*GetAttachStateRequest))
+		return srv.(DiskServer).GetDiskState(ctx, req.(*GetDiskStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1460,16 +1465,16 @@ var _Disk_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Disk_ListDiskIDs_Handler,
 		},
 		{
-			MethodName: "DiskStats",
-			Handler:    _Disk_DiskStats_Handler,
+			MethodName: "GetDiskStats",
+			Handler:    _Disk_GetDiskStats_Handler,
 		},
 		{
-			MethodName: "SetAttachState",
-			Handler:    _Disk_SetAttachState_Handler,
+			MethodName: "SetDiskState",
+			Handler:    _Disk_SetDiskState_Handler,
 		},
 		{
-			MethodName: "GetAttachState",
-			Handler:    _Disk_GetAttachState_Handler,
+			MethodName: "GetDiskState",
+			Handler:    _Disk_GetDiskState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -65,12 +65,12 @@ func (w *Client) Close() error {
 // ensures we implement all the required methods
 var _ v1beta3.DiskClient = &Client{}
 
-func (w *Client) DiskStats(context context.Context, request *v1beta3.DiskStatsRequest, opts ...grpc.CallOption) (*v1beta3.DiskStatsResponse, error) {
-	return w.client.DiskStats(context, request, opts...)
+func (w *Client) GetDiskState(context context.Context, request *v1beta3.GetDiskStateRequest, opts ...grpc.CallOption) (*v1beta3.GetDiskStateResponse, error) {
+	return w.client.GetDiskState(context, request, opts...)
 }
 
-func (w *Client) GetAttachState(context context.Context, request *v1beta3.GetAttachStateRequest, opts ...grpc.CallOption) (*v1beta3.GetAttachStateResponse, error) {
-	return w.client.GetAttachState(context, request, opts...)
+func (w *Client) GetDiskStats(context context.Context, request *v1beta3.GetDiskStatsRequest, opts ...grpc.CallOption) (*v1beta3.GetDiskStatsResponse, error) {
+	return w.client.GetDiskStats(context, request, opts...)
 }
 
 func (w *Client) ListDiskIDs(context context.Context, request *v1beta3.ListDiskIDsRequest, opts ...grpc.CallOption) (*v1beta3.ListDiskIDsResponse, error) {
@@ -89,6 +89,6 @@ func (w *Client) Rescan(context context.Context, request *v1beta3.RescanRequest,
 	return w.client.Rescan(context, request, opts...)
 }
 
-func (w *Client) SetAttachState(context context.Context, request *v1beta3.SetAttachStateRequest, opts ...grpc.CallOption) (*v1beta3.SetAttachStateResponse, error) {
-	return w.client.SetAttachState(context, request, opts...)
+func (w *Client) SetDiskState(context context.Context, request *v1beta3.SetDiskStateRequest, opts ...grpc.CallOption) (*v1beta3.SetDiskStateResponse, error) {
+	return w.client.SetDiskState(context, request, opts...)
 }

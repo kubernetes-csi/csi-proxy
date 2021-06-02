@@ -358,6 +358,7 @@ func packagesForGroup(group *groupDefinition, outputBase string) generator.Packa
 							return nil
 						}).
 						WithExternalConversionsHandler(func(inVar, outVar conversiongenerator.NamedVariable, sw *generator.SnippetWriter) (bool, error) {
+							klog.V(7).Infof("Checking %+v %+v", inVar, outVar)
 							if isVersionedVariable(inVar.Type, vsn) || isVersionedVariable(outVar.Type, vsn) {
 								// the conversion involves one of the versioned type, so there should
 								// be a conversion function defined for this

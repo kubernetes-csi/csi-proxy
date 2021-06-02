@@ -27,38 +27,38 @@ func (s *versionedAPI) Register(grpcServer *grpc.Server) {
 	v1beta3.RegisterDiskServer(grpcServer, s)
 }
 
-func (s *versionedAPI) DiskStats(context context.Context, versionedRequest *v1beta3.DiskStatsRequest) (*v1beta3.DiskStatsResponse, error) {
-	request := &internal.DiskStatsRequest{}
-	if err := Convert_v1beta3_DiskStatsRequest_To_internal_DiskStatsRequest(versionedRequest, request); err != nil {
+func (s *versionedAPI) GetDiskState(context context.Context, versionedRequest *v1beta3.GetDiskStateRequest) (*v1beta3.GetDiskStateResponse, error) {
+	request := &internal.GetDiskStateRequest{}
+	if err := Convert_v1beta3_GetDiskStateRequest_To_internal_GetDiskStateRequest(versionedRequest, request); err != nil {
 		return nil, err
 	}
 
-	response, err := s.apiGroupServer.DiskStats(context, request, version)
+	response, err := s.apiGroupServer.GetDiskState(context, request, version)
 	if err != nil {
 		return nil, err
 	}
 
-	versionedResponse := &v1beta3.DiskStatsResponse{}
-	if err := Convert_internal_DiskStatsResponse_To_v1beta3_DiskStatsResponse(response, versionedResponse); err != nil {
+	versionedResponse := &v1beta3.GetDiskStateResponse{}
+	if err := Convert_internal_GetDiskStateResponse_To_v1beta3_GetDiskStateResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 
 	return versionedResponse, err
 }
 
-func (s *versionedAPI) GetAttachState(context context.Context, versionedRequest *v1beta3.GetAttachStateRequest) (*v1beta3.GetAttachStateResponse, error) {
-	request := &internal.GetAttachStateRequest{}
-	if err := Convert_v1beta3_GetAttachStateRequest_To_internal_GetAttachStateRequest(versionedRequest, request); err != nil {
+func (s *versionedAPI) GetDiskStats(context context.Context, versionedRequest *v1beta3.GetDiskStatsRequest) (*v1beta3.GetDiskStatsResponse, error) {
+	request := &internal.GetDiskStatsRequest{}
+	if err := Convert_v1beta3_GetDiskStatsRequest_To_internal_GetDiskStatsRequest(versionedRequest, request); err != nil {
 		return nil, err
 	}
 
-	response, err := s.apiGroupServer.GetAttachState(context, request, version)
+	response, err := s.apiGroupServer.GetDiskStats(context, request, version)
 	if err != nil {
 		return nil, err
 	}
 
-	versionedResponse := &v1beta3.GetAttachStateResponse{}
-	if err := Convert_internal_GetAttachStateResponse_To_v1beta3_GetAttachStateResponse(response, versionedResponse); err != nil {
+	versionedResponse := &v1beta3.GetDiskStatsResponse{}
+	if err := Convert_internal_GetDiskStatsResponse_To_v1beta3_GetDiskStatsResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 
@@ -141,19 +141,19 @@ func (s *versionedAPI) Rescan(context context.Context, versionedRequest *v1beta3
 	return versionedResponse, err
 }
 
-func (s *versionedAPI) SetAttachState(context context.Context, versionedRequest *v1beta3.SetAttachStateRequest) (*v1beta3.SetAttachStateResponse, error) {
-	request := &internal.SetAttachStateRequest{}
-	if err := Convert_v1beta3_SetAttachStateRequest_To_internal_SetAttachStateRequest(versionedRequest, request); err != nil {
+func (s *versionedAPI) SetDiskState(context context.Context, versionedRequest *v1beta3.SetDiskStateRequest) (*v1beta3.SetDiskStateResponse, error) {
+	request := &internal.SetDiskStateRequest{}
+	if err := Convert_v1beta3_SetDiskStateRequest_To_internal_SetDiskStateRequest(versionedRequest, request); err != nil {
 		return nil, err
 	}
 
-	response, err := s.apiGroupServer.SetAttachState(context, request, version)
+	response, err := s.apiGroupServer.SetDiskState(context, request, version)
 	if err != nil {
 		return nil, err
 	}
 
-	versionedResponse := &v1beta3.SetAttachStateResponse{}
-	if err := Convert_internal_SetAttachStateResponse_To_v1beta3_SetAttachStateResponse(response, versionedResponse); err != nil {
+	versionedResponse := &v1beta3.SetDiskStateResponse{}
+	if err := Convert_internal_SetDiskStateResponse_To_v1beta3_SetDiskStateResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 

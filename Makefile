@@ -7,7 +7,7 @@ include release-tools/build.make
 BUILD_PLATFORMS=windows amd64 .exe
 GOPATH ?= $(shell go env GOPATH)
 REPO_ROOT = $(CURDIR)
-BUILD_DIR = build
+BUILD_DIR = bin
 BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
 GO_ENV_VARS = GO111MODULE=on GOOS=windows
 CSI_PROXY_API_GEN = $(BUILD_DIR)/csi-proxy-api-gen
@@ -34,7 +34,7 @@ generate-protobuf:
 
 .PHONY: generate-csi-proxy-api-gen
 generate-csi-proxy-api-gen: compile-csi-proxy-api-gen
-	$(CSI_PROXY_API_GEN) -i github.com/kubernetes-csi/csi-proxy/client/api,github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy --v=5
+	$(CSI_PROXY_API_GEN) -i github.com/kubernetes-csi/csi-proxy/client/api,github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/api/dummy --v=8
 
 .PHONY: clean
 clean: clean-protobuf clean-generated

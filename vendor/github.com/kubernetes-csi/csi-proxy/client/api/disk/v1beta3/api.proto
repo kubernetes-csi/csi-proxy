@@ -6,31 +6,31 @@ option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3
 
 service Disk {
     // ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all
-    // disk devices enumerated by the host
+    // disk devices enumerated by the host.
     rpc ListDiskLocations(ListDiskLocationsRequest) returns (ListDiskLocationsResponse) {}
 
-    // PartitionDisk initializes and partitions a disk device (if the disk has not
-    // been partitioned already) and returns the resulting volume device ID
+    // PartitionDisk initializes and partitions a disk device with the GPT partition style
+    // (if the disk has not been partitioned already) and returns the resulting volume device ID.
     rpc PartitionDisk(PartitionDiskRequest) returns (PartitionDiskResponse) {}
 
-    // Rescan refreshes the host's storage cache
+    // Rescan refreshes the host's storage cache.
     rpc Rescan(RescanRequest) returns (RescanResponse) {}
 
-    // ListDiskIDs returns a map of DiskID objects where the key is the disk number
+    // ListDiskIDs returns a map of DiskID objects where the key is the disk number.
     rpc ListDiskIDs(ListDiskIDsRequest) returns (ListDiskIDsResponse) {}
 
-    // DiskStats returns the stats for the disk
-    rpc DiskStats(DiskStatsRequest) returns (DiskStatsResponse) {}
+    // GetDiskStats returns the stats of a disk (currently it returns the disk size).
+    rpc GetDiskStats(GetDiskStatsRequest) returns (GetDiskStatsResponse) {}
 
-    // SetAttachState sets the offline/online state of a disk
-    rpc SetAttachState(SetAttachStateRequest) returns (SetAttachStateResponse) {}
+    // SetDiskState sets the offline/online state of a disk.
+    rpc SetDiskState(SetDiskStateRequest) returns (SetDiskStateResponse) {}
 
-    // GetAttachState gets the offline/online state of a disk
-    rpc GetAttachState(GetAttachStateRequest) returns (GetAttachStateResponse) {}
+    // GetDiskState gets the offline/online state of a disk.
+    rpc GetDiskState(GetDiskStateRequest) returns (GetDiskStateResponse) {}
 }
 
 message ListDiskLocationsRequest {
-    // Intentionally empty
+    // Intentionally empty.
 }
 
 message DiskLocation {
@@ -41,69 +41,71 @@ message DiskLocation {
 }
 
 message ListDiskLocationsResponse {
-    // Map of disk device IDs and <adapter, bus, target, lun ID> associated with each disk device
-    map <string, DiskLocation> disk_locations = 1;
+    // Map of disk number and <adapter, bus, target, lun ID> associated with each disk device.
+    map <uint32, DiskLocation> disk_locations = 1;
 }
 
 message PartitionDiskRequest {
-    // Disk device ID of the disk to partition
-    string diskID = 1;
+    // Disk device number of the disk to partition.
+    uint32 disk_number = 1;
 }
 
 message PartitionDiskResponse {
-    // Intentionally empty
+    // Intentionally empty.
 }
 
 message RescanRequest {
-    // Intentionally empty
+    // Intentionally empty.
 }
 
 message RescanResponse {
-    // Intentionally empty
+    // Intentionally empty.
 }
 
 message ListDiskIDsRequest {
-    // Intentionally empty
+    // Intentionally empty.
 }
 
 message DiskIDs {
-    // Map of Disk ID types and Disk ID values
-    map <string, string> identifiers = 1;
+    // The disk page83 id.
+    string page83 = 1;
+    // The disk serial number.
+    string serial_number = 2;
 }
 
 message ListDiskIDsResponse {
-    // Map of disk device numbers and IDs <page83> associated with each disk device
-    map <string, DiskIDs> diskIDs = 1;
+    // Map of disk numbers and disk identifiers associated with each disk device.
+    map <uint32, DiskIDs> diskIDs = 1;  // the case is intentional for protoc to generate the field as DiskIDs
 }
 
-message DiskStatsRequest {
-    // Disk device ID of the disk to get the size from
-    string diskID = 1;
+message GetDiskStatsRequest {
+    // Disk device number of the disk to get the stats from.
+    uint32 disk_number = 1;
 }
 
-message DiskStatsResponse {
-    //Total size of the volume
-    int64 diskSize = 1;
+message GetDiskStatsResponse {
+    // Total size of the volume.
+    int64 total_bytes = 1;
 }
 
-message SetAttachStateRequest {
-    // Disk device ID (number) of the disk which state will change
-    string diskID = 1;
+message SetDiskStateRequest {
+    // Disk device number of the disk.
+    uint32 disk_number = 1;
 
-    // Online state to set for the disk. true for online, false for offline
-    bool isOnline = 2;
+    // Online state to set for the disk. true for online, false for offline.
+    bool is_online = 2;
 }
 
-message SetAttachStateResponse {
+message SetDiskStateResponse {
+    // Intentionally empty.
 }
 
-message GetAttachStateRequest {
-    // Disk device ID (number) of the disk
-    string diskID = 1;
+message GetDiskStateRequest {
+    // Disk device number of the disk.
+    uint32 disk_number = 1;
 }
 
-message GetAttachStateResponse {
-    // Online state of the disk. true for online, false for offline
-    bool isOnline = 1;
+message GetDiskStateResponse {
+    // Online state of the disk. true for online, false for offline.
+    bool is_online = 1;
 }
-

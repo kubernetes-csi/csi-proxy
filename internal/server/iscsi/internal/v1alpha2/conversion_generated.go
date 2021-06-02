@@ -333,20 +333,9 @@ func Convert_v1alpha2_ListTargetPortalsResponse_To_internal_ListTargetPortalsRes
 	return autoConvert_v1alpha2_ListTargetPortalsResponse_To_internal_ListTargetPortalsResponse(in, out)
 }
 
-func autoConvert_internal_ListTargetPortalsResponse_To_v1alpha2_ListTargetPortalsResponse(in *internal.ListTargetPortalsResponse, out *v1alpha2.ListTargetPortalsResponse) error {
-	if in.TargetPortals != nil {
-		in, out := &in.TargetPortals, &out.TargetPortals
-		*out = make([]*v1alpha2.TargetPortal, len(*in))
-		for i := range *in {
-			if err := Convert_internal_TargetPortal_To_v1alpha2_TargetPortal(*&(*in)[i], *&(*out)[i]); err != nil {
-				return err
-			}
-		}
-	} else {
-		out.TargetPortals = nil
-	}
-	return nil
-}
+// detected external conversion function
+// Convert_internal_ListTargetPortalsResponse_To_v1alpha2_ListTargetPortalsResponse(in *internal.ListTargetPortalsResponse, out *v1alpha2.ListTargetPortalsResponse) error
+// skipping generation of the auto function
 
 func autoConvert_v1alpha2_RemoveTargetPortalRequest_To_internal_RemoveTargetPortalRequest(in *v1alpha2.RemoveTargetPortalRequest, out *internal.RemoveTargetPortalRequest) error {
 	if in.TargetPortal != nil {

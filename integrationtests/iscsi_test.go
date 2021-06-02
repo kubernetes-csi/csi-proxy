@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	diskApi "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3"
@@ -103,17 +104,19 @@ func e2eTest(t *testing.T) {
 	require.Len(t, tgtDisksResp.DiskIDs, 1)
 
 	diskId := tgtDisksResp.DiskIDs[0]
+	diskNumber, err := strconv.ParseUint(diskId, 10, 64)
+	require.NoError(t, err)
 
-	attachReq := &diskApi.SetAttachStateRequest{DiskID: diskId, IsOnline: true}
-	_, err = disk.SetAttachState(context.TODO(), attachReq)
+	attachReq := &diskApi.SetDiskStateRequest{DiskNumber: uint32(diskNumber), IsOnline: true}
+	_, err = disk.SetDiskState(context.TODO(), attachReq)
 	require.Nil(t, err)
 
-	partReq := &diskApi.PartitionDiskRequest{DiskID: diskId}
+	partReq := &diskApi.PartitionDiskRequest{DiskNumber: uint32(diskNumber)}
 	_, err = disk.PartitionDisk(context.TODO(), partReq)
 	assert.Nil(t, err)
 
-	detachReq := &diskApi.SetAttachStateRequest{DiskID: diskId, IsOnline: false}
-	_, err = disk.SetAttachState(context.TODO(), detachReq)
+	detachReq := &diskApi.SetDiskStateRequest{DiskNumber: uint32(diskNumber), IsOnline: false}
+	_, err = disk.SetDiskState(context.TODO(), detachReq)
 	assert.Nil(t, err)
 }
 

@@ -9,7 +9,10 @@ replace (
 	// https://github.com/kubernetes/gengo/pull/155#issuecomment-537589085
 	// is implemented, and the generic conversion generator merged into code-generator
 	// FIXME: switch back to the upstream repo and/or code-generator!
-	k8s.io/gengo => github.com/wk8/gengo v0.0.0-20191007012548-3d2530bfe606
+	// (mauriciopoppe) while working on #140 I found out that I had to do an
+	// override to the fork to stop generating auto* functions
+	// https://github.com/mauriciopoppe/gengo/commit/9c78f58f3486e3c0cdb02ed9551d32762ac99773
+	k8s.io/gengo => github.com/mauriciopoppe/gengo v0.0.0-20210525224835-9c78f58f3486
 )
 
 require (

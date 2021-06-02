@@ -6,7 +6,7 @@ _As contributors and maintainers of this project, and in the interest of fosteri
 
 ## Getting Started
 
-We have full documentation on how to get started contributing here:
+We have full documentation on how to get started contributing here: [Development.md](./docs/DEVELOPMENT.md)
 
 <!---
 If your repo has certain guidelines for contribution, put them here ahead of the general k8s resources
