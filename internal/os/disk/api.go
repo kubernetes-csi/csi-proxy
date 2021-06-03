@@ -220,7 +220,7 @@ func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	page83ID := []byte{}
 	byteSize := unsafe.Sizeof(byte(0))
 	for n = 0; n < devIDDesc.NumberOfIdentifiers; n++ {
-		if pID.Association == StorageIDAssocDevice {
+		if pID.Association == StorageIDAssocDevice && (pID.CodeSet == StorageIDCodeSetBinary || pID.CodeSet == StorageIDCodeSetASCII) {
 			for m = 0; m < pID.IdentifierSize; m++ {
 				page83ID = append(page83ID, *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(&pID.Identifier[0])) + byteSize*uintptr(m))))
 			}
