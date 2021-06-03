@@ -194,52 +194,6 @@ func (DiskAPI) GetDiskNumber(disk syscall.Handle) (uint32, error) {
 	return devNum.DeviceNumber, err
 }
 
-func (DiskAPI) DiskHasPage83ID(disk syscall.Handle, matchID string) (bool, error) {
-	query := StoragePropertyQuery{}
-
-	bufferSize := uint32(4 * 1024)
-	buffer := make([]byte, 4*1024)
-	var size uint32
-	var n uint32
-	var m uint16
-
-	query.QueryType = PropertyStandardQuery
-	query.PropertyID = StorageDeviceIDProperty
-
-	querySize := uint32(unsafe.Sizeof(query.PropertyID)) + uint32(unsafe.Sizeof(query.QueryType)) + uint32(unsafe.Sizeof(query.Byte))
-	querySize = uint32(unsafe.Sizeof(query))
-	err := syscall.DeviceIoControl(disk, IOCTL_STORAGE_QUERY_PROPERTY, (*byte)(unsafe.Pointer(&query)), querySize, (*byte)(unsafe.Pointer(&buffer[0])), bufferSize, &size, nil)
-	if err != nil {
-		return false, fmt.Errorf("IOCTL_STORAGE_QUERY_PROPERTY failed: %v", err)
-	}
-
-	devIDDesc := (*StorageDeviceIDDescriptor)(unsafe.Pointer(&buffer[0]))
-
-	pID := (*StorageIdentifier)(unsafe.Pointer(&devIDDesc.Identifiers[0]))
-
-	page83ID := []byte{}
-	byteSize := unsafe.Sizeof(byte(0))
-	for n = 0; n < devIDDesc.NumberOfIdentifiers; n++ {
-		if pID.Association == StorageIDAssocDevice && (pID.CodeSet == StorageIDCodeSetBinary || pID.CodeSet == StorageIDCodeSetASCII) {
-			for m = 0; m < pID.IdentifierSize; m++ {
-				page83ID = append(page83ID, *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(&pID.Identifier[0])) + byteSize*uintptr(m))))
-			}
-
-			var page83IDString string
-			if pID.CodeSet == StorageIDCodeSetASCII {
-				page83IDString = string(page83ID)
-			} else if pID.CodeSet == StorageIDCodeSetBinary {
-				page83IDString = hex.EncodeToString(page83ID)
-			}
-			if strings.Contains(page83IDString, matchID) {
-				return true, nil
-			}
-		}
-		pID = (*StorageIdentifier)(unsafe.Pointer(uintptr(unsafe.Pointer(pID)) + byteSize*uintptr(pID.NextOffset)))
-	}
-	return false, nil
-}
-
 func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	query := StoragePropertyQuery{}
 
@@ -294,18 +248,37 @@ func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
 	json.Unmarshal([]byte(outString), &disks)
 
 	for i := range disks {
-		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
+		diskNumber, diskPage83ID, err := imp.GetDiskNumberAndPage83ID(disks[i].Path)
 		if err != nil {
 			return 0, err
 		}
 
-		found, err := imp.DiskHasPage83ID(h, page83ID)
-		if found {
-			return imp.GetDiskNumber(h)
+		if diskPage83ID == page83ID {
+			return diskNumber, nil
 		}
 	}
 
 	return 0, fmt.Errorf("Could not find disk with Page83 ID %s", page83ID)
+}
+
+func (imp DiskAPI) GetDiskNumberAndPage83ID(path string) (uint32, string, error) {
+	h, err := syscall.Open(path, syscall.O_RDONLY, 0)
+	defer syscall.Close(h)
+	if err != nil {
+		return 0, "", err
+	}
+
+	diskNumber, err := imp.GetDiskNumber(h)
+	if err != nil {
+		return 0, "", err
+	}
+
+	page83ID, err := imp.GetDiskPage83ID(h)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return diskNumber, page83ID, nil
 }
 
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
@@ -334,19 +307,9 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 	m := make(map[uint32]shared.DiskIDs)
 
 	for i := range disks {
-		h, err := syscall.Open(disks[i].Path, syscall.O_RDONLY, 0)
+		diskNumber, page83, err := imp.GetDiskNumberAndPage83ID(disks[i].Path)
 		if err != nil {
 			return nil, err
-		}
-
-		page83, err := imp.GetDiskPage83ID(h)
-		if err != nil {
-			return m, fmt.Errorf("Could not get page83 ID: %v", err)
-		}
-
-		diskNumber, err := imp.GetDiskNumber(h)
-		if err != nil {
-			return m, fmt.Errorf("Could not get disk number: %v", err)
 		}
 
 		m[diskNumber] = shared.DiskIDs{
