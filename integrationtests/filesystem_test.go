@@ -1,18 +1,8 @@
 package integrationtests
 
 import (
-	"context"
-	"fmt"
-	"math/rand"
 	"os"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta2"
-	v1beta2client "github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2"
 )
 
 func pathExists(path string) (bool, error) {
@@ -27,143 +17,13 @@ func pathExists(path string) (bool, error) {
 }
 
 func TestFilesystemAPIGroup(t *testing.T) {
-	t.Run("PathExists positive", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-
-		client, err := v1beta2client.NewClient()
-		require.Nil(t, err)
-		defer client.Close()
-
-		s1 := rand.NewSource(time.Now().UnixNano())
-		r1 := rand.New(s1)
-
-		// simulate FS operations around staging a volume on a node
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
-		mkdirReq := &v1beta2.MkdirRequest{
-			Path:    stagepath,
-			Context: v1beta2.PathContext_PLUGIN,
-		}
-		mkdirRsp, err := client.Mkdir(context.Background(), mkdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", mkdirRsp.Error)
-		}
-
-		exists, err := pathExists(stagepath)
-		assert.True(t, exists, err)
-
-		// simulate operations around publishing a volume to a pod
-		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
-		mkdirReq = &v1beta2.MkdirRequest{
-			Path:    podpath,
-			Context: v1beta2.PathContext_POD,
-		}
-		mkdirRsp, err = client.Mkdir(context.Background(), mkdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", mkdirRsp.Error)
-		}
-		linkReq := &v1beta2.LinkPathRequest{
-			TargetPath: stagepath,
-			SourcePath: podpath + "\\rootvol",
-		}
-		linkRsp, err := client.LinkPath(context.Background(), linkReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", linkRsp.Error)
-		}
-
-		exists, err = pathExists(podpath + "\\rootvol")
-		assert.True(t, exists, err)
-
-		// cleanup pvpath
-		rmdirReq := &v1beta2.RmdirRequest{
-			Path:    podpath,
-			Context: v1beta2.PathContext_POD,
-			Force:   true,
-		}
-		rmdirRsp, err := client.Rmdir(context.Background(), rmdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", rmdirRsp.Error)
-		}
-
-		exists, err = pathExists(podpath)
-		assert.False(t, exists, err)
-
-		// cleanup plugin path
-		rmdirReq = &v1beta2.RmdirRequest{
-			Path:    stagepath,
-			Context: v1beta2.PathContext_PLUGIN,
-			Force:   true,
-		}
-		rmdirRsp, err = client.Rmdir(context.Background(), rmdirReq)
-		if assert.Nil(t, err) {
-			assert.Equal(t, "", rmdirRsp.Error)
-		}
-
-		exists, err = pathExists(stagepath)
-		assert.False(t, exists, err)
+	t.Run("v1beta2FilesystemTests", func(t *testing.T) {
+		v1beta2FilesystemTests(t)
 	})
-	t.Run("IsMount", func(t *testing.T) {
-		client, err := v1beta2client.NewClient()
-		require.Nil(t, err)
-		defer client.Close()
-
-		s1 := rand.NewSource(time.Now().UnixNano())
-		r1 := rand.New(s1)
-		rand1 := r1.Intn(100)
-		rand2 := r1.Intn(100)
-
-		testDir := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
-		err = os.MkdirAll(testDir, os.ModeDir)
-		require.Nil(t, err)
-		defer os.RemoveAll(testDir)
-
-		// 1. Check the isMount on a path which does not exist. Failure scenario.
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
-		isMountRequest := &v1beta2.IsMountPointRequest{
-			Path: stagepath,
-		}
-		isMountResponse, err := client.IsMountPoint(context.Background(), isMountRequest)
-		require.NotNil(t, err)
-
-		// 2. Create the directory. This time its not a mount point. Failure scenario.
-		err = os.Mkdir(stagepath, os.ModeDir)
-		require.Nil(t, err)
-		defer os.Remove(stagepath)
-		isMountRequest = &v1beta2.IsMountPointRequest{
-			Path: stagepath,
-		}
-		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
-		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, false)
-
-		err = os.Remove(stagepath)
-		require.Nil(t, err)
-		targetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2), t)
-		lnTargetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2), t)
-
-		// 3. Create soft link to the directory and make sure target exists. Success scenario.
-		err = os.Mkdir(targetStagePath, os.ModeDir)
-		require.Nil(t, err)
-		defer os.Remove(targetStagePath)
-		// Create a sym link
-		err = os.Symlink(targetStagePath, lnTargetStagePath)
-		require.Nil(t, err)
-		defer os.Remove(lnTargetStagePath)
-
-		isMountRequest = &v1beta2.IsMountPointRequest{
-			Path: lnTargetStagePath,
-		}
-		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
-		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, true)
-
-		// 4. Remove the path. Failure scenario.
-		err = os.Remove(targetStagePath)
-		require.Nil(t, err)
-		isMountRequest = &v1beta2.IsMountPointRequest{
-			Path: lnTargetStagePath,
-		}
-		isMountResponse, err = client.IsMountPoint(context.Background(), isMountRequest)
-		require.Nil(t, err)
-		require.Equal(t, isMountResponse.IsMountPoint, false)
+	t.Run("v1beta1FilesystemTests", func(t *testing.T) {
+		v1beta1FilesystemTests(t)
+	})
+	t.Run("v1alpha1FilesystemTests", func(t *testing.T) {
+		v1alpha1FilesystemTests(t)
 	})
 }

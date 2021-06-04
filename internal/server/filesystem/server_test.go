@@ -5,10 +5,13 @@ import (
 	"testing"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/filesystem/internal"
 )
 
 type fakeFileSystemAPI struct{}
+
+var _ filesystem.API = &fakeFileSystemAPI{}
 
 func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
 	return true, nil
@@ -22,11 +25,11 @@ func (fakeFileSystemAPI) Mkdir(path string) error {
 func (fakeFileSystemAPI) Rmdir(path string, force bool) error {
 	return nil
 }
-func (fakeFileSystemAPI) LinkPath(tgt string, src string) error {
+func (fakeFileSystemAPI) CreateSymlink(tgt string, src string) error {
 	return nil
 }
 
-func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
+func (fakeFileSystemAPI) IsSymlink(path string) (bool, error) {
 	return true, nil
 }
 
@@ -137,12 +140,12 @@ func TestMkdirWindows(t *testing.T) {
 			Path:    tc.path,
 			Context: tc.pathCtx,
 		}
-		mkdirResponse, _ := srv.Mkdir(context.TODO(), req, tc.version)
-		if tc.expectError && mkdirResponse.Error == "" {
+		_, err := srv.Mkdir(context.TODO(), req, tc.version)
+		if tc.expectError && err == nil {
 			t.Errorf("Expected error but Mkdir returned a nil error")
 		}
-		if !tc.expectError && mkdirResponse.Error != "" {
-			t.Errorf("Expected no errors but Mkdir returned error: %s", mkdirResponse.Error)
+		if !tc.expectError && err != nil {
+			t.Errorf("Expected no errors but Mkdir returned error: %v", err)
 		}
 	}
 }
@@ -256,12 +259,12 @@ func TestRmdirWindows(t *testing.T) {
 			Context: tc.pathCtx,
 			Force:   tc.force,
 		}
-		rmdirResponse, _ := srv.Rmdir(context.TODO(), req, tc.version)
-		if tc.expectError && rmdirResponse.Error == "" {
+		_, err := srv.Rmdir(context.TODO(), req, tc.version)
+		if tc.expectError && err == nil {
 			t.Errorf("Expected error but Rmdir returned a nil error")
 		}
-		if !tc.expectError && rmdirResponse.Error != "" {
-			t.Errorf("Expected no errors but Rmdir returned error: %s", rmdirResponse.Error)
+		if !tc.expectError && err != nil {
+			t.Errorf("Expected no errors but Rmdir returned error: %v", err)
 		}
 	}
 }

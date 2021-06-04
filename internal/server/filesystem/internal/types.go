@@ -20,8 +20,6 @@ type PathExistsRequest struct {
 
 // PathExistsResponse is the internal representation of responses from the PathExists endpoint.
 type PathExistsResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 	// Indicates whether the path in PathExistsRequest exists in the host's filesystem
 	Exists bool
 }
@@ -54,8 +52,6 @@ type MkdirRequest struct {
 }
 
 type MkdirResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 }
 
 type RmdirRequest struct {
@@ -85,9 +81,54 @@ type RmdirRequest struct {
 }
 
 type RmdirResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 }
+
+type CreateSymlinkRequest struct {
+	// The path of the existing directory to be linked.
+	// All special characters allowed by Windows in path names will be allowed
+	// except for restrictions noted below. For details, please check:
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	//
+	// Restrictions:
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+	// The path prefix needs needs to match the paths specified as
+	// kubelet-csi-plugins-path parameter of csi-proxy.
+	// UNC paths of the form "\\server\share\path\file" are not allowed.
+	// All directory separators need to be backslash character: "\".
+	// Characters: .. / : | ? * in the path are not allowed.
+	// source_path cannot already exist in the host filesystem.
+	// Maximum path length will be capped to 260 characters.
+	SourcePath string
+	// Target path is the location of the new directory entry to be created in the host's filesystem.
+	// All special characters allowed by Windows in path names will be allowed
+	// except for restrictions noted below. For details, please check:
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	//
+	// Restrictions:
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+	// The path prefix needs to match the paths specified as
+	// kubelet-pod-path parameter of csi-proxy.
+	// UNC paths of the form "\\server\share\path\file" are not allowed.
+	// All directory separators need to be backslash character: "\".
+	// Characters: .. / : | ? * in the path are not allowed.
+	// target_path needs to exist as a directory in the host that is empty.
+	// target_path cannot be a symbolic link.
+	// Maximum path length will be capped to 260 characters.
+	TargetPath string
+}
+
+type CreateSymlinkResponse struct {
+}
+
+type IsSymlinkRequest struct {
+	Path string
+}
+
+type IsSymlinkResponse struct {
+	IsSymlink bool
+}
+
+// Compatibility for pre v1beta2 APIs
 
 type LinkPathRequest struct {
 	// The path where the symlink is created in the host's filesystem.
@@ -120,8 +161,6 @@ type LinkPathRequest struct {
 }
 
 type LinkPathResponse struct {
-	// Error message if any. Empty string indicates success
-	Error string
 }
 
 type IsMountPointRequest struct {
@@ -129,6 +168,5 @@ type IsMountPointRequest struct {
 }
 
 type IsMountPointResponse struct {
-	Error        string
 	IsMountPoint bool
 }

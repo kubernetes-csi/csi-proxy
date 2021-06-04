@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
 	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
 )
@@ -29,6 +30,8 @@ func (fakeSmbAPI) NewSmbLink(remotePath, localPath string) error {
 
 type fakeFileSystemAPI struct{}
 
+var _ filesystem.API = &fakeFileSystemAPI{}
+
 func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
 	return true, nil
 }
@@ -41,11 +44,11 @@ func (fakeFileSystemAPI) Mkdir(path string) error {
 func (fakeFileSystemAPI) Rmdir(path string, force bool) error {
 	return nil
 }
-func (fakeFileSystemAPI) LinkPath(tgt string, src string) error {
+func (fakeFileSystemAPI) CreateSymlink(tgt string, src string) error {
 	return nil
 }
 
-func (fakeFileSystemAPI) IsMountPoint(path string) (bool, error) {
+func (fakeFileSystemAPI) IsSymlink(path string) (bool, error) {
 	return true, nil
 }
 

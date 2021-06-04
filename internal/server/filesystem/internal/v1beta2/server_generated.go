@@ -27,38 +27,38 @@ func (s *versionedAPI) Register(grpcServer *grpc.Server) {
 	v1beta2.RegisterFilesystemServer(grpcServer, s)
 }
 
-func (s *versionedAPI) IsMountPoint(context context.Context, versionedRequest *v1beta2.IsMountPointRequest) (*v1beta2.IsMountPointResponse, error) {
-	request := &internal.IsMountPointRequest{}
-	if err := Convert_v1beta2_IsMountPointRequest_To_internal_IsMountPointRequest(versionedRequest, request); err != nil {
+func (s *versionedAPI) CreateSymlink(context context.Context, versionedRequest *v1beta2.CreateSymlinkRequest) (*v1beta2.CreateSymlinkResponse, error) {
+	request := &internal.CreateSymlinkRequest{}
+	if err := Convert_v1beta2_CreateSymlinkRequest_To_internal_CreateSymlinkRequest(versionedRequest, request); err != nil {
 		return nil, err
 	}
 
-	response, err := s.apiGroupServer.IsMountPoint(context, request, version)
+	response, err := s.apiGroupServer.CreateSymlink(context, request, version)
 	if err != nil {
 		return nil, err
 	}
 
-	versionedResponse := &v1beta2.IsMountPointResponse{}
-	if err := Convert_internal_IsMountPointResponse_To_v1beta2_IsMountPointResponse(response, versionedResponse); err != nil {
+	versionedResponse := &v1beta2.CreateSymlinkResponse{}
+	if err := Convert_internal_CreateSymlinkResponse_To_v1beta2_CreateSymlinkResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 
 	return versionedResponse, err
 }
 
-func (s *versionedAPI) LinkPath(context context.Context, versionedRequest *v1beta2.LinkPathRequest) (*v1beta2.LinkPathResponse, error) {
-	request := &internal.LinkPathRequest{}
-	if err := Convert_v1beta2_LinkPathRequest_To_internal_LinkPathRequest(versionedRequest, request); err != nil {
+func (s *versionedAPI) IsSymlink(context context.Context, versionedRequest *v1beta2.IsSymlinkRequest) (*v1beta2.IsSymlinkResponse, error) {
+	request := &internal.IsSymlinkRequest{}
+	if err := Convert_v1beta2_IsSymlinkRequest_To_internal_IsSymlinkRequest(versionedRequest, request); err != nil {
 		return nil, err
 	}
 
-	response, err := s.apiGroupServer.LinkPath(context, request, version)
+	response, err := s.apiGroupServer.IsSymlink(context, request, version)
 	if err != nil {
 		return nil, err
 	}
 
-	versionedResponse := &v1beta2.LinkPathResponse{}
-	if err := Convert_internal_LinkPathResponse_To_v1beta2_LinkPathResponse(response, versionedResponse); err != nil {
+	versionedResponse := &v1beta2.IsSymlinkResponse{}
+	if err := Convert_internal_IsSymlinkResponse_To_v1beta2_IsSymlinkResponse(response, versionedResponse); err != nil {
 		return nil, err
 	}
 
