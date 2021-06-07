@@ -3,31 +3,29 @@ package smb
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
+	"github.com/kubernetes-csi/csi-proxy/internal/os/smb"
 	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
 	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
 	"k8s.io/klog/v2"
-	"strings"
 )
 
 type Server struct {
-	hostAPI  API
+	hostAPI  smb.API
 	fsServer *fsserver.Server
 }
 
-type API interface {
-	IsSmbMapped(remotePath string) (bool, error)
-	NewSmbLink(remotePath, localPath string) error
-	NewSmbGlobalMapping(remotePath, username, password string) error
-	RemoveSmbGlobalMapping(remotePath string) error
-}
+// check that Server implements the ServerInterface
+var _ internal.ServerInterface = &Server{}
 
 func normalizeWindowsPath(path string) string {
 	normalizedPath := strings.Replace(path, "/", "\\", -1)
 	return normalizedPath
 }
 
-func NewServer(hostAPI API, fsServer *fsserver.Server) (*Server, error) {
+func NewServer(hostAPI smb.API, fsServer *fsserver.Server) (*Server, error) {
 	return &Server{
 		hostAPI:  hostAPI,
 		fsServer: fsServer,
@@ -35,7 +33,7 @@ func NewServer(hostAPI API, fsServer *fsserver.Server) (*Server, error) {
 }
 
 func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.NewSmbGlobalMappingRequest, version apiversion.Version) (*internal.NewSmbGlobalMappingResponse, error) {
-	klog.V(4).Infof("calling NewSmbGlobalMapping with remote path %q", request.RemotePath)
+	klog.V(2).Infof("calling NewSmbGlobalMapping with remote path %q", request.RemotePath)
 	response := &internal.NewSmbGlobalMappingResponse{}
 	remotePath := normalizeWindowsPath(request.RemotePath)
 	localPath := request.LocalPath
@@ -93,7 +91,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 }
 
 func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *internal.RemoveSmbGlobalMappingRequest, version apiversion.Version) (*internal.RemoveSmbGlobalMappingResponse, error) {
-	klog.V(4).Infof("calling RemoveSmbGlobalMapping with remote path %q", request.RemotePath)
+	klog.V(2).Infof("calling RemoveSmbGlobalMapping with remote path %q", request.RemotePath)
 	response := &internal.RemoveSmbGlobalMappingResponse{}
 	remotePath := normalizeWindowsPath(request.RemotePath)
 

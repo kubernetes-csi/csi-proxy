@@ -34,7 +34,6 @@ func Convert_internal_NewSmbGlobalMappingRequest_To_v1alpha1_NewSmbGlobalMapping
 }
 
 func autoConvert_v1alpha1_NewSmbGlobalMappingResponse_To_internal_NewSmbGlobalMappingResponse(in *v1alpha1.NewSmbGlobalMappingResponse, out *internal.NewSmbGlobalMappingResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -44,7 +43,6 @@ func Convert_v1alpha1_NewSmbGlobalMappingResponse_To_internal_NewSmbGlobalMappin
 }
 
 func autoConvert_internal_NewSmbGlobalMappingResponse_To_v1alpha1_NewSmbGlobalMappingResponse(in *internal.NewSmbGlobalMappingResponse, out *v1alpha1.NewSmbGlobalMappingResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -74,7 +72,6 @@ func Convert_internal_RemoveSmbGlobalMappingRequest_To_v1alpha1_RemoveSmbGlobalM
 }
 
 func autoConvert_v1alpha1_RemoveSmbGlobalMappingResponse_To_internal_RemoveSmbGlobalMappingResponse(in *v1alpha1.RemoveSmbGlobalMappingResponse, out *internal.RemoveSmbGlobalMappingResponse) error {
-	out.Error = in.Error
 	return nil
 }
 
@@ -84,7 +81,6 @@ func Convert_v1alpha1_RemoveSmbGlobalMappingResponse_To_internal_RemoveSmbGlobal
 }
 
 func autoConvert_internal_RemoveSmbGlobalMappingResponse_To_v1alpha1_RemoveSmbGlobalMappingResponse(in *internal.RemoveSmbGlobalMappingResponse, out *v1alpha1.RemoveSmbGlobalMappingResponse) error {
-	out.Error = in.Error
 	return nil
 }
 

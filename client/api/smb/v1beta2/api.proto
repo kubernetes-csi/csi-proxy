@@ -35,9 +35,7 @@ message NewSmbGlobalMappingRequest {
 }
 
 message NewSmbGlobalMappingResponse {
-    // Windows error code
-    // Success is represented as 0
-    string error = 1;
+    // Intentionally empty.
 }
 
 
@@ -55,7 +53,5 @@ message RemoveSmbGlobalMappingRequest {
 }
 
 message RemoveSmbGlobalMappingResponse {
-    // Windows error code
-    // Success is represented as 0
-    string error = 1;
+    // Intentionally empty.
 }
