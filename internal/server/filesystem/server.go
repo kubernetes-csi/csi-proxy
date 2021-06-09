@@ -14,9 +14,8 @@ import (
 )
 
 type Server struct {
-	kubeletCSIPluginsPath string
-	kubeletPodPath        string
-	hostAPI               filesystem.API
+	kubeletPath string
+	hostAPI     filesystem.API
 }
 
 // check that Server fulfills internal.ServerInterface
@@ -25,11 +24,10 @@ var _ internal.ServerInterface = &Server{}
 var invalidPathCharsRegexWindows = regexp.MustCompile(`["/\:\?\*|]`)
 var absPathRegexWindows = regexp.MustCompile(`^[a-zA-Z]:\\`)
 
-func NewServer(kubeletCSIPluginsPath string, kubeletPodPath string, hostAPI filesystem.API) (*Server, error) {
+func NewServer(kubeletPath string, hostAPI filesystem.API) (*Server, error) {
 	return &Server{
-		kubeletCSIPluginsPath: kubeletCSIPluginsPath,
-		kubeletPodPath:        kubeletPodPath,
-		hostAPI:               hostAPI,
+		kubeletPath: kubeletPath,
+		hostAPI:     hostAPI,
 	}, nil
 }
 
@@ -70,18 +68,11 @@ func isAbsWindows(path string) bool {
 // from other parts of the library is that it seems internal.PLUGIN was not
 // usable from outside the internal path tree.
 func (s *Server) ValidatePluginPath(path string) error {
-	return s.validatePathWindows(internal.PLUGIN, path)
+	return s.validatePathWindows(path)
 }
 
-func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) error {
-	prefix := ""
-	if pathCtx == internal.PLUGIN {
-		prefix = s.kubeletCSIPluginsPath
-	} else if pathCtx == internal.POD {
-		prefix = s.kubeletPodPath
-	} else {
-		return fmt.Errorf("invalid PathContext: %v", pathCtx)
-	}
+func (s *Server) validatePathWindows(path string) error {
+	prefix := s.kubeletPath
 
 	pathlen := len(path)
 
@@ -115,7 +106,7 @@ func (s *Server) validatePathWindows(pathCtx internal.PathContext, path string) 
 // PathExists checks if the given path exists on the host.
 func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsRequest, version apiversion.Version) (*internal.PathExistsResponse, error) {
 	klog.V(2).Infof("Request: PathExists with path=%q", request.Path)
-	err := s.validatePathWindows(request.Context, request.Path)
+	err := s.validatePathWindows(request.Path)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows %v", err)
 		return nil, err
@@ -138,7 +129,7 @@ func (s *Server) PathValid(ctx context.Context, path string) (bool, error) {
 
 func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, version apiversion.Version) (*internal.MkdirResponse, error) {
 	klog.V(2).Infof("Request: Mkdir with path=%q", request.Path)
-	err := s.validatePathWindows(request.Context, request.Path)
+	err := s.validatePathWindows(request.Path)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows %v", err)
 		return nil, err
@@ -154,7 +145,7 @@ func (s *Server) Mkdir(ctx context.Context, request *internal.MkdirRequest, vers
 
 func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, version apiversion.Version) (*internal.RmdirResponse, error) {
 	klog.V(2).Infof("Request: Rmdir with path=%q", request.Path)
-	err := s.validatePathWindows(request.Context, request.Path)
+	err := s.validatePathWindows(request.Path)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows %v", err)
 		return nil, err
@@ -181,12 +172,12 @@ func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest
 
 func (s *Server) CreateSymlink(ctx context.Context, request *internal.CreateSymlinkRequest, version apiversion.Version) (*internal.CreateSymlinkResponse, error) {
 	klog.V(2).Infof("Request: CreateSymlink with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
-	err := s.validatePathWindows(internal.POD, request.TargetPath)
+	err := s.validatePathWindows(request.TargetPath)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows for target path %v", err)
 		return nil, err
 	}
-	err = s.validatePathWindows(internal.PLUGIN, request.SourcePath)
+	err = s.validatePathWindows(request.SourcePath)
 	if err != nil {
 		klog.Errorf("failed validatePathWindows for source path %v", err)
 		return nil, err
