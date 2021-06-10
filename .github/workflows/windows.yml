@@ -25,7 +25,7 @@ jobs:
         run: |
           # start the CSI Proxy before running tests on windows
           Start-Job -Name CSIProxy -ScriptBlock {
-            .\bin\csi-proxy.exe --kubelet-csi-plugins-path $pwd --kubelet-pod-path $pwd
+            .\bin\csi-proxy.exe
           };
           Start-Sleep -Seconds 30;
           Write-Output "getting named pipes"
