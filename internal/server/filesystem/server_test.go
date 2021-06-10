@@ -41,104 +41,90 @@ func TestMkdirWindows(t *testing.T) {
 	testCases := []struct {
 		name        string
 		path        string
-		pathCtx     internal.PathContext
 		version     apiversion.Version
 		expectError bool
 	}{
 		{
 			name:        "path outside of pod context with pod context set",
 			path:        `C:\foo\bar`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside pod context with pod context set",
 			path:        `C:\var\lib\kubelet\pods\pv1`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path outside of plugin context with plugin context set",
 			path:        `C:\foo\bar`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside plugin context with plugin context set",
 			path:        `C:\var\lib\kubelet\plugins\pv1`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path with invalid character `:` beyond drive letter prefix",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1:foo`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `/`",
 			path:        `C:\var\lib\kubelet\pods\pv1/foo`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `*`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1*foo`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `?`",
 			path:        `C:\var\lib\kubelet\pods\pv1?foo`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `|`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin|pv1\foo`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid characters `..`",
 			path:        `C:\var\lib\kubelet\pods\pv1\..\..\..\system32`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid prefix `\\`",
 			path:        `\\csi-plugin\..\..\..\system32`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "relative path",
 			path:        `pv1\foo`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 	}
-	srv, err := NewServer(`C:\var\lib\kubelet\plugins`, `C:\var\lib\kubelet\pods`, &fakeFileSystemAPI{})
+	srv, err := NewServer(`C:\var\lib\kubelet`, &fakeFileSystemAPI{})
 	if err != nil {
 		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
 	}
 	for _, tc := range testCases {
 		t.Logf("test case: %s", tc.name)
 		req := &internal.MkdirRequest{
-			Path:    tc.path,
-			Context: tc.pathCtx,
+			Path: tc.path,
 		}
 		_, err := srv.Mkdir(context.TODO(), req, tc.version)
 		if tc.expectError && err == nil {
@@ -158,7 +144,6 @@ func TestRmdirWindows(t *testing.T) {
 	testCases := []struct {
 		name        string
 		path        string
-		pathCtx     internal.PathContext
 		version     apiversion.Version
 		expectError bool
 		force       bool
@@ -166,98 +151,85 @@ func TestRmdirWindows(t *testing.T) {
 		{
 			name:        "path outside of pod context with pod context set",
 			path:        `C:\foo\bar`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside pod context with pod context set",
 			path:        `C:\var\lib\kubelet\pods\pv1`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path outside of plugin context with plugin context set",
 			path:        `C:\foo\bar`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path inside plugin context with plugin context set",
 			path:        `C:\var\lib\kubelet\plugins\pv1`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: false,
 		},
 		{
 			name:        "path with invalid character `:` beyond drive letter prefix",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1:foo`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `/`",
 			path:        `C:\var\lib\kubelet\pods\pv1/foo`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `*`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin\pv1*foo`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `?`",
 			path:        `C:\var\lib\kubelet\pods\pv1?foo`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid character `|`",
 			path:        `C:\var\lib\kubelet\plugins\csi-plugin|pv1\foo`,
-			pathCtx:     internal.PLUGIN,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid characters `..`",
 			path:        `C:\var\lib\kubelet\pods\pv1\..\..\..\system32`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "path with invalid prefix `\\`",
 			path:        `\\csi-plugin\..\..\..\system32`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 		{
 			name:        "relative path",
 			path:        `pv1\foo`,
-			pathCtx:     internal.POD,
 			version:     v1,
 			expectError: true,
 		},
 	}
-	srv, err := NewServer(`C:\var\lib\kubelet\plugins`, `C:\var\lib\kubelet\pods`, &fakeFileSystemAPI{})
+	srv, err := NewServer(`C:\var\lib\kubelet`, &fakeFileSystemAPI{})
 	if err != nil {
 		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
 	}
 	for _, tc := range testCases {
 		t.Logf("test case: %s", tc.name)
 		req := &internal.RmdirRequest{
-			Path:    tc.path,
-			Context: tc.pathCtx,
-			Force:   tc.force,
+			Path:  tc.path,
+			Force: tc.force,
 		}
 		_, err := srv.Rmdir(context.TODO(), req, tc.version)
 		if tc.expectError && err == nil {

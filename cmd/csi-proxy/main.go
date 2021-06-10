@@ -23,10 +23,9 @@ import (
 )
 
 var (
-	kubeletCSIPluginsPath = flag.String("kubelet-csi-plugins-path", `C:\var\lib\kubelet`, "Prefix path of the Kubelet plugin directory in the host file system")
-	kubeletPodPath        = flag.String("kubelet-pod-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet pod directory in the host file system")
-	windowsSvc            = flag.Bool("windows-service", false, "Configure as a Windows Service")
-	service               *handler
+	kubeletPath = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
+	windowsSvc  = flag.Bool("windows-service", false, "Configure as a Windows Service")
+	service     *handler
 )
 
 type handler struct {
@@ -61,7 +60,7 @@ func main() {
 
 // apiGroups returns the list of enabled API groups.
 func apiGroups() ([]srvtypes.APIGroup, error) {
-	fssrv, err := filesystemsrv.NewServer(*kubeletCSIPluginsPath, *kubeletPodPath, filesystemapi.New())
+	fssrv, err := filesystemsrv.NewServer(*kubeletPath, filesystemapi.New())
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}

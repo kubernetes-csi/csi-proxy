@@ -89,7 +89,6 @@ func Convert_internal_IsSymlinkResponse_To_v1beta2_IsSymlinkResponse(in *interna
 
 func autoConvert_v1beta2_MkdirRequest_To_internal_MkdirRequest(in *v1beta2.MkdirRequest, out *internal.MkdirRequest) error {
 	out.Path = in.Path
-	out.Context = internal.PathContext(in.Context)
 	return nil
 }
 
@@ -100,7 +99,6 @@ func Convert_v1beta2_MkdirRequest_To_internal_MkdirRequest(in *v1beta2.MkdirRequ
 
 func autoConvert_internal_MkdirRequest_To_v1beta2_MkdirRequest(in *internal.MkdirRequest, out *v1beta2.MkdirRequest) error {
 	out.Path = in.Path
-	out.Context = v1beta2.PathContext(in.Context)
 	return nil
 }
 
@@ -129,7 +127,6 @@ func Convert_internal_MkdirResponse_To_v1beta2_MkdirResponse(in *internal.MkdirR
 
 func autoConvert_v1beta2_PathExistsRequest_To_internal_PathExistsRequest(in *v1beta2.PathExistsRequest, out *internal.PathExistsRequest) error {
 	out.Path = in.Path
-	out.Context = internal.PathContext(in.Context)
 	return nil
 }
 
@@ -140,7 +137,6 @@ func Convert_v1beta2_PathExistsRequest_To_internal_PathExistsRequest(in *v1beta2
 
 func autoConvert_internal_PathExistsRequest_To_v1beta2_PathExistsRequest(in *internal.PathExistsRequest, out *v1beta2.PathExistsRequest) error {
 	out.Path = in.Path
-	out.Context = v1beta2.PathContext(in.Context)
 	return nil
 }
 
@@ -171,7 +167,6 @@ func Convert_internal_PathExistsResponse_To_v1beta2_PathExistsResponse(in *inter
 
 func autoConvert_v1beta2_RmdirRequest_To_internal_RmdirRequest(in *v1beta2.RmdirRequest, out *internal.RmdirRequest) error {
 	out.Path = in.Path
-	out.Context = internal.PathContext(in.Context)
 	out.Force = in.Force
 	return nil
 }
@@ -183,7 +178,6 @@ func Convert_v1beta2_RmdirRequest_To_internal_RmdirRequest(in *v1beta2.RmdirRequ
 
 func autoConvert_internal_RmdirRequest_To_v1beta2_RmdirRequest(in *internal.RmdirRequest, out *v1beta2.RmdirRequest) error {
 	out.Path = in.Path
-	out.Context = v1beta2.PathContext(in.Context)
 	out.Force = in.Force
 	return nil
 }

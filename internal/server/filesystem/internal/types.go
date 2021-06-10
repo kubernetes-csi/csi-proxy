@@ -1,21 +1,9 @@
 package internal
 
-type PathContext int32
-
-const (
-	// Indicates the kubelet-csi-plugins-path parameter of csi-proxy be used as the path context
-	PLUGIN PathContext = iota
-	// Indicates the kubelet-pod-path parameter of csi-proxy be used as the path context
-	POD
-)
-
 // PathExistsRequest is the internal representation of requests to the PathExists endpoint.
 type PathExistsRequest struct {
 	// The path whose existence we want to check in the host's filesystem
 	Path string
-	// Context of the path parameter.
-	// This is used to determine the root for relative path parameters
-	Context PathContext
 }
 
 // PathExistsResponse is the internal representation of responses from the PathExists endpoint.
@@ -44,11 +32,6 @@ type MkdirRequest struct {
 	// Characters: .. / : | ? * in the path are not allowed.
 	// Maximum path length will be capped to 260 characters.
 	Path string
-	// Context of the path parameter.
-	// This is used to [1] determine the root for relative path parameters
-	// or [2] validate prefix for absolute paths (indicated by a drive letter
-	// prefix: e.g. "C:\")
-	Context PathContext
 }
 
 type MkdirResponse struct {
@@ -71,11 +54,6 @@ type RmdirRequest struct {
 	// Path cannot be a file of type symlink.
 	// Maximum path length will be capped to 260 characters.
 	Path string
-	// Context of the path creation used for path prefix validation
-	// This is used to [1] determine the root for relative path parameters
-	// or [2] validate prefix for absolute paths (indicated by a drive letter
-	// prefix: e.g. "C:\")
-	Context PathContext
 	// Force remove all contents under path (if any).
 	Force bool
 }

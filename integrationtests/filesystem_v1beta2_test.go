@@ -26,10 +26,9 @@ func v1beta2FilesystemTests(t *testing.T) {
 		r1 := rand.New(s1)
 
 		// simulate FS operations around staging a volume on a node
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
+		stagepath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
 		mkdirReq := &v1beta2.MkdirRequest{
-			Path:    stagepath,
-			Context: v1beta2.PathContext_PLUGIN,
+			Path: stagepath,
 		}
 		_, err = client.Mkdir(context.Background(), mkdirReq)
 		require.NoError(t, err)
@@ -38,10 +37,9 @@ func v1beta2FilesystemTests(t *testing.T) {
 		assert.True(t, exists, err)
 
 		// simulate operations around publishing a volume to a pod
-		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
+		podpath := getKubeletPathForTest(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
 		mkdirReq = &v1beta2.MkdirRequest{
-			Path:    podpath,
-			Context: v1beta2.PathContext_POD,
+			Path: podpath,
 		}
 		_, err = client.Mkdir(context.Background(), mkdirReq)
 		require.NoError(t, err)
@@ -64,9 +62,8 @@ func v1beta2FilesystemTests(t *testing.T) {
 
 		// cleanup pvpath
 		rmdirReq := &v1beta2.RmdirRequest{
-			Path:    podpath,
-			Context: v1beta2.PathContext_POD,
-			Force:   true,
+			Path:  podpath,
+			Force: true,
 		}
 		_, err = client.Rmdir(context.Background(), rmdirReq)
 		require.NoError(t, err)
@@ -76,9 +73,8 @@ func v1beta2FilesystemTests(t *testing.T) {
 
 		// cleanup plugin path
 		rmdirReq = &v1beta2.RmdirRequest{
-			Path:    stagepath,
-			Context: v1beta2.PathContext_PLUGIN,
-			Force:   true,
+			Path:  stagepath,
+			Force: true,
 		}
 		_, err = client.Rmdir(context.Background(), rmdirReq)
 		require.NoError(t, err)
@@ -96,13 +92,13 @@ func v1beta2FilesystemTests(t *testing.T) {
 		rand1 := r1.Intn(100)
 		rand2 := r1.Intn(100)
 
-		testDir := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
+		testDir := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
 		err = os.MkdirAll(testDir, os.ModeDir)
 		require.Nil(t, err)
 		defer os.RemoveAll(testDir)
 
 		// 1. Check the isMount on a path which does not exist. Failure scenario.
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
+		stagepath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
 		IsSymlinkRequest := &v1beta2.IsSymlinkRequest{
 			Path: stagepath,
 		}
@@ -122,8 +118,8 @@ func v1beta2FilesystemTests(t *testing.T) {
 
 		err = os.Remove(stagepath)
 		require.Nil(t, err)
-		targetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2), t)
-		lnTargetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2), t)
+		targetStagePath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2), t)
+		lnTargetStagePath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2), t)
 
 		// 3. Create soft link to the directory and make sure target exists. Success scenario.
 		err = os.Mkdir(targetStagePath, os.ModeDir)
