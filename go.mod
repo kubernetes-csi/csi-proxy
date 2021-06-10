@@ -17,8 +17,6 @@ replace (
 
 require (
 	github.com/Microsoft/go-winio v0.4.16
-	github.com/golang/protobuf v1.4.1
-	//	github.com/golang/protobuf v1.4.1
 	github.com/google/go-cmp v0.5.0
 	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
 	github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000

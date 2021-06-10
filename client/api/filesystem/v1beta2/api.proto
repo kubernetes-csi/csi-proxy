@@ -24,27 +24,9 @@ service Filesystem {
     rpc IsSymlink(IsSymlinkRequest) returns (IsSymlinkResponse) {}
 }
 
-// Context of the paths used for path prefix validation
-enum PathContext {
-    // Indicates the kubelet-csi-plugins-path parameter of csi-proxy be used as
-    // the path context. This may be used while handling NodeStageVolume where
-    // a volume may need to be mounted at a plugin-specific path like:
-    // kubelet\plugins\kubernetes.io\csi\pv\<pv-name>\globalmount
-    PLUGIN = 0;
-    // Indicates the kubelet-pod-path parameter of csi-proxy be used as the path
-    // context. This may be used while handling NodePublishVolume where a staged
-    // volume may be need to be symlinked to a pod-specific path like:
-    // kubelet\pods\<pod-uuid>\volumes\kubernetes.io~csi\<pvc-name>\mount
-    POD = 1;
-}
-
 message PathExistsRequest {
     // The path whose existence we want to check in the host's filesystem
     string path = 1;
-
-    // Context of the path parameter.
-    // This is used to validate prefix for absolute paths passed
-    PathContext context = 2;
 }
 
 message PathExistsResponse {
@@ -72,10 +54,6 @@ message MkdirRequest {
     // Characters: .. / : | ? * in the path are not allowed.
     // Maximum path length will be capped to 260 characters.
     string path = 1;
-
-    // Context of the path parameter.
-    // This is used to validate prefix for absolute paths passed
-    PathContext context = 2;
 }
 
 message MkdirResponse {
@@ -100,12 +78,8 @@ message RmdirRequest {
     // Maximum path length will be capped to 260 characters.
     string path = 1;
 
-    // Context of the path parameter.
-    // This is used to validate prefix for absolute paths passed
-    PathContext context = 2;
-
     // Force remove all contents under path (if any).
-    bool force = 3;
+    bool force = 2;
 }
 
 message RmdirResponse {

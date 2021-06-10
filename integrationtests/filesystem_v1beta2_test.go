@@ -28,8 +28,7 @@ func v1beta2FilesystemTests(t *testing.T) {
 		// simulate FS operations around staging a volume on a node
 		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
 		mkdirReq := &v1beta2.MkdirRequest{
-			Path:    stagepath,
-			Context: v1beta2.PathContext_PLUGIN,
+			Path: stagepath,
 		}
 		_, err = client.Mkdir(context.Background(), mkdirReq)
 		require.NoError(t, err)
@@ -40,8 +39,7 @@ func v1beta2FilesystemTests(t *testing.T) {
 		// simulate operations around publishing a volume to a pod
 		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
 		mkdirReq = &v1beta2.MkdirRequest{
-			Path:    podpath,
-			Context: v1beta2.PathContext_POD,
+			Path: podpath,
 		}
 		_, err = client.Mkdir(context.Background(), mkdirReq)
 		require.NoError(t, err)
@@ -64,9 +62,8 @@ func v1beta2FilesystemTests(t *testing.T) {
 
 		// cleanup pvpath
 		rmdirReq := &v1beta2.RmdirRequest{
-			Path:    podpath,
-			Context: v1beta2.PathContext_POD,
-			Force:   true,
+			Path:  podpath,
+			Force: true,
 		}
 		_, err = client.Rmdir(context.Background(), rmdirReq)
 		require.NoError(t, err)
@@ -76,9 +73,8 @@ func v1beta2FilesystemTests(t *testing.T) {
 
 		// cleanup plugin path
 		rmdirReq = &v1beta2.RmdirRequest{
-			Path:    stagepath,
-			Context: v1beta2.PathContext_PLUGIN,
-			Force:   true,
+			Path:  stagepath,
+			Force: true,
 		}
 		_, err = client.Rmdir(context.Background(), rmdirReq)
 		require.NoError(t, err)
