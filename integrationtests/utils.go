@@ -125,14 +125,10 @@ func readFile(t *testing.T, filePath string) string {
 	return string(contents)
 }
 
-// GetWorkDirPath returns the path to the current working directory
+// getKubeletPathForTest returns the path to the current working directory
 // to be used anytime the filepath is required to be within context of csi-proxy
-func getWorkDirPath(dir string, t *testing.T) string {
-	path, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get working directory: %s", err)
-	}
-	return filepath.Join(path, "testdir", dir)
+func getKubeletPathForTest(dir string, t *testing.T) string {
+	return filepath.Join("C:\\var\\lib\\kubelet", "testdir", dir)
 }
 
 // returns true if CSI_PROXY_GH_ACTIONS is set to "TRUE"

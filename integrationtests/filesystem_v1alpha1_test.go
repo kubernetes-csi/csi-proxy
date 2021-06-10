@@ -26,7 +26,7 @@ func v1alpha1FilesystemTests(t *testing.T) {
 		r1 := rand.New(s1)
 
 		// simulate FS operations around staging a volume on a node
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
+		stagepath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", r1.Intn(100), r1.Intn(100)), t)
 		mkdirReq := &v1alpha1.MkdirRequest{
 			Path:    stagepath,
 			Context: v1alpha1.PathContext_PLUGIN,
@@ -38,7 +38,7 @@ func v1alpha1FilesystemTests(t *testing.T) {
 		assert.True(t, exists, err)
 
 		// simulate operations around publishing a volume to a pod
-		podpath := getWorkDirPath(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
+		podpath := getKubeletPathForTest(fmt.Sprintf("test-pod-id\\volumes\\kubernetes.io~csi\\pvc-test%d", r1.Intn(100)), t)
 		mkdirReq = &v1alpha1.MkdirRequest{
 			Path:    podpath,
 			Context: v1alpha1.PathContext_POD,
@@ -96,13 +96,13 @@ func v1alpha1FilesystemTests(t *testing.T) {
 		rand1 := r1.Intn(100)
 		rand2 := r1.Intn(100)
 
-		testDir := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
+		testDir := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
 		err = os.MkdirAll(testDir, os.ModeDir)
 		require.Nil(t, err)
 		defer os.RemoveAll(testDir)
 
 		// 1. Check the isMount on a path which does not exist. Failure scenario.
-		stagepath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
+		stagepath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d", rand1, rand2), t)
 		isMountRequest := &v1alpha1.IsMountPointRequest{
 			Path: stagepath,
 		}
@@ -122,8 +122,8 @@ func v1alpha1FilesystemTests(t *testing.T) {
 
 		err = os.Remove(stagepath)
 		require.Nil(t, err)
-		targetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2), t)
-		lnTargetStagePath := getWorkDirPath(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2), t)
+		targetStagePath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt", rand1, rand2), t)
+		lnTargetStagePath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io\\volume%d-tgt-ln", rand1, rand2), t)
 
 		// 3. Create soft link to the directory and make sure target exists. Success scenario.
 		err = os.Mkdir(targetStagePath, os.ModeDir)
