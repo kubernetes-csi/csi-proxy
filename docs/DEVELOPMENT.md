@@ -113,7 +113,7 @@ git fetch; git pull --rebase origin $BRANCH
 
 # terminal 1 (build and start CSI proxy)
 go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
-.\bin\csi-proxy.exe --kubelet-csi-plugins-path $pwd --kubelet-pod-path $pwd --v=5
+.\bin\csi-proxy.exe --v=5
 
 # terminal 2 (run E2E tests)
 go test -v .\integrationtests\ -run TestVolumeAPIs

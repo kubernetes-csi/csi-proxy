@@ -36,7 +36,7 @@ go build -v -a -o ./build/csi-proxy-api-gen ./cmd/csi-proxy-api-gen
 Write-Output "starting csi-proxy"
 $csiproxy = Start-Job -Name CSIProxy -ScriptBlock {
     cd $HOME/go/src/github.com/kubernetes-csi/csi-proxy
-    .\bin\csi-proxy.exe --kubelet-csi-plugins-path $pwd --kubelet-pod-path $pwd --v=5
+    .\bin\csi-proxy.exe --v=5
 };
 Start-Sleep -Seconds 10;
 

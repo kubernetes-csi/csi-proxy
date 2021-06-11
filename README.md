@@ -76,9 +76,7 @@ If you are using kube-up to start a Windows cluster, node startup script will au
 
 ### Command line options
 
-* `--kubelet-csi-plugins-path`: This is the prefix path of the Kubelet plugin directory in the host file system (`C:\var\lib\kubelet` is used by default).
-
-* `--kubelet-pod-path`: This is the prefix path of the kubelet pod directory in the host file system (`C:\var\lib\kubelet` is used by default).
+* `--kubelet-path`: This is the prefix path of the kubelet path directory in the host file system (`C:\var\lib\kubelet` is used by default).
 
 ### Setup for CSI Driver Deployment
 
