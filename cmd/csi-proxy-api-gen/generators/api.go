@@ -32,7 +32,7 @@ const (
 	csiProxyAPIPath = csiProxyRootPath + "/client/api/"
 
 	// defaultServerBasePkg is the default output location for generated server files.
-	defaultServerBasePkg = csiProxyRootPath + "/internal/server"
+	defaultServerBasePkg = csiProxyRootPath + "/pkg/server"
 
 	// defaultClientBasePkg is the default output location for generated client files.
 	defaultClientBasePkg = csiProxyRootPath + "/client/groups"
@@ -45,7 +45,7 @@ const (
 	// * +csi-proxy-api-gen=groupName:<snake_case_group_name> to set the group's name
 	//   	- defaults to the package's name
 	// * +csi-proxy-api-gen=serverBasePkg:<pkg_path> to set the base output directory
-	//		for generated server files - defaults to github.com/kubernetes-csi/csi-proxy/internal/server
+	//		for generated server files - defaults to github.com/kubernetes-csi/csi-proxy/pkg/server
 	// * +csi-proxy-api-gen=clientBasePkg:<pkg_path> to set the base output directory
 	//		for generated client files - defaults to github.com/kubernetes-csi/csi-proxy/client/groups
 	tagMarker = "+"
@@ -264,7 +264,7 @@ func packagesForGroup(group *groupDefinition, outputBase string) generator.Packa
 		},
 
 		&generator.DefaultPackage{
-			PackageName: "internal",
+			PackageName: "impl",
 			PackagePath: group.internalServerPkg(),
 			HeaderText:  []byte(headerComment),
 
@@ -299,7 +299,7 @@ func packagesForGroup(group *groupDefinition, outputBase string) generator.Packa
 	// generate types.go if it doesn't exist and the group only has one version
 	if len(group.versions) == 1 && !fileExists(path.Join(outputBase, group.internalServerPkg(), "types.go")) {
 		pkgs = append(pkgs, &generator.DefaultPackage{
-			PackageName: "internal",
+			PackageName: "impl",
 			PackagePath: group.internalServerPkg(),
 
 			GeneratorList: []generator.Generator{

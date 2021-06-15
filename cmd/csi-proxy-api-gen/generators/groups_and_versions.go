@@ -164,21 +164,21 @@ func (d *groupDefinition) serverInterfaceName() string {
 }
 
 // serverPkg returns the path of the server package, e.g.
-// github.com/kubernetes-csi/csi-proxy/internal/server/<api_group_name>
+// github.com/kubernetes-csi/csi-proxy/pkg/server/<api_group_name>
 func (d *groupDefinition) serverPkg() string {
 	return fmt.Sprintf("%s/%s", d.serverBasePkg, d.name)
 }
 
 // internalServerPkg returns the path of the internal server package, e.g.
-// github.com/kubernetes-csi/csi-proxy/internal/server/<api_group_name>/internal
+// github.com/kubernetes-csi/csi-proxy/pkg/server/<api_group_name>/impl
 func (d *groupDefinition) internalServerPkg() string {
-	return fmt.Sprintf("%s/%s/internal", d.serverBasePkg, d.name)
+	return fmt.Sprintf("%s/%s/impl", d.serverBasePkg, d.name)
 }
 
 // versionedServerPkg returns the path of the versioned server package, e.g.
-// github.com/kubernetes-csi/csi-proxy/internal/server/<api_group_name>/internal/<version>
+// github.com/kubernetes-csi/csi-proxy/pkg/server/<api_group_name>/impl/<version>
 func (d *groupDefinition) versionedServerPkg(version string) string {
-	return fmt.Sprintf("%s/%s/internal/%s", d.serverBasePkg, d.name, version)
+	return fmt.Sprintf("%s/%s/impl/%s", d.serverBasePkg, d.name, version)
 }
 
 // versionedClientPkg returns the path of the versioned client package, e.g.

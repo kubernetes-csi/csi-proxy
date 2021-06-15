@@ -48,10 +48,10 @@ func (g *serverGeneratedGenerator) Init(context *generator.Context, writer io.Wr
 	snippetWriter.Do(`var version = apiversion.NewVersionOrPanic("$.version$")
 
 type versionedAPI struct {
-	apiGroupServer internal.ServerInterface
+	apiGroupServer impl.ServerInterface
 }
 
-func NewVersionedServer(apiGroupServer internal.ServerInterface) internal.VersionedAPI {
+func NewVersionedServer(apiGroupServer impl.ServerInterface) impl.VersionedAPI {
 	return &versionedAPI{
 		apiGroupServer: apiGroupServer,
 	}
@@ -94,8 +94,8 @@ func (g *serverGeneratedGenerator) writeWrapperFunction(callbackName string, cal
 		if !isVersionedVariable(param, g.version) {
 			continue
 		}
-		snippetWriter.Do("$.|short$ := &internal.$.|removePackage${}\n", param)
-		snippetWriter.Do("if err := Convert_"+g.version.Name+"_$.|removePackage$_To_internal_$.|removePackage$($.|versionedVariable$, $.|short$); err != nil {\n", param)
+		snippetWriter.Do("$.|short$ := &impl.$.|removePackage${}\n", param)
+		snippetWriter.Do("if err := Convert_"+g.version.Name+"_$.|removePackage$_To_impl_$.|removePackage$($.|versionedVariable$, $.|short$); err != nil {\n", param)
 		snippetWriter.Do(returnErrLine+"\n}\n", nil)
 	}
 	snippetWriter.Do("\n", nil)
@@ -119,7 +119,7 @@ func (g *serverGeneratedGenerator) writeWrapperFunction(callbackName string, cal
 			continue
 		}
 		snippetWriter.Do("$.|versionedVariable$ := &"+g.version.Name+".$.|removePackage${}\n", returnValue)
-		snippetWriter.Do("if err := Convert_internal_$.|removePackage$_To_"+g.version.Name+"_$.|removePackage$($.|short$, $.|versionedVariable$); err != nil {\n", returnValue)
+		snippetWriter.Do("if err := Convert_impl_$.|removePackage$_To_"+g.version.Name+"_$.|removePackage$($.|short$, $.|versionedVariable$); err != nil {\n", returnValue)
 		snippetWriter.Do(returnErrLine+"\n}\n", nil)
 	}
 	snippetWriter.Do("\n", nil)

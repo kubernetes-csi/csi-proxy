@@ -4,17 +4,17 @@ package dummy
 
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
-	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1"
-	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1alpha1"
-	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal/v1alpha2"
-	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1alpha1"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1alpha2"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
 )
 
 const name = "dummy"
 
 // ensure the server defines all the required methods
-var _ internal.ServerInterface = &Server{}
+var _ impl.ServerInterface = &Server{}
 
 func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 	v1alpha1Server := v1alpha1.NewVersionedServer(s)

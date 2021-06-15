@@ -8,12 +8,12 @@ The server exposes a number of API groups, all independent of each other. Additi
 
 APIs are defined by protobuf files; each API group should live in its own directory under `client/api/<api_group_name>` in this repo's root (e.g. `client/api/iscsi`), and then define each of its version in `client/api/<api_group_name>/<version>/api.proto` files (e.g. `client/api/iscsi/v1/api.proto`). Each `proto` file should define exactly one RPC service.
 
-Internally, there is only one server `struct` per API group, that handles all the versions for that API group. That server is defined in this repo's `internal/server/<api_group_name>` (e.g. `internal/server/iscsi`) go package. This go package should follow the following pattern:
+Internally, there is only one server `struct` per API group, that handles all the versions for that API group. That server is defined in this repo's `pkg/server/<api_group_name>` (e.g. `pkg/server/iscsi`) go package. This go package should follow the following pattern:
 
 <a name="serverPkgTree"></a>
 ```
-internal/server/<api_group_name>
-├── internal
+pkg/server/<api_group_name>
+├── impl
 │   └── types.go
 └── server.go
 ```
@@ -59,13 +59,13 @@ message ComputeDoubleRequest{
 
 message ComputeDoubleResponse{
     int64 response = 2;
-    
+
     // set to true if the result overflowed
     bool overflow = 3;
 }
 ```
 
-then `internal/server/dummy/internal/types.go` could look something like:
+then `pkg/server/dummy/impl/types.go` could look something like:
 ```go
 type ComputeDoubleRequest struct {
 	Input int64
@@ -76,15 +76,15 @@ type ComputeDoubleResponse struct {
 	Overflow bool
 }
 ```
-and then the API group's server (`internal/server/dummy/server.go`) needs to define the callbacks to handle requests for all API versions, e.g.:
+and then the API group's server (`pkg/server/dummy/server.go`) needs to define the callbacks to handle requests for all API versions, e.g.:
 ```go
 type Server struct{}
 
-func (s *Server) ComputeDouble(ctx context.Context, request *internal.ComputeDoubleRequest, version apiversion.Version) (*internal.ComputeDoubleResponse, error) {
+func (s *Server) ComputeDouble(ctx context.Context, request *impl.ComputeDoubleRequest, version apiversion.Version) (*impl.ComputeDoubleResponse, error) {
 	in := request.Input64
 	out := 2 * in
-	
-	response := &internal.ComputeDoubleResponse{}
+
+	response := &impl.ComputeDoubleResponse{}
 
 	if sign(in) != sign(out) {
 		// overflow
@@ -114,14 +114,14 @@ All the boilerplate code to:
  * create clients to talk to the API group and its versions
 is generated automatically using [gengo](https://github.com/kubernetes/gengo).
 
-The only caveat is that when conversions cannot be made trivially (e.g. when fields from internal and versioned `struct`s have different types), API devs need to define conversion functions. They can do that by creating an (otherwise optional) `internal/server/<api_group_name>/internal/<version>/conversion.go` file, containing functions of the form `func convert_pb_<Type>_To_internal_<Type>(in *pb.<Type>, out *internal.<Type>) error` or `func convert_internal_<Type>_To_pb_<Type>(in *internal.<Type>, out *pb.<Type>) error`; for example, in our `dummy` example above, we need to define a conversion function to account for the different fields in requests and responses from `v1alpha1` to `v1`; so `internal/server/dummy/internal/v1alpha1/conversion.go` could look like:
+The only caveat is that when conversions cannot be made trivially (e.g. when fields from internal and versioned `struct`s have different types), API devs need to define conversion functions. They can do that by creating an (otherwise optional) `pkg/server/<api_group_name>/impl/<version>/conversion.go` file, containing functions of the form `func convert_pb_<Type>_To_impl_<Type>(in *pb.<Type>, out *impl.<Type>) error` or `func convert_impl_<Type>_To_pb_<Type>(in *impl.<Type>, out *pb.<Type>) error`; for example, in our `dummy` example above, we need to define a conversion function to account for the different fields in requests and responses from `v1alpha1` to `v1`; so `pkg/server/dummy/impl/v1alpha1/conversion.go` could look like:
 ```go
-func convert_pb_ComputeDoubleRequest_To_internal_ComputeDoubleRequest(in *pb.ComputeDoubleRequest, out *internal.ComputeDoubleRequest) error {
+func convert_pb_ComputeDoubleRequest_To_impl_ComputeDoubleRequest(in *pb.ComputeDoubleRequest, out *impl.ComputeDoubleRequest) error {
 	out.Input64 = int64(in.Input32)
 	return nil
 }
 
-func convert_internal_ComputeDoubleResponse_To_pb_ComputeDoubleResponse(in *internal.ComputeDoubleResponse, out *pb.ComputeDoubleResponse) error {
+func convert_impl_ComputeDoubleResponse_To_pb_ComputeDoubleResponse(in *impl.ComputeDoubleResponse, out *pb.ComputeDoubleResponse) error {
 	i := in.Response
 	if i > math.MaxInt32 || i < math.MinInt32 {
 		return fmt.Errorf("int32 overflow for %d", i)
@@ -220,23 +220,23 @@ First, it looks for all API group definitions, which are either subdirectories o
 
 Then for each API group it finds:
 1. it iterates through each version subpackage, and in each looks for the `<ApiGroupName>Server` interface, and compiles the list of callbacks that the group's `Server` needs to implement as well as the list of top-level `struct`s (`*Request`s and `*Response`s)
-2. it looks for an existing `internal/server/<api_group_name>/internal/types.go` file:
+2. it looks for an existing `pkg/server/<api_group_name>/impl/types.go` file:
     * if it exists, it checks that it contains all the expected top-level `struct`s from the previous step
     * if it doesn't exist, _and_ the API group only defines one version, it auto-generates one that simply copies the protobuf `struct`s (from the previous step) - this is meant to make it easy to bootstrap a new API group
-3. it generates the `internal/server/<api_group_name>/internal/types_generated.go` file, using the list of callbacks from the first step above
-4. if `internal/server/<api_group_name>/server.go` doesn't exist, it generates a skeleton for it - this, too, is meant to make it easy to bootstrap new API groups
+3. it generates the `pkg/server/<api_group_name>/impl/types_generated.go` file, using the list of callbacks from the first step above
+4. if `pkg/server/<api_group_name>/server.go` doesn't exist, it generates a skeleton for it - this, too, is meant to make it easy to bootstrap new API groups
 5. then for each version of the API:
-    1. it looks for an existing `internal/server/<api_group_name>/internal/<version>/conversion.go`, generates an empty one if it doesn't exist; then looks for existing conversion functions
-    2. it generates missing conversion functions to `internal/server/<api_group_name>/internal/<version>/conversion_generated.go`
-    3. it generates `internal/server/<api_group_name>/internal/<version>/server_generated.go`
-6. it generates `internal/server/<api_group_name>/internal/api_group_generated.go` to list all the versioned servers it's just created
+    1. it looks for an existing `pkg/server/<api_group_name>/impl/<version>/conversion.go`, generates an empty one if it doesn't exist; then looks for existing conversion functions
+    2. it generates missing conversion functions to `pkg/server/<api_group_name>/impl/<version>/conversion_generated.go`
+    3. it generates `pkg/server/<api_group_name>/impl/<version>/server_generated.go`
+6. it generates `pkg/server/<api_group_name>/impl/api_group_generated.go` to list all the versioned servers it's just created
 7. and finally, it generates `client/groups/<api_group_name>/<version>/client_generated.go` for each version
 
 When `csi-proxy-api-gen` has successfully run to completion, [our example API group's go package from earlier](#serverPkgTree) will look something like:
 ```
-internal/server/<api_group_name>
+pkg/server/<api_group_name>
 ├── api_group_generated.go
-├── internal
+├── impl
 │   ├── types.go
 │   ├── types_generated.go
 │   ├── v1

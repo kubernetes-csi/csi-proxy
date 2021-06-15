@@ -21,8 +21,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kubernetes-csi/csi-proxy/internal/server"
-	srvtypes "github.com/kubernetes-csi/csi-proxy/internal/server/types"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server"
+	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
 )
 
 // startServer starts the proxy's GRPC servers, and returns a function to shut them down when done with testing
