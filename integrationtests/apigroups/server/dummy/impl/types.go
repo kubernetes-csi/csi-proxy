@@ -1,4 +1,4 @@
-package internal
+package impl
 
 // ComputeDoubleRequest is the internal representation of requests to the ComputeDouble endpoint.
 type ComputeDoubleRequest struct {
