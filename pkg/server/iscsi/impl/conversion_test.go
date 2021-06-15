@@ -6,21 +6,21 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha2"
-	internal "github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi/impl"
-	v1alpha1_internal "github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi/impl/v1alpha1"
-	v1alpha2_internal "github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi/impl/v1alpha2"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi/impl"
+	v1alpha1_impl "github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi/impl/v1alpha1"
+	v1alpha2_impl "github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi/impl/v1alpha2"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestListTargetPortals_Conversion_v1alpha1(t *testing.T) {
 	testCases := []struct {
-		in      *internal.ListTargetPortalsResponse
+		in      *impl.ListTargetPortalsResponse
 		wantOut *v1alpha1.ListTargetPortalsResponse
 		wantErr bool
 	}{
 		{
-			in: &internal.ListTargetPortalsResponse{
-				TargetPortals: []*internal.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"}},
+			in: &impl.ListTargetPortalsResponse{
+				TargetPortals: []*impl.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"}},
 			},
 			wantOut: &v1alpha1.ListTargetPortalsResponse{
 				TargetPortals: []*v1alpha1.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"}},
@@ -28,8 +28,8 @@ func TestListTargetPortals_Conversion_v1alpha1(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			in: &internal.ListTargetPortalsResponse{
-				TargetPortals: []*internal.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"},
+			in: &impl.ListTargetPortalsResponse{
+				TargetPortals: []*impl.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"},
 					{TargetPort: 1000, TargetAddress: "test.iqn.2"},
 				},
 			},
@@ -41,7 +41,7 @@ func TestListTargetPortals_Conversion_v1alpha1(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			in:      &internal.ListTargetPortalsResponse{},
+			in:      &impl.ListTargetPortalsResponse{},
 			wantOut: &v1alpha1.ListTargetPortalsResponse{},
 			wantErr: false,
 		},
@@ -49,7 +49,7 @@ func TestListTargetPortals_Conversion_v1alpha1(t *testing.T) {
 
 	for _, tc := range testCases {
 		got := v1alpha1.ListTargetPortalsResponse{}
-		err := v1alpha1_internal.Convert_internal_ListTargetPortalsResponse_To_v1alpha1_ListTargetPortalsResponse(tc.in, &got)
+		err := v1alpha1_impl.Convert_impl_ListTargetPortalsResponse_To_v1alpha1_ListTargetPortalsResponse(tc.in, &got)
 		if tc.wantErr && err == nil {
 			t.Errorf("Expected error but returned a nil error")
 		}
@@ -64,13 +64,13 @@ func TestListTargetPortals_Conversion_v1alpha1(t *testing.T) {
 
 func TestListTargetPortals_Conversion_v1alpha2(t *testing.T) {
 	testCases := []struct {
-		in      *internal.ListTargetPortalsResponse
+		in      *impl.ListTargetPortalsResponse
 		wantOut *v1alpha2.ListTargetPortalsResponse
 		wantErr bool
 	}{
 		{
-			in: &internal.ListTargetPortalsResponse{
-				TargetPortals: []*internal.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"}},
+			in: &impl.ListTargetPortalsResponse{
+				TargetPortals: []*impl.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"}},
 			},
 			wantOut: &v1alpha2.ListTargetPortalsResponse{
 				TargetPortals: []*v1alpha2.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"}},
@@ -78,8 +78,8 @@ func TestListTargetPortals_Conversion_v1alpha2(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			in: &internal.ListTargetPortalsResponse{
-				TargetPortals: []*internal.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"},
+			in: &impl.ListTargetPortalsResponse{
+				TargetPortals: []*impl.TargetPortal{{TargetPort: 3260, TargetAddress: "test.iqn"},
 					{TargetPort: 1000, TargetAddress: "test.iqn.2"},
 				},
 			},
@@ -91,7 +91,7 @@ func TestListTargetPortals_Conversion_v1alpha2(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			in:      &internal.ListTargetPortalsResponse{},
+			in:      &impl.ListTargetPortalsResponse{},
 			wantOut: &v1alpha2.ListTargetPortalsResponse{},
 			wantErr: false,
 		},
@@ -99,7 +99,7 @@ func TestListTargetPortals_Conversion_v1alpha2(t *testing.T) {
 
 	for _, tc := range testCases {
 		got := v1alpha2.ListTargetPortalsResponse{}
-		err := v1alpha2_internal.Convert_internal_ListTargetPortalsResponse_To_v1alpha2_ListTargetPortalsResponse(tc.in, &got)
+		err := v1alpha2_impl.Convert_impl_ListTargetPortalsResponse_To_v1alpha2_ListTargetPortalsResponse(tc.in, &got)
 		if tc.wantErr && err == nil {
 			t.Errorf("Expected error but returned a nil error")
 		}
