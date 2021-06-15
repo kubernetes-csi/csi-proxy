@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/internal/os/filesystem"
-	"github.com/kubernetes-csi/csi-proxy/internal/os/smb"
-	fsserver "github.com/kubernetes-csi/csi-proxy/internal/server/filesystem"
-	"github.com/kubernetes-csi/csi-proxy/internal/server/smb/internal"
+	"github.com/kubernetes-csi/csi-proxy/pkg/os/filesystem"
+	"github.com/kubernetes-csi/csi-proxy/pkg/os/smb"
+	fsserver "github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem"
+	internal "github.com/kubernetes-csi/csi-proxy/pkg/server/smb/impl"
 )
 
 type fakeSmbAPI struct{}
