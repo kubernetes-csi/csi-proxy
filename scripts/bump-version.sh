@@ -35,9 +35,9 @@ function generate_client_files {
   # the path to regenerate
   target=$1
 
-  # delete the vendor folder, otherwise generate-protobuf is going to create a wrong path
+  # delete the vendor folder, otherwise generate-protobuf is going to create a wrong path in the api.pb.go file
   rm -rf vendor
-
+  rm client/api/$target/api.pb.go || true
   rm client/groups/$target/client_generated.go || true
 
   # generate client_generated.go
@@ -77,7 +77,7 @@ function bump_server {
 
   # it looks like at this point client/groups/<version>/client_generated.go is generated
   # sync it to the vendor folder
-  go mod vendor
+  env GO111MODULE=on go mod vendor
 }
 
 function bump_integration {
@@ -116,6 +116,9 @@ EOF
 }
 
 function main {
+  printenv | sort | uniq
+  protoc --version
+
   validate_args
   bump_client
   bump_server
