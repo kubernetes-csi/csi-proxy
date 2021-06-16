@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/internal"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl"
 )
 
-// Server is the internal server for the dummy API group.
+// Server is the impl server for the dummy API group.
 type Server struct{}
 
 // ComputeDouble computes the double of the input. Real smart stuff!
-func (s *Server) ComputeDouble(ctx context.Context, request *internal.ComputeDoubleRequest, version apiversion.Version) (*internal.ComputeDoubleResponse, error) {
+func (s *Server) ComputeDouble(ctx context.Context, request *impl.ComputeDoubleRequest, version apiversion.Version) (*impl.ComputeDoubleResponse, error) {
 	in := request.Input64
 	out := 2 * in
 
@@ -21,7 +21,7 @@ func (s *Server) ComputeDouble(ctx context.Context, request *internal.ComputeDou
 		return nil, fmt.Errorf("int64 overflow with input: %d", in)
 	}
 
-	return &internal.ComputeDoubleResponse{
+	return &impl.ComputeDoubleResponse{
 		Response: out,
 	}, nil
 }
@@ -38,7 +38,7 @@ func sign(x int64) int {
 }
 
 // TellMeAPoem returns a very poetic response.
-func (s *Server) TellMeAPoem(ctx context.Context, request *internal.TellMeAPoemRequest, version apiversion.Version) (*internal.TellMeAPoemResponse, error) {
+func (s *Server) TellMeAPoem(ctx context.Context, request *impl.TellMeAPoemRequest, version apiversion.Version) (*impl.TellMeAPoemResponse, error) {
 	lines := []string{
 		`Not like the brazen giant of Greek fame,`,
 		`With conquering limbs astride from land to land;`,
@@ -56,7 +56,7 @@ func (s *Server) TellMeAPoem(ctx context.Context, request *internal.TellMeAPoemR
 		`I lift my lamp beside the golden door!"`,
 	}
 
-	response := &internal.TellMeAPoemResponse{
+	response := &impl.TellMeAPoemResponse{
 		Lines: lines,
 	}
 

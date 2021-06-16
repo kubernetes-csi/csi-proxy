@@ -23,7 +23,7 @@ func (g *apiGroupGeneratedGenerator) Filter(*generator.Context, *types.Type) boo
 func (g *apiGroupGeneratedGenerator) Imports(*generator.Context) []string {
 	imports := []string{
 		"github.com/kubernetes-csi/csi-proxy/client/apiversion",
-		"srvtypes \"github.com/kubernetes-csi/csi-proxy/internal/server/types\"",
+		"srvtypes \"github.com/kubernetes-csi/csi-proxy/pkg/server/types\"",
 		g.groupDefinition.internalServerPkg(),
 	}
 
@@ -42,7 +42,7 @@ func (g *apiGroupGeneratedGenerator) Init(context *generator.Context, writer io.
 	snippetWriter.Do(`
 
 // ensure the server defines all the required methods
-var _ internal.ServerInterface = &Server{}
+var _ impl.ServerInterface = &Server{}
 
 func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 `, nil)
