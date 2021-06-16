@@ -37,6 +37,7 @@ github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/api/iscsi/v1alpha2
+github.com/kubernetes-csi/csi-proxy/client/api/smb/v1
 github.com/kubernetes-csi/csi-proxy/client/api/smb/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/api/smb/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/api/smb/v1beta2
@@ -52,6 +53,7 @@ github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3
+github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2

@@ -132,4 +132,7 @@ func TestSmbAPIGroup(t *testing.T) {
 	t.Run("v1beta2SmbTests", func(t *testing.T) {
 		v1beta2SmbTests(t)
 	})
+	t.Run("v1SmbTests", func(t *testing.T) {
+		v1SmbTests(t)
+	})
 }
