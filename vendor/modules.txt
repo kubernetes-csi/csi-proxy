@@ -31,6 +31,7 @@ github.com/kubernetes-csi/csi-proxy/client/api/disk/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1beta3
+github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1
 github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/api/filesystem/v1beta2
