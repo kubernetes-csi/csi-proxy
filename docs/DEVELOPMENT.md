@@ -88,11 +88,15 @@ find pkg/server/volume -name "*_generated.go" | xargs rm
   (see [#making changes to the client module](#making-changes-to-the-client-module)), **remember not to overwrite old API files!**
 - Copy server API handlers for the desired group e.g. `pkg/server/<group>/impl/<version>/conversion.go`, **remember to delete the auto generated files first!**
 
+The steps above are implemented in `scripts/bump-version.sh`
+
 If there are any non-backward compatible changes (for example renaming a parameter or a method)
 
 - Make sure that `types.go` reflects what we should know of the internal server structs
 - Remap old parameters in previous API versions e.g. let's say that we make a remap in `v1beta3` then we need to updated `v1alpha1`, `v1beta1`, etc. using the `conversion.go` file. (see #138)
 - Update `pkg/<group>/server.go` if there are new methods, the old methods should forward the request (see #138)
+
+Also make sure you copy and execute the corresponding API integration test in `integrationtests/`
 
 ## Running E2E tests
 
