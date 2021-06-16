@@ -51,9 +51,6 @@ function generate_client_files {
   for leaf in $other_leaf_client_files; do
     git restore $leaf
   done
-
-  # regenerate vendor files
-  go mod vendor
 }
 
 function bump_client {
@@ -88,8 +85,26 @@ function bump_integration {
   sed -i s/$OLD_API_VERSION/$NEW_API_VERSION/g integrationtests/${API_GROUP}_${NEW_API_VERSION}_test.go
 }
 
+function validate_generated_files {
+  declare -a expected_files=(
+    client/api/$API_GROUP/$NEW_API_VERSION/api.pb.go
+    client/api/$API_GROUP/$NEW_API_VERSION/api.proto
+    client/groups/$API_GROUP/$NEW_API_VERSION/client_generated.go
+    pkg/server/$API_GROUP/impl/$NEW_API_VERSION/conversion.go
+    pkg/server/$API_GROUP/impl/$NEW_API_VERSION/conversion_generated.go
+    pkg/server/$API_GROUP/impl/$NEW_API_VERSION/server_generated.go
+    integrationtests/${API_GROUP}_${NEW_API_VERSION}_test.go
+  )
+  for file in ${expected_files[@]}; do
+    if ! [[ -f $file ]]; then
+      echo "expected file $file was not created"
+      exit 1
+    fi
+  done
+}
+
 function next_steps {
-  echo <<EOF
+  cat <<EOF
 Success! Next steps:
 
 - verify that the $NEW_API_VERSION files have the right contents
@@ -105,6 +120,7 @@ function main {
   bump_client
   bump_server
   bump_integration
+  validate_generated_files
   next_steps
 }
 
