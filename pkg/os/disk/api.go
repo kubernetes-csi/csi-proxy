@@ -79,7 +79,7 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 	//    "number":  0,
 	//    "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
 	// }, ...]
-	cmd := fmt.Sprintf("Get-Disk | select number, location | ConvertTo-Json")
+	cmd := fmt.Sprintf("ConvertTo-Json @(Get-Disk | select Number, Location)")
 	out, err := runExec(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list disk location. cmd: %q, output: %q, err %v", cmd, string(out), err)
@@ -93,8 +93,8 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 
 	m := make(map[uint32]shared.DiskLocation)
 	for _, v := range getDisk {
-		str := v["location"].(string)
-		num := v["number"].(float64)
+		str := v["Location"].(string)
+		num := v["Number"].(float64)
 
 		found := false
 		s := strings.Split(str, ":")
@@ -237,7 +237,7 @@ func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 }
 
 func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
-	cmd := "(Get-Disk | Select Path) | ConvertTo-Json"
+	cmd := "ConvertTo-Json @(Get-Disk | Select Path)"
 	out, err := runExec(cmd)
 	if err != nil {
 		return 0, fmt.Errorf("Could not query disk paths")
@@ -245,7 +245,10 @@ func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
 
 	outString := string(out)
 	disks := []Disk{}
-	json.Unmarshal([]byte(outString), &disks)
+	err = json.Unmarshal([]byte(outString), &disks)
+	if err != nil {
+		return 0, err
+	}
 
 	for i := range disks {
 		diskNumber, diskPage83ID, err := imp.GetDiskNumberAndPage83ID(disks[i].Path)
@@ -293,8 +296,8 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 	// {
 	//     "Path":  "\\\\?\\scsi#disk\u0026ven_msft\u0026prod_virtual_disk#2\u00261f4adffe\u00260\u0026000001#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
 	//     "SerialNumber":  null
-	// },
-	cmd := "(Get-Disk | Select Path, SerialNumber) | ConvertTo-Json"
+	// }, ]
+	cmd := "ConvertTo-Json @(Get-Disk | Select Path, SerialNumber)"
 	out, err := runExec(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not query disk paths")
@@ -302,7 +305,10 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 
 	outString := string(out)
 	disks := []Disk{}
-	json.Unmarshal([]byte(outString), &disks)
+	err = json.Unmarshal([]byte(outString), &disks)
+	if err != nil {
+		return nil, err
+	}
 
 	m := make(map[uint32]shared.DiskIDs)
 
