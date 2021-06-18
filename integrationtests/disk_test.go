@@ -8,6 +8,9 @@ import (
 // the host name
 // Skip on Github Actions as it is expected to fail
 func TestDiskAPIGroup(t *testing.T) {
+	t.Run("v1Tests", func(t *testing.T) {
+		v1DiskTests(t)
+	})
 	t.Run("v1beta3Tests", func(t *testing.T) {
 		v1beta3DiskTests(t)
 	})

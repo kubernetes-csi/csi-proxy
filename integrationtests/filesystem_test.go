@@ -17,6 +17,9 @@ func pathExists(path string) (bool, error) {
 }
 
 func TestFilesystemAPIGroup(t *testing.T) {
+	t.Run("v1FilesystemTests", func(t *testing.T) {
+		v1FilesystemTests(t)
+	})
 	t.Run("v1beta2FilesystemTests", func(t *testing.T) {
 		v1beta2FilesystemTests(t)
 	})

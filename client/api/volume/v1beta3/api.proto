@@ -8,22 +8,31 @@ service Volume {
     // ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes from a
     // given disk number and partition number (optional)
     rpc ListVolumesOnDisk(ListVolumesOnDiskRequest) returns (ListVolumesOnDiskResponse) {}
+
     // MountVolume mounts the volume at the requested global staging path.
     rpc MountVolume(MountVolumeRequest) returns (MountVolumeResponse) {}
+
     // UnmountVolume flushes data cache to disk and removes the global staging path.
     rpc UnmountVolume(UnmountVolumeRequest) returns (UnmountVolumeResponse) {}
+
     // IsVolumeFormatted checks if a volume is formatted.
     rpc IsVolumeFormatted(IsVolumeFormattedRequest) returns (IsVolumeFormattedResponse) {}
+
     // FormatVolume formats a volume with NTFS.
     rpc FormatVolume(FormatVolumeRequest) returns (FormatVolumeResponse) {}
+
     // ResizeVolume performs resizing of the partition and file system for a block based volume.
     rpc ResizeVolume(ResizeVolumeRequest) returns (ResizeVolumeResponse) {}
+
     // GetVolumeStats gathers total bytes and used bytes for a volume.
     rpc GetVolumeStats(GetVolumeStatsRequest) returns (GetVolumeStatsResponse) {}
+
     // GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
     rpc GetDiskNumberFromVolumeID(GetDiskNumberFromVolumeIDRequest) returns (GetDiskNumberFromVolumeIDResponse ) {}
+
     // GetVolumeIDFromTargetPath gets the volume id for a given target path.
     rpc GetVolumeIDFromTargetPath(GetVolumeIDFromTargetPathRequest) returns (GetVolumeIDFromTargetPathResponse) {}
+
     // WriteVolumeCache write volume cache to disk.
     rpc WriteVolumeCache(WriteVolumeCacheRequest) returns (WriteVolumeCacheResponse) {}
 }

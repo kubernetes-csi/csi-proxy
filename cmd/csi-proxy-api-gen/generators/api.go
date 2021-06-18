@@ -98,6 +98,8 @@ func packages(context *generator.Context, arguments *args.GeneratorArgs) (pkgs g
 func findAPIGroupDefinitions(context *generator.Context) []*groupDefinition {
 	pkgPaths := context.Inputs
 
+	klog.V(5).InfoS("context.Inputs", pkgPaths)
+
 	// first, re-order the inputs by lengths, so that we always process parent packages first
 	sort.Slice(pkgPaths, func(i, j int) bool {
 		return len(pkgPaths[i]) < len(pkgPaths[j])
