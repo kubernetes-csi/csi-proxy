@@ -24,6 +24,7 @@ message NewSmbGlobalMappingRequest {
     // UNC specifications to local paths or prefix: \\?\ is not allowed.
     // Characters: + [ ] " / : ; | < > , ? * = $ are not allowed.
     string remote_path = 1;
+
     // Optional local path to mount the smb on
     string local_path = 2;
 
