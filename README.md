@@ -107,7 +107,7 @@ spec:
         kubernetes.io/os: windows
       containers:
         - name: csi-driver-registrar
-          image: gke.gcr.io/csi-node-driver-registrar:win-v1
+          image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.1.0
           args:
             - "--v=5"
             - "--csi-address=unix://C:\\csi\\csi.sock"
