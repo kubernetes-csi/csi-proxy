@@ -4,7 +4,7 @@ github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/go-logr/logr v0.2.0
+# github.com/go-logr/logr v0.4.0
 github.com/go-logr/logr
 # github.com/golang/protobuf v1.4.1
 github.com/golang/protobuf/proto
@@ -191,7 +191,7 @@ k8s.io/gengo/types
 # k8s.io/klog v1.0.0
 ## explicit
 k8s.io/klog
-# k8s.io/klog/v2 v2.4.0
+# k8s.io/klog/v2 v2.9.0
 ## explicit
 k8s.io/klog/v2
 # github.com/kubernetes-csi/csi-proxy/client => ./client
