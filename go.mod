@@ -23,13 +23,13 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sergi/go-diff v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5
 	golang.org/x/text v0.3.2 // indirect
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.25.0
 	k8s.io/gengo v0.0.0-00010101000000-000000000000
 	k8s.io/klog v1.0.0 // indirect
-	k8s.io/klog/v2 v2.4.0
+	k8s.io/klog/v2 v2.9.0
 )
