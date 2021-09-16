@@ -2,7 +2,20 @@ syntax = "proto3";
 
 package v1beta2;
 
+import "google/protobuf/descriptor.proto";
+
 option go_package = "github.com/kubernetes-csi/csi-proxy/client/api/smb/v1beta2";
+
+extend google.protobuf.FieldOptions {
+    // Indicates that a field MAY contain information that is sensitive
+    // and MUST be treated as such (e.g. not logged).
+    bool csi_secret = 1059;
+
+    // Indicates that this field is OPTIONAL and part of an experimental
+    // API that may be deprecated and eventually removed between minor
+    // releases.
+    bool alpha_field = 1060;
+ }
 
 service Smb {
     // NewSmbGlobalMapping creates an SMB mapping on the SMB client to an SMB share.
@@ -32,7 +45,8 @@ message NewSmbGlobalMappingRequest {
     string username = 3;
 
     // Password credential associated with the share
-    string password = 4;
+    string password = 4 [(csi_secret) = true];
+
 }
 
 message NewSmbGlobalMappingResponse {
