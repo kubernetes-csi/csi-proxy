@@ -158,7 +158,7 @@ func (DiskAPI) InitializeDisk(diskNumber uint32) error {
 }
 
 func (DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
-	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %d | Where Type -eq Basic", diskNumber)
+	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %d | Where Type -ne Reserved", diskNumber)
 	out, err := runExec(cmd)
 	if err != nil {
 		return false, fmt.Errorf("error checking presence of partitions on disk %d: %v, %v", diskNumber, out, err)
