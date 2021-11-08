@@ -1,0 +1,9 @@
+ARG BASE_IMAGE=nanoserver:1809
+ARG REGISTRY=mcr.microsoft.com/windows
+
+FROM ${REGISTRY}/${BASE_IMAGE}
+
+Add /bin/csi-proxy.exe /csi-proxy.exe
+
+ENV PATH="C:\Windows\system32;C:\Windows;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;"
+ENTRYPOINT ["csi-proxy.exe", "-v", "4"]

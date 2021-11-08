@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: csi-proxy
-  namespace: kube-system # Is this the right namespace?
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
@@ -12,9 +12,6 @@ spec:
       labels:
         name: csi-proxy
     spec:
-      tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
       nodeSelector:
         "kubernetes.io/os": windows
       securityContext:
@@ -24,5 +21,5 @@ spec:
       hostNetwork: true
       containers:
         - name: csi-proxy
-          image: mrosse3/csi-proxy:v1.0.2
+          image: mrosse3/csi-proxy:canary # for testing
           imagePullPolicy: Always # for testing
