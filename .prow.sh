@@ -5,6 +5,7 @@
 # # Only these tests make sense for csi-proxy
 : ${CSI_PROW_TESTS:="unit"}
 : ${CSI_PROW_BUILD_PLATFORMS:="windows amd64 .exe nanoserver:1809"}
+: ${REGISTRY_NAME:="gcr.io/k8s-staging-sig-storage"}
 
 . release-tools/prow.sh
 
