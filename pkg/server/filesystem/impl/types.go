@@ -61,6 +61,16 @@ type RmdirRequest struct {
 type RmdirResponse struct {
 }
 
+type LsdirRequest struct {
+	// The directory to list files from.
+	Path string
+}
+
+type LsdirResponse struct {
+	// The files under the directory.
+	Files []string
+}
+
 type CreateSymlinkRequest struct {
 	// The path of the existing directory to be linked.
 	// All special characters allowed by Windows in path names will be allowed

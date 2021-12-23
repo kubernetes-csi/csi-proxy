@@ -47,6 +47,9 @@ func (fakeFileSystemAPI) Mkdir(path string) error {
 func (fakeFileSystemAPI) Rmdir(path string, force bool) error {
 	return nil
 }
+func (fakeFileSystemAPI) Lsdir(path string) ([]string, error) {
+	return nil, nil
+}
 func (fakeFileSystemAPI) CreateSymlink(tgt string, src string) error {
 	return nil
 }

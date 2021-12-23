@@ -167,6 +167,17 @@ func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest
 	return &internal.LinkPathResponse{}, nil
 }
 
+func (s *Server) Lsdir(ctx context.Context, request *internal.LsdirRequest, version apiversion.Version) (*internal.LsdirResponse, error) {
+	klog.V(2).Infof("Request: Lsdir with path=%q", request.Path)
+	err := s.validatePathWindows(request.Path)
+	if err != nil {
+		klog.Errorf("failed validatePathWindows for path=%q, err=%v", request.Path, err)
+		return nil, err
+	}
+	names, err := s.hostAPI.Lsdir(request.Path)
+	return &internal.LsdirResponse{Files: names}, nil
+}
+
 func (s *Server) CreateSymlink(ctx context.Context, request *internal.CreateSymlinkRequest, version apiversion.Version) (*internal.CreateSymlinkResponse, error) {
 	klog.V(2).Infof("Request: CreateSymlink with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
 	err := s.validatePathWindows(request.TargetPath)

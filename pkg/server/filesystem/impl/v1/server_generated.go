@@ -65,6 +65,25 @@ func (s *versionedAPI) IsSymlink(context context.Context, versionedRequest *v1.I
 	return versionedResponse, err
 }
 
+func (s *versionedAPI) Lsdir(context context.Context, versionedRequest *v1.LsdirRequest) (*v1.LsdirResponse, error) {
+	request := &impl.LsdirRequest{}
+	if err := Convert_v1_LsdirRequest_To_impl_LsdirRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.Lsdir(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1.LsdirResponse{}
+	if err := Convert_impl_LsdirResponse_To_v1_LsdirResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) Mkdir(context context.Context, versionedRequest *v1.MkdirRequest) (*v1.MkdirResponse, error) {
 	request := &impl.MkdirRequest{}
 	if err := Convert_v1_MkdirRequest_To_impl_MkdirRequest(versionedRequest, request); err != nil {

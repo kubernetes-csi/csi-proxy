@@ -73,6 +73,10 @@ func (w *Client) IsSymlink(context context.Context, request *v1.IsSymlinkRequest
 	return w.client.IsSymlink(context, request, opts...)
 }
 
+func (w *Client) Lsdir(context context.Context, request *v1.LsdirRequest, opts ...grpc.CallOption) (*v1.LsdirResponse, error) {
+	return w.client.Lsdir(context, request, opts...)
+}
+
 func (w *Client) Mkdir(context context.Context, request *v1.MkdirRequest, opts ...grpc.CallOption) (*v1.MkdirResponse, error) {
 	return w.client.Mkdir(context, request, opts...)
 }

@@ -18,6 +18,7 @@ type API interface {
 	PathValid(path string) (bool, error)
 	Mkdir(path string) error
 	Rmdir(path string, force bool) error
+	Lsdir(path string) ([]string, error)
 	CreateSymlink(oldname string, newname string) error
 	IsSymlink(path string) (bool, error)
 }
@@ -76,6 +77,21 @@ func (filesystemAPI) Rmdir(path string, force bool) error {
 		return os.RemoveAll(path)
 	}
 	return os.Remove(path)
+}
+
+// Lsdir lists files under a directory
+func (filesystemAPI) Lsdir(path string) ([]string, error) {
+	dir, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+
+	names, err := dir.Readdirnames(-1)
+	if err != nil {
+		return nil, err
+	}
+	return names, nil
 }
 
 // CreateSymlink creates newname as a symbolic link to oldname.

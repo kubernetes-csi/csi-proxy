@@ -19,6 +19,7 @@ type ServerInterface interface {
 	IsMountPoint(context.Context, *IsMountPointRequest, apiversion.Version) (*IsMountPointResponse, error)
 	IsSymlink(context.Context, *IsSymlinkRequest, apiversion.Version) (*IsSymlinkResponse, error)
 	LinkPath(context.Context, *LinkPathRequest, apiversion.Version) (*LinkPathResponse, error)
+	Lsdir(context.Context, *LsdirRequest, apiversion.Version) (*LsdirResponse, error)
 	Mkdir(context.Context, *MkdirRequest, apiversion.Version) (*MkdirResponse, error)
 	PathExists(context.Context, *PathExistsRequest, apiversion.Version) (*PathExistsResponse, error)
 	Rmdir(context.Context, *RmdirRequest, apiversion.Version) (*RmdirResponse, error)

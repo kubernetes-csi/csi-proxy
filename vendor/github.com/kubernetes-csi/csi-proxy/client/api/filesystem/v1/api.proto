@@ -15,6 +15,9 @@ service Filesystem {
     // This may be used for unlinking a symlink created through CreateSymlink.
     rpc Rmdir(RmdirRequest) returns (RmdirResponse) {}
 
+    // Lsdir lists files in a directory
+    rpc Lsdir(LsdirRequest) returns (LsdirResponse) {}
+
     // CreateSymlink creates a symbolic link called target_path that points to source_path
     // in the host filesystem (target_path is the name of the symbolic link created,
     // source_path is the existing path).
@@ -84,6 +87,16 @@ message RmdirRequest {
 
 message RmdirResponse {
     // Intentionally empty.
+}
+
+message LsdirRequest {
+    // The path to list files from.
+    string path = 1;
+}
+
+message LsdirResponse {
+    // The paths under that directory.
+    repeated string files = 1;
 }
 
 message CreateSymlinkRequest {
