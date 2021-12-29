@@ -15,6 +15,7 @@ import (
 
 type Server struct {
 	kubeletPath string
+	workingDirs []string
 	hostAPI     filesystem.API
 }
 
@@ -24,9 +25,10 @@ var _ internal.ServerInterface = &Server{}
 var invalidPathCharsRegexWindows = regexp.MustCompile(`["/\:\?\*|]`)
 var absPathRegexWindows = regexp.MustCompile(`^[a-zA-Z]:\\`)
 
-func NewServer(kubeletPath string, hostAPI filesystem.API) (*Server, error) {
+func NewServer(kubeletPath string, workingDirs []string, hostAPI filesystem.API) (*Server, error) {
 	return &Server{
 		kubeletPath: kubeletPath,
+		workingDirs: workingDirs,
 		hostAPI:     hostAPI,
 	}, nil
 }
@@ -69,8 +71,6 @@ func (s *Server) ValidatePluginPath(path string) error {
 }
 
 func (s *Server) validatePathWindows(path string) error {
-	prefix := s.kubeletPath
-
 	pathlen := len(path)
 
 	if pathlen > utils.MaxPathLengthWindows {
@@ -93,8 +93,18 @@ func (s *Server) validatePathWindows(path string) error {
 		return fmt.Errorf("not an absolute Windows path: %s", path)
 	}
 
-	if !strings.HasPrefix(strings.ToLower(path), strings.ToLower(prefix)) {
-		return fmt.Errorf("path: %s is not within context path: %s", path, prefix)
+	valid := false
+	if strings.HasPrefix(strings.ToLower(path), strings.ToLower(s.kubeletPath)) {
+		valid = true
+	}
+	for _, workingDir := range s.workingDirs {
+		if strings.HasPrefix(strings.ToLower(path), strings.ToLower(workingDir)) {
+			valid = true
+		}
+	}
+
+	if !valid {
+		return fmt.Errorf("path: %s is not within context path: %s or %v", path, s.kubeletPath, s.workingDirs)
 	}
 
 	return nil

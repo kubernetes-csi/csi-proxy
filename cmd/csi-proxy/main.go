@@ -22,15 +22,31 @@ import (
 	"k8s.io/klog/v2"
 )
 
+type workingDirFlags []string
+
+func (i *workingDirFlags) String() string {
+	return "Not implemented"
+}
+
+func (i *workingDirFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
 var (
 	kubeletPath = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
 	windowsSvc  = flag.Bool("windows-service", false, "Configure as a Windows Service")
 	service     *handler
+	workingDirs workingDirFlags
 )
 
 type handler struct {
 	tosvc   chan bool
 	fromsvc chan error
+}
+
+func init() {
+	flag.Var(&workingDirs, "working-dir", "Prefix path of the csi-proxy working directory in the host file system")
 }
 
 func main() {
@@ -60,7 +76,7 @@ func main() {
 
 // apiGroups returns the list of enabled API groups.
 func apiGroups() ([]srvtypes.APIGroup, error) {
-	fssrv, err := filesystemsrv.NewServer(*kubeletPath, filesystemapi.New())
+	fssrv, err := filesystemsrv.NewServer(*kubeletPath, workingDirs, filesystemapi.New())
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
