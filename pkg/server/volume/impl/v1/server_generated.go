@@ -46,6 +46,25 @@ func (s *versionedAPI) FormatVolume(context context.Context, versionedRequest *v
 	return versionedResponse, err
 }
 
+func (s *versionedAPI) GetClosestVolumeIDFromTargetPath(context context.Context, versionedRequest *v1.GetClosestVolumeIDFromTargetPathRequest) (*v1.GetClosestVolumeIDFromTargetPathResponse, error) {
+	request := &impl.GetClosestVolumeIDFromTargetPathRequest{}
+	if err := Convert_v1_GetClosestVolumeIDFromTargetPathRequest_To_impl_GetClosestVolumeIDFromTargetPathRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.GetClosestVolumeIDFromTargetPath(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v1.GetClosestVolumeIDFromTargetPathResponse{}
+	if err := Convert_impl_GetClosestVolumeIDFromTargetPathResponse_To_v1_GetClosestVolumeIDFromTargetPathResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}
+
 func (s *versionedAPI) GetDiskNumberFromVolumeID(context context.Context, versionedRequest *v1.GetDiskNumberFromVolumeIDRequest) (*v1.GetDiskNumberFromVolumeIDResponse, error) {
 	request := &impl.GetDiskNumberFromVolumeIDRequest{}
 	if err := Convert_v1_GetDiskNumberFromVolumeIDRequest_To_impl_GetDiskNumberFromVolumeIDRequest(versionedRequest, request); err != nil {

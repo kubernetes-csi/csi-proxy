@@ -17,6 +17,7 @@ type VersionedAPI interface {
 type ServerInterface interface {
 	DismountVolume(context.Context, *DismountVolumeRequest, apiversion.Version) (*DismountVolumeResponse, error)
 	FormatVolume(context.Context, *FormatVolumeRequest, apiversion.Version) (*FormatVolumeResponse, error)
+	GetClosestVolumeIDFromTargetPath(context.Context, *GetClosestVolumeIDFromTargetPathRequest, apiversion.Version) (*GetClosestVolumeIDFromTargetPathResponse, error)
 	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest, apiversion.Version) (*GetDiskNumberFromVolumeIDResponse, error)
 	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest, apiversion.Version) (*VolumeDiskNumberResponse, error)
 	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest, apiversion.Version) (*VolumeIDFromMountResponse, error)
