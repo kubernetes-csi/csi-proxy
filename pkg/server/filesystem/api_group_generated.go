@@ -5,7 +5,7 @@ package filesystem
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem/impl"
-	v1 "github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem/impl/v1"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem/impl/v1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem/impl/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem/impl/v1beta1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem/impl/v1beta2"

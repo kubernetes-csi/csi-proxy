@@ -290,3 +290,24 @@ func (s *Server) GetVolumeIDFromTargetPath(context context.Context, request *int
 
 	return response, nil
 }
+
+func (s *Server) GetClosestVolumeIDFromTargetPath(context context.Context, request *internal.GetClosestVolumeIDFromTargetPathRequest, version apiversion.Version) (*internal.GetClosestVolumeIDFromTargetPathResponse, error) {
+	klog.V(2).Infof("GetClosestVolumeIDFromTargetPath: Request: %+v", request)
+
+	targetPath := request.TargetPath
+	if targetPath == "" {
+		return nil, fmt.Errorf("target path is empty")
+	}
+
+	volume, err := s.hostAPI.GetClosestVolumeIDFromTargetPath(targetPath)
+	if err != nil {
+		klog.Errorf("failed GetClosestVolumeIDFromTargetPath: %v", err)
+		return nil, err
+	}
+
+	response := &internal.GetClosestVolumeIDFromTargetPathResponse{
+		VolumeId: volume,
+	}
+
+	return response, nil
+}

@@ -6,7 +6,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl"
-	v1 "github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1beta1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1beta2"

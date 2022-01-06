@@ -5,7 +5,7 @@ package dummy
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl"
-	v1 "github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1"
+	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/integrationtests/apigroups/server/dummy/impl/v1alpha2"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
