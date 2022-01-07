@@ -84,3 +84,7 @@ func (w *Client) PathExists(context context.Context, request *v2alpha1.PathExist
 func (w *Client) Rmdir(context context.Context, request *v2alpha1.RmdirRequest, opts ...grpc.CallOption) (*v2alpha1.RmdirResponse, error) {
 	return w.client.Rmdir(context, request, opts...)
 }
+
+func (w *Client) RmdirContents(context context.Context, request *v2alpha1.RmdirContentsRequest, opts ...grpc.CallOption) (*v2alpha1.RmdirContentsResponse, error) {
+	return w.client.RmdirContents(context, request, opts...)
+}

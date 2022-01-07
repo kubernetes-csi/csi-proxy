@@ -332,6 +332,106 @@ func (*RmdirResponse) Descriptor() ([]byte, []int) {
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{5}
 }
 
+type RmdirContentsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The path whose contents will be removed in the host's filesystem.
+	// All special characters allowed by Windows in path names will be allowed
+	// except for restrictions noted below. For details, please check:
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	//
+	// Restrictions:
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+	// Depending on the context parameter of this function, the path prefix needs
+	// to match the paths specified either as kubelet-csi-plugins-path
+	// or as kubelet-pod-path parameters of csi-proxy.
+	// UNC paths of the form "\\server\share\path\file" are not allowed.
+	// All directory separators need to be backslash character: "\".
+	// Characters: .. / : | ? * in the path are not allowed.
+	// Path cannot be a file of type symlink.
+	// Maximum path length will be capped to 260 characters.
+	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+}
+
+func (x *RmdirContentsRequest) Reset() {
+	*x = RmdirContentsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RmdirContentsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RmdirContentsRequest) ProtoMessage() {}
+
+func (x *RmdirContentsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RmdirContentsRequest.ProtoReflect.Descriptor instead.
+func (*RmdirContentsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RmdirContentsRequest) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+type RmdirContentsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *RmdirContentsResponse) Reset() {
+	*x = RmdirContentsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RmdirContentsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RmdirContentsResponse) ProtoMessage() {}
+
+func (x *RmdirContentsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RmdirContentsResponse.ProtoReflect.Descriptor instead.
+func (*RmdirContentsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{7}
+}
+
 type CreateSymlinkRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -373,7 +473,7 @@ type CreateSymlinkRequest struct {
 func (x *CreateSymlinkRequest) Reset() {
 	*x = CreateSymlinkRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[6]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -386,7 +486,7 @@ func (x *CreateSymlinkRequest) String() string {
 func (*CreateSymlinkRequest) ProtoMessage() {}
 
 func (x *CreateSymlinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[6]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -399,7 +499,7 @@ func (x *CreateSymlinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSymlinkRequest.ProtoReflect.Descriptor instead.
 func (*CreateSymlinkRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{6}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateSymlinkRequest) GetSourcePath() string {
@@ -425,7 +525,7 @@ type CreateSymlinkResponse struct {
 func (x *CreateSymlinkResponse) Reset() {
 	*x = CreateSymlinkResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[7]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -438,7 +538,7 @@ func (x *CreateSymlinkResponse) String() string {
 func (*CreateSymlinkResponse) ProtoMessage() {}
 
 func (x *CreateSymlinkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[7]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -451,7 +551,7 @@ func (x *CreateSymlinkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSymlinkResponse.ProtoReflect.Descriptor instead.
 func (*CreateSymlinkResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{7}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{9}
 }
 
 type IsSymlinkRequest struct {
@@ -466,7 +566,7 @@ type IsSymlinkRequest struct {
 func (x *IsSymlinkRequest) Reset() {
 	*x = IsSymlinkRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[8]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -479,7 +579,7 @@ func (x *IsSymlinkRequest) String() string {
 func (*IsSymlinkRequest) ProtoMessage() {}
 
 func (x *IsSymlinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[8]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +592,7 @@ func (x *IsSymlinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsSymlinkRequest.ProtoReflect.Descriptor instead.
 func (*IsSymlinkRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{8}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *IsSymlinkRequest) GetPath() string {
@@ -514,7 +614,7 @@ type IsSymlinkResponse struct {
 func (x *IsSymlinkResponse) Reset() {
 	*x = IsSymlinkResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[9]
+		mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -527,7 +627,7 @@ func (x *IsSymlinkResponse) String() string {
 func (*IsSymlinkResponse) ProtoMessage() {}
 
 func (x *IsSymlinkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[9]
+	mi := &file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -540,7 +640,7 @@ func (x *IsSymlinkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsSymlinkResponse.ProtoReflect.Descriptor instead.
 func (*IsSymlinkResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{9}
+	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *IsSymlinkResponse) GetIsSymlink() bool {
@@ -572,47 +672,57 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_
 	0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x66, 0x6f, 0x72, 0x63,
 	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x22, 0x0f,
 	0x0a, 0x0d, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x58, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x6f, 0x75, 0x72, 0x63,
-	0x65, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73, 0x6f,
-	0x75, 0x72, 0x63, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x61, 0x72, 0x67,
-	0x65, 0x74, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x74,
-	0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x22, 0x17, 0x0a, 0x15, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x26, 0x0a, 0x10, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x22, 0x32, 0x0a, 0x11, 0x49, 0x73,
-	0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x1d, 0x0a, 0x0a, 0x69, 0x73, 0x5f, 0x73, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x08, 0x52, 0x09, 0x69, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x32, 0xeb,
-	0x02, 0x0a, 0x0a, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x12, 0x49, 0x0a,
-	0x0a, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x12, 0x1b, 0x2e, 0x76, 0x32,
-	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70,
-	0x68, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3a, 0x0a, 0x05, 0x4d, 0x6b, 0x64, 0x69,
-	0x72, 0x12, 0x16, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x6b, 0x64,
-	0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x76, 0x32, 0x61, 0x6c,
-	0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x6b, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x3a, 0x0a, 0x05, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x12, 0x16, 0x2e,
-	0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
-	0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x52, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e,
-	0x6b, 0x12, 0x1e, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x1f, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x46, 0x0a, 0x09, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e,
-	0x6b, 0x12, 0x1a, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x49, 0x73, 0x53,
-	0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e,
-	0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69,
-	0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x44, 0x5a, 0x42,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72,
-	0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63, 0x73, 0x69, 0x2f, 0x63, 0x73, 0x69, 0x2d, 0x70, 0x72,
-	0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66,
-	0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x2f, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68,
-	0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x2a, 0x0a, 0x14, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x68, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x22, 0x17, 0x0a, 0x15, 0x52,
+	0x6d, 0x64, 0x69, 0x72, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x58, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79,
+	0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b,
+	0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0a, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1f, 0x0a,
+	0x0b, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0a, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x50, 0x61, 0x74, 0x68, 0x22, 0x17,
+	0x0a, 0x15, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x26, 0x0a, 0x10, 0x49, 0x73, 0x53, 0x79, 0x6d,
+	0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70,
+	0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74, 0x68, 0x22,
+	0x32, 0x0a, 0x11, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x69, 0x73, 0x5f, 0x73, 0x79, 0x6d, 0x6c, 0x69,
+	0x6e, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x69, 0x73, 0x53, 0x79, 0x6d, 0x6c,
+	0x69, 0x6e, 0x6b, 0x32, 0xbf, 0x03, 0x0a, 0x0a, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74,
+	0x65, 0x6d, 0x12, 0x49, 0x0a, 0x0a, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73,
+	0x12, 0x1b, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x74, 0x68,
+	0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e,
+	0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x74, 0x68, 0x45, 0x78, 0x69,
+	0x73, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3a, 0x0a,
+	0x05, 0x4d, 0x6b, 0x64, 0x69, 0x72, 0x12, 0x16, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61,
+	0x31, 0x2e, 0x4d, 0x6b, 0x64, 0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17,
+	0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x6b, 0x64, 0x69, 0x72, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3a, 0x0a, 0x05, 0x52, 0x6d, 0x64,
+	0x69, 0x72, 0x12, 0x16, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x52, 0x6d,
+	0x64, 0x69, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x76, 0x32, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x0d, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x43, 0x6f,
+	0x6e, 0x74, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x1e, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61,
+	0x31, 0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61,
+	0x31, 0x2e, 0x52, 0x6d, 0x64, 0x69, 0x72, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x0d, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x12, 0x1e, 0x2e, 0x76, 0x32, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c,
+	0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x76, 0x32, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x79, 0x6d, 0x6c,
+	0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x46, 0x0a,
+	0x09, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x12, 0x1a, 0x2e, 0x76, 0x32, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61,
+	0x31, 0x2e, 0x49, 0x73, 0x53, 0x79, 0x6d, 0x6c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x44, 0x5a, 0x42, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
+	0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x75, 0x62, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x65, 0x73, 0x2d, 0x63,
+	0x73, 0x69, 0x2f, 0x63, 0x73, 0x69, 0x2d, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2f, 0x63, 0x6c, 0x69,
+	0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x79, 0x73, 0x74,
+	0x65, 0x6d, 0x2f, 0x76, 0x32, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -627,7 +737,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api
 	return file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDescData
 }
 
-var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_goTypes = []interface{}{
 	(*PathExistsRequest)(nil),     // 0: v2alpha1.PathExistsRequest
 	(*PathExistsResponse)(nil),    // 1: v2alpha1.PathExistsResponse
@@ -635,27 +745,31 @@ var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_
 	(*MkdirResponse)(nil),         // 3: v2alpha1.MkdirResponse
 	(*RmdirRequest)(nil),          // 4: v2alpha1.RmdirRequest
 	(*RmdirResponse)(nil),         // 5: v2alpha1.RmdirResponse
-	(*CreateSymlinkRequest)(nil),  // 6: v2alpha1.CreateSymlinkRequest
-	(*CreateSymlinkResponse)(nil), // 7: v2alpha1.CreateSymlinkResponse
-	(*IsSymlinkRequest)(nil),      // 8: v2alpha1.IsSymlinkRequest
-	(*IsSymlinkResponse)(nil),     // 9: v2alpha1.IsSymlinkResponse
+	(*RmdirContentsRequest)(nil),  // 6: v2alpha1.RmdirContentsRequest
+	(*RmdirContentsResponse)(nil), // 7: v2alpha1.RmdirContentsResponse
+	(*CreateSymlinkRequest)(nil),  // 8: v2alpha1.CreateSymlinkRequest
+	(*CreateSymlinkResponse)(nil), // 9: v2alpha1.CreateSymlinkResponse
+	(*IsSymlinkRequest)(nil),      // 10: v2alpha1.IsSymlinkRequest
+	(*IsSymlinkResponse)(nil),     // 11: v2alpha1.IsSymlinkResponse
 }
 var file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_depIdxs = []int32{
-	0, // 0: v2alpha1.Filesystem.PathExists:input_type -> v2alpha1.PathExistsRequest
-	2, // 1: v2alpha1.Filesystem.Mkdir:input_type -> v2alpha1.MkdirRequest
-	4, // 2: v2alpha1.Filesystem.Rmdir:input_type -> v2alpha1.RmdirRequest
-	6, // 3: v2alpha1.Filesystem.CreateSymlink:input_type -> v2alpha1.CreateSymlinkRequest
-	8, // 4: v2alpha1.Filesystem.IsSymlink:input_type -> v2alpha1.IsSymlinkRequest
-	1, // 5: v2alpha1.Filesystem.PathExists:output_type -> v2alpha1.PathExistsResponse
-	3, // 6: v2alpha1.Filesystem.Mkdir:output_type -> v2alpha1.MkdirResponse
-	5, // 7: v2alpha1.Filesystem.Rmdir:output_type -> v2alpha1.RmdirResponse
-	7, // 8: v2alpha1.Filesystem.CreateSymlink:output_type -> v2alpha1.CreateSymlinkResponse
-	9, // 9: v2alpha1.Filesystem.IsSymlink:output_type -> v2alpha1.IsSymlinkResponse
-	5, // [5:10] is the sub-list for method output_type
-	0, // [0:5] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: v2alpha1.Filesystem.PathExists:input_type -> v2alpha1.PathExistsRequest
+	2,  // 1: v2alpha1.Filesystem.Mkdir:input_type -> v2alpha1.MkdirRequest
+	4,  // 2: v2alpha1.Filesystem.Rmdir:input_type -> v2alpha1.RmdirRequest
+	6,  // 3: v2alpha1.Filesystem.RmdirContents:input_type -> v2alpha1.RmdirContentsRequest
+	8,  // 4: v2alpha1.Filesystem.CreateSymlink:input_type -> v2alpha1.CreateSymlinkRequest
+	10, // 5: v2alpha1.Filesystem.IsSymlink:input_type -> v2alpha1.IsSymlinkRequest
+	1,  // 6: v2alpha1.Filesystem.PathExists:output_type -> v2alpha1.PathExistsResponse
+	3,  // 7: v2alpha1.Filesystem.Mkdir:output_type -> v2alpha1.MkdirResponse
+	5,  // 8: v2alpha1.Filesystem.Rmdir:output_type -> v2alpha1.RmdirResponse
+	7,  // 9: v2alpha1.Filesystem.RmdirContents:output_type -> v2alpha1.RmdirContentsResponse
+	9,  // 10: v2alpha1.Filesystem.CreateSymlink:output_type -> v2alpha1.CreateSymlinkResponse
+	11, // 11: v2alpha1.Filesystem.IsSymlink:output_type -> v2alpha1.IsSymlinkResponse
+	6,  // [6:12] is the sub-list for method output_type
+	0,  // [0:6] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_init() }
@@ -737,7 +851,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateSymlinkRequest); i {
+			switch v := v.(*RmdirContentsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -749,7 +863,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateSymlinkResponse); i {
+			switch v := v.(*RmdirContentsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -761,7 +875,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsSymlinkRequest); i {
+			switch v := v.(*CreateSymlinkRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -773,6 +887,30 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api
 			}
 		}
 		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateSymlinkResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IsSymlinkRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IsSymlinkResponse); i {
 			case 0:
 				return &v.state
@@ -791,7 +929,7 @@ func file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_kubernetes_csi_csi_proxy_client_api_filesystem_v2alpha1_api_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -824,6 +962,9 @@ type FilesystemClient interface {
 	// Rmdir removes the directory at the requested path in the host filesystem.
 	// This may be used for unlinking a symlink created through CreateSymlink.
 	Rmdir(ctx context.Context, in *RmdirRequest, opts ...grpc.CallOption) (*RmdirResponse, error)
+	// RmdirContents removes the contents of a directory in the host filesystem.
+	// Unlike Rmdir it won't delete the requested path, it'll only delete its contents.
+	RmdirContents(ctx context.Context, in *RmdirContentsRequest, opts ...grpc.CallOption) (*RmdirContentsResponse, error)
 	// CreateSymlink creates a symbolic link called target_path that points to source_path
 	// in the host filesystem (target_path is the name of the symbolic link created,
 	// source_path is the existing path).
@@ -867,6 +1008,15 @@ func (c *filesystemClient) Rmdir(ctx context.Context, in *RmdirRequest, opts ...
 	return out, nil
 }
 
+func (c *filesystemClient) RmdirContents(ctx context.Context, in *RmdirContentsRequest, opts ...grpc.CallOption) (*RmdirContentsResponse, error) {
+	out := new(RmdirContentsResponse)
+	err := c.cc.Invoke(ctx, "/v2alpha1.Filesystem/RmdirContents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *filesystemClient) CreateSymlink(ctx context.Context, in *CreateSymlinkRequest, opts ...grpc.CallOption) (*CreateSymlinkResponse, error) {
 	out := new(CreateSymlinkResponse)
 	err := c.cc.Invoke(ctx, "/v2alpha1.Filesystem/CreateSymlink", in, out, opts...)
@@ -894,6 +1044,9 @@ type FilesystemServer interface {
 	// Rmdir removes the directory at the requested path in the host filesystem.
 	// This may be used for unlinking a symlink created through CreateSymlink.
 	Rmdir(context.Context, *RmdirRequest) (*RmdirResponse, error)
+	// RmdirContents removes the contents of a directory in the host filesystem.
+	// Unlike Rmdir it won't delete the requested path, it'll only delete its contents.
+	RmdirContents(context.Context, *RmdirContentsRequest) (*RmdirContentsResponse, error)
 	// CreateSymlink creates a symbolic link called target_path that points to source_path
 	// in the host filesystem (target_path is the name of the symbolic link created,
 	// source_path is the existing path).
@@ -914,6 +1067,9 @@ func (*UnimplementedFilesystemServer) Mkdir(context.Context, *MkdirRequest) (*Mk
 }
 func (*UnimplementedFilesystemServer) Rmdir(context.Context, *RmdirRequest) (*RmdirResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Rmdir not implemented")
+}
+func (*UnimplementedFilesystemServer) RmdirContents(context.Context, *RmdirContentsRequest) (*RmdirContentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RmdirContents not implemented")
 }
 func (*UnimplementedFilesystemServer) CreateSymlink(context.Context, *CreateSymlinkRequest) (*CreateSymlinkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSymlink not implemented")
@@ -980,6 +1136,24 @@ func _Filesystem_Rmdir_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Filesystem_RmdirContents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RmdirContentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilesystemServer).RmdirContents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/v2alpha1.Filesystem/RmdirContents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilesystemServer).RmdirContents(ctx, req.(*RmdirContentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Filesystem_CreateSymlink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateSymlinkRequest)
 	if err := dec(in); err != nil {
@@ -1031,6 +1205,10 @@ var _Filesystem_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Rmdir",
 			Handler:    _Filesystem_Rmdir_Handler,
+		},
+		{
+			MethodName: "RmdirContents",
+			Handler:    _Filesystem_RmdirContents_Handler,
 		},
 		{
 			MethodName: "CreateSymlink",
