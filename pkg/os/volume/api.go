@@ -3,7 +3,9 @@ package volume
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -33,6 +35,8 @@ type API interface {
 	GetVolumeIDFromTargetPath(targetPath string) (string, error)
 	// WriteVolumeCache writes the volume `volumeID`'s cache to disk.
 	WriteVolumeCache(volumeID string) error
+	// GetVolumeIDFromTargetPath returns the volume id of a given target path.
+	GetClosestVolumeIDFromTargetPath(targetPath string) (string, error)
 }
 
 // VolumeAPI implements the internal Volume APIs
@@ -266,6 +270,96 @@ func getTarget(mount string) (string, error) {
 	volumeString = "\\\\?\\" + volumeString
 
 	return volumeString, nil
+}
+
+// GetVolumeIDFromTargetPath returns the volume id of a given target path.
+func (VolumeAPI) GetClosestVolumeIDFromTargetPath(targetPath string) (string, error) {
+	volumeString, err := findClosestVolume(targetPath)
+
+	if err != nil {
+		return "", fmt.Errorf("error getting the closest volume for the path=%s, err=%v", targetPath, err)
+	}
+
+	return volumeString, nil
+}
+
+// findClosestVolume finds the closest volume id for a given target path
+// by following symlinks and moving up in the filesystem, if after moving up in the filesystem
+// we get to a DriveLetter then the volume corresponding to this drive letter is returned instead.
+func findClosestVolume(path string) (string, error) {
+	candidatePath := path
+
+	// run in a bounded loop to avoid doing an infinite loop
+	// while trying to follow symlinks
+	for i := 0; i < 256; i += 1 {
+		fi, err := os.Lstat(candidatePath)
+		if err != nil {
+			return "", err
+		}
+		isSymlink := fi.Mode()&os.ModeSymlink != 0
+
+		if isSymlink {
+			target, err := dereferenceSymlink(candidatePath)
+			if err != nil {
+				return "", err
+			}
+			// if it has the form Volume{volumeid}\ then it's a volume
+			if strings.HasPrefix(target, "Volume") {
+				// symlinks that are pointing to Volumes don't have this prefix
+				target = "\\\\?\\" + target
+				return target, nil
+			}
+			// otherwise follow the symlink
+			candidatePath = target
+		} else {
+			// if it's not a symlink move one level up
+			previousPath := candidatePath
+			candidatePath = filepath.Dir(candidatePath)
+
+			// if the new path is the same as the previous path then we reached the root path
+			if previousPath == candidatePath {
+				// find the volume for the root path (assuming that it's a DriveLetter)
+				target, err := getVolumeForDriveLetter(candidatePath[0:1])
+				if err != nil {
+					return "", err
+				}
+				return target, nil
+			}
+		}
+
+	}
+
+	return "", fmt.Errorf("Failed to find the closest volume for path=%s", path)
+}
+
+// dereferenceSymlink dereferences the symlink `path` and returns the stdout.
+func dereferenceSymlink(path string) (string, error) {
+	cmd := exec.Command("powershell", "/c", fmt.Sprintf(`(Get-Item -Path %s).Target`, path))
+	klog.V(8).Infof("About to execute: %q", cmd.String())
+	targetb, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	output := strings.TrimSpace(string(targetb))
+	klog.V(8).Infof("Stdout: %s", output)
+	return output, nil
+}
+
+// getVolumeForDriveLetter gets a volume from a drive letter (e.g. C:/).
+func getVolumeForDriveLetter(path string) (string, error) {
+	if len(path) != 1 {
+		return "", fmt.Errorf("The path=%s is not a valid DriverLetter", path)
+	}
+
+	cmd := exec.Command("powershell", "/c", fmt.Sprintf(`(Get-Partition -DriveLetter %s | Get-Volume).UniqueId`, path))
+	klog.V(8).Infof("About to execute: %q", cmd.String())
+	targetb, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	output := strings.TrimSpace(string(targetb))
+	klog.V(8).Infof("Stdout: %s", output)
+	return output, nil
 }
 
 func writeCache(volumeID string) error {
