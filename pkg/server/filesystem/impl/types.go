@@ -61,6 +61,28 @@ type RmdirRequest struct {
 type RmdirResponse struct {
 }
 
+type RmdirContentsRequest struct {
+	// The path to remove in the host's filesystem.
+	// All special characters allowed by Windows in path names will be allowed
+	// except for restrictions noted below. For details, please check:
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	//
+	// Restrictions:
+	// Only absolute path (indicated by a drive letter prefix: e.g. "C:\") is accepted.
+	// Depending on the context parameter of this function, the path prefix needs
+	// to match the paths specified either as kubelet-csi-plugins-path
+	// or as kubelet-pod-path parameters of csi-proxy.
+	// UNC paths of the form "\\server\share\path\file" are not allowed.
+	// All directory separators need to be backslash character: "\".
+	// Characters: .. / : | ? * in the path are not allowed.
+	// Path cannot be a file of type symlink.
+	// Maximum path length will be capped to 260 characters.
+	Path string
+}
+
+type RmdirContentsResponse struct {
+}
+
 type CreateSymlinkRequest struct {
 	// The path of the existing directory to be linked.
 	// All special characters allowed by Windows in path names will be allowed

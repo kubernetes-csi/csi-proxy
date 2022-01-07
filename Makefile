@@ -4,7 +4,7 @@ all: build test
 # include release tools for building binary and testing targets
 include release-tools/build.make
 
-BUILD_PLATFORMS=windows amd64 .exe
+BUILD_PLATFORMS=windows amd64 amd64 .exe
 GOPATH ?= $(shell go env GOPATH)
 REPO_ROOT = $(CURDIR)
 BUILD_DIR = bin
