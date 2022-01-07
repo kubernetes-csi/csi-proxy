@@ -69,6 +69,10 @@ func (w *Client) FormatVolume(context context.Context, request *v2alpha1.FormatV
 	return w.client.FormatVolume(context, request, opts...)
 }
 
+func (w *Client) GetClosestVolumeIDFromTargetPath(context context.Context, request *v2alpha1.GetClosestVolumeIDFromTargetPathRequest, opts ...grpc.CallOption) (*v2alpha1.GetClosestVolumeIDFromTargetPathResponse, error) {
+	return w.client.GetClosestVolumeIDFromTargetPath(context, request, opts...)
+}
+
 func (w *Client) GetDiskNumberFromVolumeID(context context.Context, request *v2alpha1.GetDiskNumberFromVolumeIDRequest, opts ...grpc.CallOption) (*v2alpha1.GetDiskNumberFromVolumeIDResponse, error) {
 	return w.client.GetDiskNumberFromVolumeID(context, request, opts...)
 }
