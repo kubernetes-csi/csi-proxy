@@ -45,6 +45,11 @@ type VolumeAPI struct{}
 // verifies that the API is implemented
 var _ API = &VolumeAPI{}
 
+var (
+	// VolumeRegexp matches a Volume
+	VolumeRegexp = regexp.MustCompile(`^Volume\{[\w-]*\}`)
+)
+
 // New - Construct a new Volume API Implementation.
 func New() VolumeAPI {
 	return VolumeAPI{}
@@ -304,7 +309,7 @@ func findClosestVolume(path string) (string, error) {
 				return "", err
 			}
 			// if it has the form Volume{volumeid}\ then it's a volume
-			if strings.HasPrefix(target, "Volume") {
+			if VolumeRegexp.Match([]byte(target)) {
 				// symlinks that are pointing to Volumes don't have this prefix
 				target = "\\\\?\\" + target
 				return target, nil

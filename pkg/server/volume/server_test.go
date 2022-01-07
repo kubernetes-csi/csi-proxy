@@ -58,6 +58,10 @@ func (volumeAPI *fakeVolumeAPI) GetVolumeIDFromTargetPath(mount string) (string,
 	return "id", nil
 }
 
+func (volumeAPI *fakeVolumeAPI) GetClosestVolumeIDFromTargetPath(mount string) (string, error) {
+	return "id", nil
+}
+
 func (volumeAPI *fakeVolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
 	return -1, -1, nil
 }
