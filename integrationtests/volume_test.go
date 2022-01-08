@@ -172,4 +172,8 @@ func TestVolumeAPIs(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
 		v1VolumeTests(t)
 	})
+	t.Run("v2alpha1Tests", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+		v2alpha1VolumeTests(t)
+	})
 }

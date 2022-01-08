@@ -11,6 +11,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1beta1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1beta2"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v1beta3"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl/v2alpha1"
 )
 
 const name = "volume"
@@ -24,6 +25,7 @@ func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 	v1beta2Server := v1beta2.NewVersionedServer(s)
 	v1beta3Server := v1beta3.NewVersionedServer(s)
 	v1Server := v1.NewVersionedServer(s)
+	v2alpha1Server := v2alpha1.NewVersionedServer(s)
 
 	return []*srvtypes.VersionedAPI{
 		{
@@ -50,6 +52,11 @@ func (s *Server) VersionedAPIs() []*srvtypes.VersionedAPI {
 			Group:      name,
 			Version:    apiversion.NewVersionOrPanic("v1"),
 			Registrant: v1Server.Register,
+		},
+		{
+			Group:      name,
+			Version:    apiversion.NewVersionOrPanic("v2alpha1"),
+			Registrant: v2alpha1Server.Register,
 		},
 	}
 }
