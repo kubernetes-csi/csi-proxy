@@ -205,7 +205,7 @@ func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
 	s1 := rand.NewSource(time.Now().UTC().UnixNano())
 	r1 := rand.New(s1)
 
-	testId := r1.Intn(1000)
+	testId := r1.Intn(10000000)
 	testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", testId)
 	mountPath := fmt.Sprintf("%smount-%d", testPluginPath, testId)
 	vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, testId)
