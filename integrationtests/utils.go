@@ -156,7 +156,7 @@ func shouldRunIscsiTests() bool {
 }
 
 func runPowershellCmd(t *testing.T, command string) (string, error) {
-	cmd := exec.Command("powershell", "/c", command)
+	cmd := exec.Command("powershell", "/c", fmt.Sprintf("& { $global:ProgressPreference = 'SilentlyContinue'; %s }", command))
 	t.Logf("Executing command: %q", cmd.String())
 	result, err := cmd.CombinedOutput()
 	return string(result), err

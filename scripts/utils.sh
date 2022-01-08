@@ -50,5 +50,5 @@ restart_csi_proxy() {
 
 run_csi_proxy_integration_tests() {
   echo "Run integration tests"
-  gcloud compute ssh $windows_node --command='powershell -c "& { Import-Module .\utils.psm1; Run-CSIProxyIntegrationTests }"'
+  gcloud compute ssh $windows_node --command="powershell -c \"& { Import-Module .\utils.psm1; Run-CSIProxyIntegrationTests }\""
 }

@@ -26,5 +26,9 @@ function Restart-CSIProxy {
 
 function Run-CSIProxyIntegrationTests {
   Write-Output "Running integration tests"
-  powershell -c "C:\Users\$env:UserName\integrationtests.test.exe --test.v"
+  .\integrationtests.test.exe --test.v --test.run TestAPIGroups
+  .\integrationtests.test.exe --test.v --test.run TestDiskAPIGroup
+  .\integrationtests.test.exe --test.v --test.run TestVolumeAPIs
+  .\integrationtests.test.exe --test.v --test.run TestSmbAPIGroup
+  .\integrationtests.test.exe --test.v --test.run TestFilesystemAPIGroup
 }
