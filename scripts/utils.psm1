@@ -1,5 +1,6 @@
 function Restart-CSIProxy {
   # stop the csiproxy service
+  Get-Process csi-proxy | Stop-Process -Force
   sc.exe stop csiproxy
   Start-Sleep -Seconds 1;
   sc.exe delete csiproxy
@@ -10,7 +11,7 @@ function Restart-CSIProxy {
 
   # restart the csiproxy service
   $flags = "-v=5 -windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
-  sc.exe create csiproxy binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
+  sc.exe create csiproxy start= "auto" binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
   sc.exe failure csiproxy reset= 0 actions= restart/10000
   sc.exe start csiproxy
 

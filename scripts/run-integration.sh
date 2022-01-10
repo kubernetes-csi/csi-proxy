@@ -1,4 +1,5 @@
-#/bin/bash
+#!/bin/bash
+
 #
 # Runs the integration tests
 #
@@ -11,10 +12,10 @@
 # - restart the CSI Proxy binary process with a helper powershell script
 # - run the integration tests
 
-set -ex
+set -euxo pipefail
 
-script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source $script_dir/utils.sh
+pkgdir=${GOPATH}/src/github.com/kubernetes-csi/csi-proxy
+source $pkgdir/scripts/utils.sh
 
 main() {
   compile_csi_proxy

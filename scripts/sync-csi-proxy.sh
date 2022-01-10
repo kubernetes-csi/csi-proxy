@@ -1,4 +1,5 @@
-#/bin/bash
+#!/bin/bash
+
 #
 # Installs CSI Proxy in a kubernetes node
 #
@@ -10,10 +11,10 @@
 # - copy to the VM using scp
 # - restart the CSI Proxy binary process with a helper powershell script
 
-set -ex
+set -euxo pipefail
 
-script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source $script_dir/utils.sh
+pkgdir=${GOPATH}/src/github.com/kubernetes-csi/csi-proxy
+source $pkgdir/scripts/utils.sh
 
 main() {
   compile_csi_proxy
