@@ -50,5 +50,17 @@ restart_csi_proxy() {
 
 run_csi_proxy_integration_tests() {
   echo "Run integration tests"
-  gcloud compute ssh $windows_node --command="powershell -c \"& { Import-Module .\utils.psm1; Run-CSIProxyIntegrationTests }\""
+  local ps1=$(cat << 'EOF'
+  "& {
+    Import-Module .\\utils.psm1;
+    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestAPIGroups\";
+    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestFilesystemAPIGroup\";
+    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestDiskAPIGroup\";
+    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestVolumeAPIs\";
+    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestSmbAPIGroup\";
+  }"
+EOF
+);
+
+  gcloud compute ssh $windows_node --command="powershell -c $(echo $ps1 | tr '\n' ' ')"
 }

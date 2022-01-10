@@ -25,10 +25,16 @@ function Restart-CSIProxy {
 }
 
 function Run-CSIProxyIntegrationTests {
-  Write-Output "Running integration tests"
-  .\integrationtests.test.exe --test.v --test.run TestAPIGroups
-  .\integrationtests.test.exe --test.v --test.run TestDiskAPIGroup
-  .\integrationtests.test.exe --test.v --test.run TestVolumeAPIs
-  .\integrationtests.test.exe --test.v --test.run TestSmbAPIGroup
-  .\integrationtests.test.exe --test.v --test.run TestFilesystemAPIGroup
+  param (
+    [string]$test_args = ""
+  )
+
+  $ErrorActionPreference = "Stop";
+  Write-Output "Running integration tests with test_args=$test_args";
+  $flags = $test_args.Split(" ");
+  .\integrationtests.test.exe @flags
+
+  if (-not $?) {
+    throw "failed to run with exit code=$?"
+  }
 }
