@@ -117,7 +117,7 @@ func TestMkdirWindows(t *testing.T) {
 			expectError: true,
 		},
 	}
-	srv, err := NewServer(`C:\var\lib\kubelet`, []string{}, &fakeFileSystemAPI{})
+	srv, err := NewServer([]string{`C:\var\lib\kubelet`}, &fakeFileSystemAPI{})
 	if err != nil {
 		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
 	}
@@ -221,7 +221,7 @@ func TestRmdirWindows(t *testing.T) {
 			expectError: true,
 		},
 	}
-	srv, err := NewServer(`C:\var\lib\kubelet`, []string{}, &fakeFileSystemAPI{})
+	srv, err := NewServer([]string{`C:\var\lib\kubelet`}, &fakeFileSystemAPI{})
 	if err != nil {
 		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
 	}

@@ -61,14 +61,14 @@ func main() {
 		}
 	}
 
+	klog.Info("Starting CSI-Proxy Server ...")
+	klog.Infof("Version: %s", version)
 	apiGroups, err := apiGroups()
 	if err != nil {
 		panic(err)
 	}
 	s := server.NewServer(apiGroups...)
 
-	klog.Info("Starting CSI-Proxy Server ...")
-	klog.Infof("Version: %s", version)
 	if err := s.Start(nil); err != nil {
 		panic(err)
 	}
@@ -76,10 +76,12 @@ func main() {
 
 // apiGroups returns the list of enabled API groups.
 func apiGroups() ([]srvtypes.APIGroup, error) {
-	fssrv, err := filesystemsrv.NewServer(*kubeletPath, workingDirs, filesystemapi.New())
+	workingDirs = append(workingDirs, *kubeletPath)
+	fssrv, err := filesystemsrv.NewServer(workingDirs, filesystemapi.New())
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
+	klog.Info("Working directories: %v", fssrv.GetWorkingDirs())
 
 	volumesrv, err := volumesrv.NewServer(volumeapi.New())
 	if err != nil {
