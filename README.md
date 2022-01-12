@@ -50,8 +50,8 @@ On successful execution of `make build`, the output binary `csi-proxy.exe` will 
 
 csi-proxy.exe can be installed and run as binary or run as a Windows service on each Windows node. See the following as an example to run CSI Proxy as a web service.
 ```
-    $flags = "-windows-service -log_file=\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
-    sc.exe create csiproxy binPath= "\etc\kubernetes\node\bin\csi-proxy.exe $flags"
+    $flags = "-windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
+    sc.exe create csiproxy binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
     sc.exe failure csiproxy reset= 0 actions= restart/10000
     sc.exe start csiproxy
 ```
@@ -62,6 +62,7 @@ If you are using kube-up to start a Windows cluster, node startup script will au
 ### Command line options
 
 * `--kubelet-path`: This is the prefix path of the kubelet path directory in the host file system (`C:\var\lib\kubelet` is used by default).
+* `--working-dir` (repeated flag): Prefix path where CSI Proxy is allowed to make privileged operations in the host file system (no value by default).
 
 ### Setup for CSI Driver Deployment
 
@@ -108,6 +109,7 @@ spec:
             - name: registration-dir
               mountPath: C:\registration
         - name: csi-driver
+          # placeholder, use your CSI driver
           image: org/csi-driver:win-v1
           args:
             - "--v=5"
