@@ -1,6 +1,7 @@
 package volume
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -46,8 +47,14 @@ type VolumeAPI struct{}
 var _ API = &VolumeAPI{}
 
 var (
-	// VolumeRegexp matches a Volume
-	VolumeRegexp = regexp.MustCompile(`^Volume\{[\w-]*\}`)
+	// VolumeRegexp matches a Windows Volume
+	// example: Volume{452e318a-5cde-421e-9831-b9853c521012}
+	//
+	// The field UniqueId has an additional prefix which is NOT included in the regex
+	// however the regex can match UniqueId too
+	// PS C:\disks> (Get-Disk -Number 1 | Get-Partition | Get-Volume).UniqueId
+	// \\?\Volume{452e318a-5cde-421e-9831-b9853c521012}\
+	VolumeRegexp = regexp.MustCompile(`Volume\{[\w-]*\}`)
 )
 
 // New - Construct a new Volume API Implementation.
@@ -272,9 +279,7 @@ func getTarget(mount string) (string, error) {
 		return getTarget(volumeString)
 	}
 
-	volumeString = "\\\\?\\" + volumeString
-
-	return volumeString, nil
+	return ensureVolumePrefix(volumeString), nil
 }
 
 // GetVolumeIDFromTargetPath returns the volume id of a given target path.
@@ -294,8 +299,16 @@ func (VolumeAPI) GetClosestVolumeIDFromTargetPath(targetPath string) (string, er
 func findClosestVolume(path string) (string, error) {
 	candidatePath := path
 
-	// run in a bounded loop to avoid doing an infinite loop
+	// Run in a bounded loop to avoid doing an infinite loop
 	// while trying to follow symlinks
+	//
+	// The maximum path length in Windows is 260, it could be possible to end
+	// up in a sceneario where we do more than 256 iterations (e.g. by following symlinks from
+	// a place high in the hierarchy to a nested sibling location many times)
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#:~:text=In%20editions%20of%20Windows%20before,required%20to%20remove%20the%20limit.
+	//
+	// The number of iterations is 256, which is similar to the number of iterations in filepath-securejoin
+	// https://github.com/cyphar/filepath-securejoin/blob/64536a8a66ae59588c981e2199f1dcf410508e07/join.go#L51
 	for i := 0; i < 256; i += 1 {
 		fi, err := os.Lstat(candidatePath)
 		if err != nil {
@@ -308,11 +321,10 @@ func findClosestVolume(path string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			// if it has the form Volume{volumeid}\ then it's a volume
+			// if it has the form Volume{volumeid} then it's a volume
 			if VolumeRegexp.Match([]byte(target)) {
 				// symlinks that are pointing to Volumes don't have this prefix
-				target = "\\\\?\\" + target
-				return target, nil
+				return ensureVolumePrefix(target), nil
 			}
 			// otherwise follow the symlink
 			candidatePath = target
@@ -337,15 +349,29 @@ func findClosestVolume(path string) (string, error) {
 	return "", fmt.Errorf("Failed to find the closest volume for path=%s", path)
 }
 
+// ensureVolumePrefix makes sure that the volume has the Volume prefix
+func ensureVolumePrefix(volume string) string {
+	prefix := "\\\\?\\"
+	if !strings.HasPrefix(volume, prefix) {
+		volume = prefix + volume
+	}
+	return volume
+}
+
 // dereferenceSymlink dereferences the symlink `path` and returns the stdout.
 func dereferenceSymlink(path string) (string, error) {
 	cmd := exec.Command("powershell", "/c", fmt.Sprintf(`(Get-Item -Path %s).Target`, path))
 	klog.V(8).Infof("About to execute: %q", cmd.String())
-	targetb, err := cmd.Output()
-	if err != nil {
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stderr = &errbuf
+	cmd.Stdout = &outbuf
+	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	output := strings.TrimSpace(string(targetb))
+	if len(errbuf.String()) != 0 {
+		return "", fmt.Errorf("Unexpected stderr output in command=%v stdeerr=%v", cmd.String(), errbuf.String())
+	}
+	output := strings.TrimSpace(outbuf.String())
 	klog.V(8).Infof("Stdout: %s", output)
 	return output, nil
 }

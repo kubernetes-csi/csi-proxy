@@ -201,12 +201,16 @@ type VirtualHardDisk struct {
 	InitialSize    int64
 }
 
-func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
+func getTestPluginPath() (string, int) {
 	s1 := rand.NewSource(time.Now().UTC().UnixNano())
 	r1 := rand.New(s1)
 
-	testId := r1.Intn(10000000)
-	testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", testId)
+	testId := r1.Intn(1000000)
+	return fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", testId), testId
+}
+
+func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
+	testPluginPath, testId := getTestPluginPath()
 	mountPath := fmt.Sprintf("%smount-%d", testPluginPath, testId)
 	vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, testId)
 
@@ -240,7 +244,8 @@ func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
 	if diskNumUnparsed, err = runPowershellCmd(t, cmd); err != nil {
 		t.Fatalf("Error: %v. Command: %s", err, cmd)
 	}
-	if diskNum, err = strconv.ParseUint(strings.TrimRight(diskNumUnparsed, "\r\n"), 10, 32); err != nil {
+	diskNumUnparsed = strings.TrimSpace(diskNumUnparsed)
+	if diskNum, err = strconv.ParseUint(diskNumUnparsed, 10, 32); err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
