@@ -14,7 +14,6 @@ import (
 )
 
 type Server struct {
-	kubeletPath string
 	workingDirs []string
 	hostAPI     filesystem.API
 }
@@ -25,12 +24,15 @@ var _ internal.ServerInterface = &Server{}
 var invalidPathCharsRegexWindows = regexp.MustCompile(`["/\:\?\*|]`)
 var absPathRegexWindows = regexp.MustCompile(`^[a-zA-Z]:\\`)
 
-func NewServer(kubeletPath string, workingDirs []string, hostAPI filesystem.API) (*Server, error) {
+func NewServer(workingDirs []string, hostAPI filesystem.API) (*Server, error) {
 	return &Server{
-		kubeletPath: kubeletPath,
 		workingDirs: workingDirs,
 		hostAPI:     hostAPI,
 	}, nil
+}
+
+func (s *Server) GetWorkingDirs() []string {
+	return s.workingDirs
 }
 
 func containsInvalidCharactersWindows(path string) bool {
@@ -94,9 +96,6 @@ func (s *Server) validatePathWindows(path string) error {
 	}
 
 	valid := false
-	if strings.HasPrefix(strings.ToLower(path), strings.ToLower(s.kubeletPath)) {
-		valid = true
-	}
 	for _, workingDir := range s.workingDirs {
 		if strings.HasPrefix(strings.ToLower(path), strings.ToLower(workingDir)) {
 			valid = true
@@ -104,7 +103,7 @@ func (s *Server) validatePathWindows(path string) error {
 	}
 
 	if !valid {
-		return fmt.Errorf("path: %s is not within context path: %s or %v", path, s.kubeletPath, s.workingDirs)
+		return fmt.Errorf("path: %s is not within the working directories: %v", path, s.workingDirs)
 	}
 
 	return nil

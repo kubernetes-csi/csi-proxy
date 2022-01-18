@@ -83,7 +83,7 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 			expectError: false,
 		},
 	}
-	fsSrv, err := fsserver.NewServer(`C:\var\lib\kubelet`, []string{}, &fakeFileSystemAPI{})
+	fsSrv, err := fsserver.NewServer([]string{`C:\var\lib\kubelet`}, &fakeFileSystemAPI{})
 	if err != nil {
 		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
 	}
