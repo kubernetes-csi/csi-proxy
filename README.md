@@ -51,7 +51,7 @@ On successful execution of `make build`, the output binary `csi-proxy.exe` will 
 csi-proxy.exe can be installed and run as binary or run as a Windows service on each Windows node. See the following as an example to run CSI Proxy as a web service.
 ```
     $flags = "-windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
-    sc.exe create csiproxy binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
+    sc.exe create csiproxy start= "auto" binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
     sc.exe failure csiproxy reset= 0 actions= restart/10000
     sc.exe start csiproxy
 ```
