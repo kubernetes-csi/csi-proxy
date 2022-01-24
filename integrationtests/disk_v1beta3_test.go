@@ -51,19 +51,20 @@ func v1beta3DiskTests(t *testing.T) {
 			t.Errorf("Expected to get at least one diskIDs, instead got diskIDsResponse.DiskIDs=%+v", diskIDsMap)
 		}
 
+		// some disks may have the field Page83, if it's a GCE Persistent disk
+		// it'll have a nonempty SerialNumber
 		// first disk is the VM disk (other disks might be VHD)
-		diskNumber := 0
-		diskIDs, found := diskIDsMap[uint32(diskNumber)]
-		if !found {
-			t.Errorf("Cannot find Disk %d", diskNumber)
-		}
-		page83 := diskIDs.Page83
-		if page83 == "" {
-			t.Errorf("page83 field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
-		}
-		serialNumber := diskIDs.SerialNumber
-		if serialNumber == "" {
-			t.Errorf("serialNumber field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
+		for diskNumber, diskIDs := range diskIDsMap {
+			if len(diskIDs.SerialNumber) > 0 {
+				// the nvme disks don't have a Page83 number
+				if strings.HasPrefix(diskIDs.SerialNumber, "nvme") {
+					continue
+				}
+				page83 := diskIDs.Page83
+				if page83 == "" {
+					t.Errorf("page83 field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
+				}
+			}
 		}
 
 		listDiskLocationsRequest := &v1beta3.ListDiskLocationsRequest{}

@@ -48,21 +48,6 @@ func v1beta2DiskTests(t *testing.T) {
 			t.Errorf("Expected to get at least one diskIDs, instead got diskIDsResponse.DiskIDs=%+v", diskIDsMap)
 		}
 
-		// first disk is the VM disk (other disks might be VHD)
-		diskNumber := 0
-		diskIDs, found := diskIDsMap[strconv.FormatUint(uint64(diskNumber), 10)]
-		if !found {
-			t.Errorf("Cannot find Disk %d", diskNumber)
-		}
-		page83 := diskIDs.Identifiers["page83"]
-		if page83 == "" {
-			t.Errorf("page83 field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
-		}
-		serialNumber := diskIDs.Identifiers["serialNumber"]
-		if serialNumber == "" {
-			t.Errorf("serialNumber field of diskNumber=%d should be defined, instead got diskIDs=%v", diskNumber, diskIDs)
-		}
-
 		listDiskLocationsRequest := &v1beta2.ListDiskLocationsRequest{}
 		listDiskLocationsResponse, err := client.ListDiskLocations(context.TODO(), listDiskLocationsRequest)
 		require.Nil(t, err)

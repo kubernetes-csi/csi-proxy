@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # bump-version.sh
 # Bumps an API version from an old version to a new one

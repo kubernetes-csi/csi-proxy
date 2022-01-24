@@ -156,7 +156,7 @@ func shouldRunIscsiTests() bool {
 }
 
 func runPowershellCmd(t *testing.T, command string) (string, error) {
-	cmd := exec.Command("powershell", "/c", command)
+	cmd := exec.Command("powershell", "/c", fmt.Sprintf("& { $global:ProgressPreference = 'SilentlyContinue'; %s }", command))
 	t.Logf("Executing command: %q", cmd.String())
 	result, err := cmd.CombinedOutput()
 	return string(result), err
@@ -205,7 +205,7 @@ func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
 	s1 := rand.NewSource(time.Now().UTC().UnixNano())
 	r1 := rand.New(s1)
 
-	testId := r1.Intn(1000)
+	testId := r1.Intn(10000000)
 	testPluginPath := fmt.Sprintf("C:\\var\\lib\\kubelet\\plugins\\testplugin-%d.csi.io\\", testId)
 	mountPath := fmt.Sprintf("%smount-%d", testPluginPath, testId)
 	vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, testId)
