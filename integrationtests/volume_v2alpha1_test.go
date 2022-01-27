@@ -13,6 +13,8 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v2alpha1"
 	diskv1client "github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1"
 	v2alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // volumeInit initializes a volume, it creates a VHD, initializes it,
@@ -253,6 +255,30 @@ func v2alpha1MountVolumeTests(diskClient *diskv1client.Client, volumeClient *v2a
 	// resizing from 1GB to approximately 1.5GB
 	if !sizeIsAround(t, volumeStatsResponse.TotalBytes, newVolumeSize) {
 		t.Fatalf("VolumeSize reported should be greater than the old size, it is %v", volumeStatsResponse.TotalBytes)
+	}
+
+	// extending volume less than 10 MB should be failed
+	resizeVolumeRequest = &v2alpha1.ResizeVolumeRequest{
+		VolumeId: volumeID,
+		// set new size less than 10 MB
+		SizeBytes: newVolumeSize + (1024 * 512),
+	}
+	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
+	if err == nil {
+		t.Fatal("Volume resize request should be failed")
+	}
+	status, ok := status.FromError(err)
+	if !ok || status.Code() != codes.OutOfRange {
+		t.Fatal("Volume resize request should be failed with OutOfRange")
+	}
+	// Verify volume size after expected failed resize attempt
+	volumeStatsResponseAfterResize, err := volumeClient.GetVolumeStats(context.TODO(), volumeStatsRequest)
+	if err != nil {
+		t.Fatalf("VolumeStats request after resize error: %v", err)
+	}
+	if volumeStatsResponseAfterResize.TotalBytes != volumeStatsResponse.TotalBytes {
+		t.Fatalf("VolumeSize should not be extended from %d to %d", volumeStatsResponse.TotalBytes,
+			volumeStatsResponseAfterResize.TotalBytes)
 	}
 
 	volumeDiskNumberRequest := &v2alpha1.GetDiskNumberFromVolumeIDRequest{

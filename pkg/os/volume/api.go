@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
 )
 
@@ -56,6 +58,10 @@ var (
 	// \\?\Volume{452e318a-5cde-421e-9831-b9853c521012}\
 	VolumeRegexp = regexp.MustCompile(`Volume\{[\w-]*\}`)
 )
+
+// MinimumExpandSize is the minimum size required to
+// expanding the partition
+const MinimumExpandSize = 1024 * 1024
 
 // New - Construct a new Volume API Implementation.
 func New() VolumeAPI {
@@ -186,18 +192,24 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 	} else {
 		finalSize = size
 	}
+	klog.V(4).Infof("finalSize for resize of the volume: %s is %d ", volumeID, finalSize)
 
 	currentSize, err := getVolumeSize(volumeID)
 	if err != nil {
 		return fmt.Errorf("error getting the current size of volume (%s) with error (%v)", volumeID, err)
 	}
-
+	klog.V(4).Infof("currentSize of the volume: %s is %d ", volumeID, currentSize)
 	//if the partition's size is already the size we want this is a noop, just return
 	if currentSize >= finalSize {
 		klog.V(2).Infof("Attempted to resize volume %s to a lower size, from currentBytes=%d wantedBytes=%d", volumeID, currentSize, finalSize)
 		return nil
 	}
-
+	// Resize-Partition requires minimum extent size 1 MB
+	// if extent size for resize partition is less than 1 MB, skip expanding volume
+	if finalSize-currentSize < MinimumExpandSize {
+		return status.Errorf(codes.OutOfRange,
+			"minimum extent size is 1 MB. Skip resize for volume %s from currentBytes=%d to wantedBytes=%d ", volumeID, currentSize, finalSize)
+	}
 	cmd = fmt.Sprintf("Get-Volume -UniqueId \"%s\" | Get-Partition | Resize-Partition -Size %d", volumeID, finalSize)
 	out, err = runExec(cmd)
 	if err != nil {
