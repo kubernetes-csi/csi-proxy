@@ -2,7 +2,9 @@ package integrationtests
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -125,7 +127,7 @@ func v2alpha1FilesystemTests(t *testing.T) {
 		err = os.Mkdir(targetStagePath, os.ModeDir)
 		require.Nil(t, err)
 		defer os.Remove(targetStagePath)
-		// Create a sym link
+		// Create a symlink
 		err = os.Symlink(targetStagePath, lnTargetStagePath)
 		require.Nil(t, err)
 		defer os.Remove(lnTargetStagePath)
@@ -146,5 +148,100 @@ func v2alpha1FilesystemTests(t *testing.T) {
 		isSymlink, err = client.IsSymlink(context.Background(), IsSymlinkRequest)
 		require.Nil(t, err)
 		require.Equal(t, isSymlink.IsSymlink, false)
+	})
+	t.Run("RmdirContents", func(t *testing.T) {
+		client, err := v2alpha1client.NewClient()
+		require.Nil(t, err)
+		defer client.Close()
+
+		r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
+		rand1 := r1.Intn(100)
+
+		rootPath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
+		// this line should delete the rootPath because only its content were deleted
+		defer os.RemoveAll(rootPath)
+
+		paths := []string{
+			filepath.Join(rootPath, "foo/goo/"),
+			filepath.Join(rootPath, "foo/bar/baz/"),
+			filepath.Join(rootPath, "alpha/beta/gamma/"),
+		}
+		for _, path := range paths {
+			err = os.MkdirAll(path, os.ModeDir)
+			require.Nil(t, err)
+		}
+
+		rmdirContentsRequest := &v2alpha1.RmdirContentsRequest{
+			Path: rootPath,
+		}
+		_, err = client.RmdirContents(context.Background(), rmdirContentsRequest)
+		require.Nil(t, err)
+
+		// the root path should exist
+		exists, err := pathExists(rootPath)
+		assert.True(t, exists, err)
+		// the root path children shouldn't exist
+		for _, path := range paths {
+			exists, err = pathExists(path)
+			assert.False(t, exists, err)
+		}
+	})
+
+	t.Run("RmdirContentsNoFollowSymlink", func(t *testing.T) {
+		// RmdirContents should not delete the target of a symlink, only the symlink
+		client, err := v2alpha1client.NewClient()
+		require.Nil(t, err)
+		defer client.Close()
+
+		r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
+		rand1 := r1.Intn(100)
+
+		rootPath := getKubeletPathForTest(fmt.Sprintf("testplugin-%d.csi.io", rand1), t)
+		// this line should delete the rootPath because only its content were deleted
+		defer os.RemoveAll(rootPath)
+
+		insidePath := filepath.Join(rootPath, "inside/")
+		outsidePath := filepath.Join(rootPath, "outside/")
+		paths := []string{
+			filepath.Join(insidePath, "foo/goo/"),
+			filepath.Join(insidePath, "foo/bar/baz/"),
+			filepath.Join(insidePath, "foo/beta/gamma/"),
+			outsidePath,
+		}
+		for _, path := range paths {
+			err = os.MkdirAll(path, os.ModeDir)
+			require.Nil(t, err)
+		}
+
+		// create a temp file on the outside and make a symlink from the inside to the outside
+		outsideFile := filepath.Join(outsidePath, "target")
+		insideFile := filepath.Join(insidePath, "source")
+
+		file, err := os.Create(outsideFile)
+		require.Nil(t, err)
+		defer file.Close()
+		err = os.Symlink(outsideFile, insideFile)
+		require.Nil(t, err)
+
+		rmdirContentsRequest := &v2alpha1.RmdirContentsRequest{
+			Path: insidePath,
+		}
+		_, err = client.RmdirContents(context.Background(), rmdirContentsRequest)
+		require.Nil(t, err)
+
+		// the inside path should exist
+		exists, err := pathExists(insidePath)
+		require.Nil(t, err)
+		assert.True(t, exists, "The path shouldn't exist")
+		// it should have no children
+		children, err := ioutil.ReadDir(insidePath)
+		require.Nil(t, err)
+		assert.True(t, len(children) == 0, "The RmdirContents path to delete shouldn't have children")
+		// the symlink target should exist
+		_, err = os.Open(outsideFile)
+		if errors.Is(err, os.ErrNotExist) {
+			// the file should exist but it was deleted!
+			t.Fatalf("File outsideFile=%s doesn't exist", outsideFile)
+		}
 	})
 }

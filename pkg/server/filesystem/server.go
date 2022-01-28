@@ -163,6 +163,22 @@ func (s *Server) Rmdir(ctx context.Context, request *internal.RmdirRequest, vers
 	}
 	return nil, err
 }
+
+func (s *Server) RmdirContents(ctx context.Context, request *internal.RmdirContentsRequest, version apiversion.Version) (*internal.RmdirContentsResponse, error) {
+	klog.V(2).Infof("Request: RmdirContents with path=%q", request.Path)
+	err := s.validatePathWindows(request.Path)
+	if err != nil {
+		klog.Errorf("failed validatePathWindows %v", err)
+		return nil, err
+	}
+	err = s.hostAPI.RmdirContents(request.Path)
+	if err != nil {
+		klog.Errorf("failed RmdirContents %v", err)
+		return nil, err
+	}
+	return nil, err
+}
+
 func (s *Server) LinkPath(ctx context.Context, request *internal.LinkPathRequest, version apiversion.Version) (*internal.LinkPathResponse, error) {
 	klog.V(2).Infof("Request: LinkPath with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
 	createSymlinkRequest := &internal.CreateSymlinkRequest{

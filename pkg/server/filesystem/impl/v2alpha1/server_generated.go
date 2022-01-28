@@ -121,3 +121,22 @@ func (s *versionedAPI) Rmdir(context context.Context, versionedRequest *v2alpha1
 
 	return versionedResponse, err
 }
+
+func (s *versionedAPI) RmdirContents(context context.Context, versionedRequest *v2alpha1.RmdirContentsRequest) (*v2alpha1.RmdirContentsResponse, error) {
+	request := &impl.RmdirContentsRequest{}
+	if err := Convert_v2alpha1_RmdirContentsRequest_To_impl_RmdirContentsRequest(versionedRequest, request); err != nil {
+		return nil, err
+	}
+
+	response, err := s.apiGroupServer.RmdirContents(context, request, version)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedResponse := &v2alpha1.RmdirContentsResponse{}
+	if err := Convert_impl_RmdirContentsResponse_To_v2alpha1_RmdirContentsResponse(response, versionedResponse); err != nil {
+		return nil, err
+	}
+
+	return versionedResponse, err
+}

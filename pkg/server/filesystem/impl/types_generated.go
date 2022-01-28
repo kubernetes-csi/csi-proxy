@@ -22,4 +22,5 @@ type ServerInterface interface {
 	Mkdir(context.Context, *MkdirRequest, apiversion.Version) (*MkdirResponse, error)
 	PathExists(context.Context, *PathExistsRequest, apiversion.Version) (*PathExistsResponse, error)
 	Rmdir(context.Context, *RmdirRequest, apiversion.Version) (*RmdirResponse, error)
+	RmdirContents(context.Context, *RmdirContentsRequest, apiversion.Version) (*RmdirContentsResponse, error)
 }

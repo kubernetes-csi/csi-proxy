@@ -10,7 +10,6 @@
 set -o nounset
 set -ex
 
-# The bucket url of this script in Google Cloud, set in sync_scripts
 : "${API_GROUP?API_GROUP is not set}"
 : "${OLD_API_VERSION:?OLD_API_VERSION is not set, it needs the format vX}"
 : "${NEW_API_VERSION:?NEW_API_VERSION is not set, it needs the format vX}"
@@ -40,11 +39,11 @@ function generate_client_files {
   rm client/api/$target/api.pb.go || true
   rm client/groups/$target/client_generated.go || true
 
-  # generate client_generated.go
-  make generate-csi-proxy-api-gen
   # generate api.pb.go
   # it's going to fail but it's expected :(
   make generate-protobuf || true
+  # generate client_generated.go
+  make generate-csi-proxy-api-gen
 
   # restore files from other API groups (side effect of generate-protobuf)
   other_leaf_client_files=$(find client/api/ -links 2 -type d -exec echo {} \; | grep -v "$target\$")

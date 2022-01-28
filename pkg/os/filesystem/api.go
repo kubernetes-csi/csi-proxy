@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -18,6 +19,7 @@ type API interface {
 	PathValid(path string) (bool, error)
 	Mkdir(path string) error
 	Rmdir(path string, force bool) error
+	RmdirContents(path string) error
 	CreateSymlink(oldname string, newname string) error
 	IsSymlink(path string) (bool, error)
 }
@@ -76,6 +78,29 @@ func (filesystemAPI) Rmdir(path string, force bool) error {
 		return os.RemoveAll(path)
 	}
 	return os.Remove(path)
+}
+
+// RmdirContents removes the contents of a directory with `os.RemoveAll`
+func (filesystemAPI) RmdirContents(path string) error {
+	dir, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
+
+	files, err := dir.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		candidatePath := filepath.Join(path, file)
+		err = os.RemoveAll(candidatePath)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // CreateSymlink creates newname as a symbolic link to oldname.
