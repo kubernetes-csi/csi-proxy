@@ -3,6 +3,10 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	diskv1 "github.com/kubernetes-csi/csi-proxy/client/api/disk/v1"
@@ -11,23 +15,10 @@ import (
 	v2alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1"
 )
 
-func v2alpha1VolumeTests(t *testing.T) {
-	var volumeClient *v2alpha1client.Client
-	var diskClient *diskv1client.Client
-	var err error
-
-	if volumeClient, err = v2alpha1client.NewClient(); err != nil {
-		t.Fatalf("Client new error: %v", err)
-	}
-	defer volumeClient.Close()
-
-	if diskClient, err = diskv1client.NewClient(); err != nil {
-		t.Fatalf("DiskClient new error: %v", err)
-	}
-	defer diskClient.Close()
-
+// volumeInit initializes a volume, it creates a VHD, initializes it,
+// creates a partition with the max size and formats the volume corresponding to that partition
+func volumeInit(volumeClient *v2alpha1client.Client, t *testing.T) (*VirtualHardDisk, string, func()) {
 	vhd, vhdCleanup := diskInit(t)
-	defer vhdCleanup()
 
 	listRequest := &v2alpha1.ListVolumesOnDiskRequest{
 		DiskNumber: vhd.DiskNumber,
@@ -42,6 +33,7 @@ func v2alpha1VolumeTests(t *testing.T) {
 		t.Fatalf("Number of volumes not equal to 1: %d", volumeIDsLen)
 	}
 	volumeID := listResponse.VolumeIds[0]
+	t.Logf("VolumeId %v", volumeID)
 
 	isVolumeFormattedRequest := &v2alpha1.IsVolumeFormattedRequest{
 		VolumeId: volumeID,
@@ -69,8 +61,146 @@ func v2alpha1VolumeTests(t *testing.T) {
 	if !isVolumeFormattedResponse.Formatted {
 		t.Fatal("Volume should be formatted. Unexpected !!")
 	}
+	return vhd, volumeID, vhdCleanup
+}
 
-	t.Logf("VolumeId %v", volumeID)
+func v2alpha1GetClosestVolumeFromTargetPathTests(diskClient *diskv1client.Client, volumeClient *v2alpha1client.Client, t *testing.T) {
+	t.Run("DriveLetterVolume", func(t *testing.T) {
+		vhd, _, vhdCleanup := volumeInit(volumeClient, t)
+		defer vhdCleanup()
+
+		// vhd.Mount dir exists, because there are no volumes above it should return the C:\ volume
+		var request *v2alpha1.GetClosestVolumeIDFromTargetPathRequest
+		var response *v2alpha1.GetClosestVolumeIDFromTargetPathResponse
+		request = &v2alpha1.GetClosestVolumeIDFromTargetPathRequest{
+			TargetPath: vhd.Mount,
+		}
+		response, err := volumeClient.GetClosestVolumeIDFromTargetPath(context.TODO(), request)
+		if err != nil {
+			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
+		}
+
+		// the C drive volume
+		cmd := exec.Command("powershell", "/c", `(Get-Partition -DriveLetter C | Get-Volume).UniqueId`)
+		targetb, err := cmd.Output()
+		if err != nil {
+			t.Fatalf("Failed to get the C: drive volume")
+		}
+		cDriveVolume := strings.TrimSpace(string(targetb))
+
+		if response.VolumeId != cDriveVolume {
+			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the C: drive volume")
+		}
+	})
+	t.Run("AncestorVolumeFromNestedDirectory", func(t *testing.T) {
+		var err error
+		vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+		defer vhdCleanup()
+
+		// Mount the volume
+		mountVolumeRequest := &v2alpha1.MountVolumeRequest{
+			VolumeId:   volumeID,
+			TargetPath: vhd.Mount,
+		}
+		_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
+		if err != nil {
+			t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+		}
+
+		// Unmount the volume
+		defer func() {
+			unmountVolumeRequest := &v2alpha1.UnmountVolumeRequest{
+				VolumeId:   volumeID,
+				TargetPath: vhd.Mount,
+			}
+			_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
+			if err != nil {
+				t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+			}
+		}()
+
+		nestedDirectory := filepath.Join(vhd.Mount, "foo/bar")
+		err = os.MkdirAll(nestedDirectory, os.ModeDir)
+		if err != nil {
+			t.Fatalf("Failed to create directory=%s", nestedDirectory)
+		}
+
+		// the volume returned should be the VHD volume
+		var request *v2alpha1.GetClosestVolumeIDFromTargetPathRequest
+		var response *v2alpha1.GetClosestVolumeIDFromTargetPathResponse
+		request = &v2alpha1.GetClosestVolumeIDFromTargetPathRequest{
+			TargetPath: nestedDirectory,
+		}
+		response, err = volumeClient.GetClosestVolumeIDFromTargetPath(context.TODO(), request)
+		if err != nil {
+			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
+		}
+
+		if response.VolumeId != volumeID {
+			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the VHD volume=%s", volumeID)
+		}
+	})
+
+	t.Run("SymlinkToVolume", func(t *testing.T) {
+		var err error
+		vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+		defer vhdCleanup()
+
+		// Mount the volume
+		mountVolumeRequest := &v2alpha1.MountVolumeRequest{
+			VolumeId:   volumeID,
+			TargetPath: vhd.Mount,
+		}
+		_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
+		if err != nil {
+			t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+		}
+
+		// Unmount the volume
+		defer func() {
+			unmountVolumeRequest := &v2alpha1.UnmountVolumeRequest{
+				VolumeId:   volumeID,
+				TargetPath: vhd.Mount,
+			}
+			_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
+			if err != nil {
+				t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+			}
+		}()
+
+		testPluginPath, _ := getTestPluginPath()
+		err = os.MkdirAll(testPluginPath, os.ModeDir)
+		if err != nil {
+			t.Fatalf("Failed to create directory=%s", testPluginPath)
+		}
+
+		sourceSymlink := filepath.Join(testPluginPath, "source")
+		err = os.Symlink(vhd.Mount, sourceSymlink)
+		if err != nil {
+			t.Fatalf("Failed to create the symlink=%s", sourceSymlink)
+		}
+
+		// the volume returned should be the VHD volume
+		var request *v2alpha1.GetClosestVolumeIDFromTargetPathRequest
+		var response *v2alpha1.GetClosestVolumeIDFromTargetPathResponse
+		request = &v2alpha1.GetClosestVolumeIDFromTargetPathRequest{
+			TargetPath: sourceSymlink,
+		}
+		response, err = volumeClient.GetClosestVolumeIDFromTargetPath(context.TODO(), request)
+		if err != nil {
+			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
+		}
+
+		if response.VolumeId != volumeID {
+			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the VHD volume=%s", volumeID)
+		}
+	})
+}
+
+func v2alpha1MountVolumeTests(diskClient *diskv1client.Client, volumeClient *v2alpha1client.Client, t *testing.T) {
+	vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+	defer vhdCleanup()
+
 	volumeStatsRequest := &v2alpha1.GetVolumeStatsRequest{
 		VolumeId: volumeID,
 	}
@@ -166,4 +296,27 @@ func v2alpha1VolumeTests(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
 	}
+}
+
+func v2alpha1VolumeTests(t *testing.T) {
+	var volumeClient *v2alpha1client.Client
+	var diskClient *diskv1client.Client
+	var err error
+
+	if volumeClient, err = v2alpha1client.NewClient(); err != nil {
+		t.Fatalf("Client new error: %v", err)
+	}
+	defer volumeClient.Close()
+
+	if diskClient, err = diskv1client.NewClient(); err != nil {
+		t.Fatalf("DiskClient new error: %v", err)
+	}
+	defer diskClient.Close()
+
+	t.Run("MountVolume", func(t *testing.T) {
+		v2alpha1MountVolumeTests(diskClient, volumeClient, t)
+	})
+	t.Run("GetClosestVolumeFromTargetPath", func(t *testing.T) {
+		v2alpha1GetClosestVolumeFromTargetPathTests(diskClient, volumeClient, t)
+	})
 }

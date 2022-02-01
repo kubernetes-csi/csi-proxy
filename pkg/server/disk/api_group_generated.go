@@ -5,7 +5,7 @@ package disk
 import (
 	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/disk/impl"
-	v1 "github.com/kubernetes-csi/csi-proxy/pkg/server/disk/impl/v1"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/disk/impl/v1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/disk/impl/v1alpha1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/disk/impl/v1beta1"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/disk/impl/v1beta2"
