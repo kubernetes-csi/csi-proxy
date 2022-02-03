@@ -3,9 +3,10 @@ package filesystem
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
@@ -49,9 +50,9 @@ func (filesystemAPI) PathExists(path string) (bool, error) {
 }
 
 func pathValid(path string) (bool, error) {
-	cmd := exec.Command("powershell", "/c", `Test-Path $Env:remotepath`)
-	cmd.Env = append(os.Environ(), fmt.Sprintf("remotepath=%s", path))
-	output, err := cmd.CombinedOutput()
+	cmd := `Test-Path $Env:remotepath`
+	cmdEnv := fmt.Sprintf("remotepath=%s", path)
+	output, err := utils.RunPowershellCmdWithEnv(cmd, cmdEnv)
 	if err != nil {
 		return false, fmt.Errorf("returned output: %s, error: %v", string(output), err)
 	}
