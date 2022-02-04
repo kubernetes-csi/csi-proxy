@@ -52,7 +52,7 @@ func (filesystemAPI) PathExists(path string) (bool, error) {
 func pathValid(path string) (bool, error) {
 	cmd := `Test-Path $Env:remotepath`
 	cmdEnv := fmt.Sprintf("remotepath=%s", path)
-	output, err := utils.RunPowershellCmdWithEnv(cmd, cmdEnv)
+	output, err := utils.RunPowershellCmd(cmd, cmdEnv)
 	if err != nil {
 		return false, fmt.Errorf("returned output: %s, error: %v", string(output), err)
 	}

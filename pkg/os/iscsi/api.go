@@ -22,8 +22,8 @@ func (APIImplementor) AddTargetPortal(portal *TargetPortal) error {
 	cmdLine := fmt.Sprintf(
 		`New-IscsiTargetPortal -TargetPortalAddress ${Env:iscsi_tp_address} ` +
 			`-TargetPortalPortNumber ${Env:iscsi_tp_port}`)
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port)})
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
+		fmt.Sprintf("iscsi_tp_port=%d", portal.Port))
 	if err != nil {
 		return fmt.Errorf("error adding target portal. cmd %s, output: %s, err: %v", cmdLine, string(out), err)
 	}
@@ -38,8 +38,8 @@ func (APIImplementor) DiscoverTargetPortal(portal *TargetPortal) ([]string, erro
 		`ConvertTo-Json -InputObject @(Get-IscsiTargetPortal -TargetPortalAddress ` +
 			`${Env:iscsi_tp_address} -TargetPortalPortNumber ${Env:iscsi_tp_port} | ` +
 			`Get-IscsiTarget | Select-Object -ExpandProperty NodeAddress)`)
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port)})
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
+		fmt.Sprintf("iscsi_tp_port=%d", portal.Port))
 	if err != nil {
 		return nil, fmt.Errorf("error discovering target portal. cmd: %s, output: %s, err: %w", cmdLine, string(out), err)
 	}
@@ -78,8 +78,8 @@ func (APIImplementor) RemoveTargetPortal(portal *TargetPortal) error {
 			`-TargetPortalPortNumber ${Env:iscsi_tp_port} | Remove-IscsiTargetPortal ` +
 			`-Confirm:$false`)
 
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port)})
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
+		fmt.Sprintf("iscsi_tp_port=%d", portal.Port))
 	if err != nil {
 		return fmt.Errorf("error removing target portal. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
 	}
@@ -98,19 +98,19 @@ func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string,
 			` -AuthenticationType ${Env:iscsi_auth_type}`)
 
 	if chapUser != "" {
-		cmdLine += fmt.Sprintf(` -ChapUsername ${Env:iscsi_chap_user}`)
+		cmdLine += ` -ChapUsername ${Env:iscsi_chap_user}`
 	}
 
 	if chapSecret != "" {
-		cmdLine += fmt.Sprintf(` -ChapSecret ${Env:iscsi_chap_secret}`)
+		cmdLine += ` -ChapSecret ${Env:iscsi_chap_secret}`
 	}
 
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
 		fmt.Sprintf("iscsi_tp_port=%d", portal.Port),
 		fmt.Sprintf("iscsi_target_iqn=%s", iqn),
 		fmt.Sprintf("iscsi_auth_type=%s", authType),
 		fmt.Sprintf("iscsi_chap_user=%s", chapUser),
-		fmt.Sprintf("iscsi_chap_secret=%s", chapSecret)})
+		fmt.Sprintf("iscsi_chap_secret=%s", chapSecret))
 	if err != nil {
 		return fmt.Errorf("error connecting to target portal. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
 	}
@@ -126,9 +126,9 @@ func (APIImplementor) DisconnectTarget(portal *TargetPortal, iqn string) error {
 			` | Get-IscsiTarget | Where-Object { $_.NodeAddress -eq ${Env:iscsi_target_iqn} }) ` +
 			`-Confirm:$false`)
 
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
 		fmt.Sprintf("iscsi_tp_port=%d", portal.Port),
-		fmt.Sprintf("iscsi_target_iqn=%s", iqn)})
+		fmt.Sprintf("iscsi_target_iqn=%s", iqn))
 	if err != nil {
 		return fmt.Errorf("error disconnecting from target portal. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
 	}
@@ -147,9 +147,9 @@ func (APIImplementor) GetTargetDisks(portal *TargetPortal, iqn string) ([]string
 			`$ids = $c | Get-Disk | Select -ExpandProperty Number | Out-String -Stream; ` +
 			`ConvertTo-Json -InputObject @($ids)`)
 
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
 		fmt.Sprintf("iscsi_tp_port=%d", portal.Port),
-		fmt.Sprintf("iscsi_target_iqn=%s", iqn)})
+		fmt.Sprintf("iscsi_target_iqn=%s", iqn))
 	if err != nil {
 		return nil, fmt.Errorf("error getting target disks. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
 	}
@@ -164,9 +164,8 @@ func (APIImplementor) GetTargetDisks(portal *TargetPortal, iqn string) ([]string
 }
 
 func (APIImplementor) SetMutualChapSecret(mutualChapSecret string) error {
-	cmdLine := fmt.Sprintf(
-		`Set-IscsiChapSecret -ChapSecret ${Env:iscsi_mutual_chap_secret}`)
-	out, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("iscsi_mutual_chap_secret=%s", mutualChapSecret)})
+	cmdLine := `Set-IscsiChapSecret -ChapSecret ${Env:iscsi_mutual_chap_secret}`
+	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_mutual_chap_secret=%s", mutualChapSecret))
 	if err != nil {
 		return fmt.Errorf("error setting mutual chap secret. cmd %s,"+
 			" output: %s, err: %v", cmdLine, string(out), err)

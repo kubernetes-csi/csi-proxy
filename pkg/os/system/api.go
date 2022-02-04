@@ -56,7 +56,7 @@ func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 	script := `Get-Service -Name $env:ServiceName | Select-Object DisplayName, Status, StartType | ` +
 		`ConvertTo-JSON`
 	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
-	out, err := utils.RunPowershellCmdWithEnv(script, cmdEnv)
+	out, err := utils.RunPowershellCmd(script, cmdEnv)
 	if err != nil {
 		return nil, fmt.Errorf("error querying service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
 	}
@@ -73,7 +73,7 @@ func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 func (APIImplementor) StartService(name string) error {
 	script := `Start-Service -Name $env:ServiceName`
 	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
-	out, err := utils.RunPowershellCmdWithEnv(script, cmdEnv)
+	out, err := utils.RunPowershellCmd(script, cmdEnv)
 	if err != nil {
 		return fmt.Errorf("error starting service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
 	}
@@ -83,7 +83,7 @@ func (APIImplementor) StartService(name string) error {
 
 func (APIImplementor) StopService(name string, force bool) error {
 	script := `Stop-Service -Name $env:ServiceName -Force:$([System.Convert]::ToBoolean($env:Force))`
-	out, err := utils.RunPowershellCmdWithEnvs(script, []string{fmt.Sprintf("ServiceName=%s", name), fmt.Sprintf("Force=%t", force)})
+	out, err := utils.RunPowershellCmd(script, fmt.Sprintf("ServiceName=%s", name), fmt.Sprintf("Force=%t", force))
 	if err != nil {
 		return fmt.Errorf("error stopping service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
 	}

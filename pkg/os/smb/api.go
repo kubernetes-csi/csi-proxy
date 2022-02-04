@@ -25,7 +25,7 @@ func New() SmbAPI {
 func (SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 	cmdLine := `$(Get-SmbGlobalMapping -RemotePath $Env:smbremotepath -ErrorAction Stop).Status `
 	cmdEnv := fmt.Sprintf("smbremotepath=%s", remotePath)
-	out, err := utils.RunPowershellCmdWithEnv(cmdLine, cmdEnv)
+	out, err := utils.RunPowershellCmd(cmdLine, cmdEnv)
 	if err != nil {
 		return false, fmt.Errorf("error checking smb mapping. cmd %s, output: %s, err: %v", remotePath, string(out), err)
 	}
@@ -52,7 +52,7 @@ func (SmbAPI) NewSmbLink(remotePath, localPath string) error {
 	}
 
 	cmdLine := `New-Item -ItemType SymbolicLink $Env:smblocalPath -Target $Env:smbremotepath`
-	output, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("smbremotepath=%s", remotePath), fmt.Sprintf("smblocalpath=%s", localPath)})
+	output, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("smbremotepath=%s", remotePath), fmt.Sprintf("smblocalpath=%s", localPath))
 	if err != nil {
 		return fmt.Errorf("error linking %s to %s. output: %s, err: %v", remotePath, localPath, string(output), err)
 	}
@@ -67,9 +67,9 @@ func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 		`;$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Env:smbuser, $PWord` +
 		`;New-SmbGlobalMapping -RemotePath $Env:smbremotepath -Credential $Credential -RequirePrivacy $true`)
 
-	if output, err := utils.RunPowershellCmdWithEnvs(cmdLine, []string{fmt.Sprintf("smbuser=%s", username),
+	if output, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("smbuser=%s", username),
 		fmt.Sprintf("smbpassword=%s", password),
-		fmt.Sprintf("smbremotepath=%s", remotePath)}); err != nil {
+		fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
 		return fmt.Errorf("NewSmbGlobalMapping failed. output: %q, err: %v", string(output), err)
 	}
 	return nil
@@ -77,7 +77,7 @@ func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 
 func (SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
 	cmd := `Remove-SmbGlobalMapping -RemotePath $Env:smbremotepath -Force`
-	if output, err := utils.RunPowershellCmdWithEnvs(cmd, []string{fmt.Sprintf("smbremotepath=%s", remotePath)}); err != nil {
+	if output, err := utils.RunPowershellCmd(cmd, fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
 		return fmt.Errorf("UnmountSmbShare failed. output: %q, err: %v", string(output), err)
 	}
 	return nil
