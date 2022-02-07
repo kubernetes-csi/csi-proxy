@@ -3,9 +3,10 @@ package system
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 )
 
 // Implements the System OS API calls. All code here should be very simple
@@ -54,12 +55,10 @@ func (APIImplementor) GetBIOSSerialNumber() (string, error) {
 func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 	script := `Get-Service -Name $env:ServiceName | Select-Object DisplayName, Status, StartType | ` +
 		`ConvertTo-JSON`
-	cmd := exec.Command("powershell", "/c", script)
-	cmd.Env = append(os.Environ(), fmt.Sprintf("ServiceName=%s", name))
-
-	out, err := cmd.CombinedOutput()
+	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
+	out, err := utils.RunPowershellCmd(script, cmdEnv)
 	if err != nil {
-		return nil, fmt.Errorf("error querying service name=%s. cmd: %s, output: %s, error: %v", name, cmd, string(out), err)
+		return nil, fmt.Errorf("error querying service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
 	}
 
 	var serviceInfo ServiceInfo
@@ -73,12 +72,10 @@ func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 
 func (APIImplementor) StartService(name string) error {
 	script := `Start-Service -Name $env:ServiceName`
-	cmd := exec.Command("powershell", "/c", script)
-	cmd.Env = append(os.Environ(), fmt.Sprintf("ServiceName=%s", name))
-
-	out, err := cmd.CombinedOutput()
+	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
+	out, err := utils.RunPowershellCmd(script, cmdEnv)
 	if err != nil {
-		return fmt.Errorf("error starting service name=%s. cmd: %s, output: %s, error: %v", name, cmd, string(out), err)
+		return fmt.Errorf("error starting service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
 	}
 
 	return nil
@@ -86,14 +83,9 @@ func (APIImplementor) StartService(name string) error {
 
 func (APIImplementor) StopService(name string, force bool) error {
 	script := `Stop-Service -Name $env:ServiceName -Force:$([System.Convert]::ToBoolean($env:Force))`
-	cmd := exec.Command("powershell", "/c", script)
-	cmd.Env = append(os.Environ(),
-		fmt.Sprintf("ServiceName=%s", name),
-		fmt.Sprintf("Force=%t", force))
-
-	out, err := cmd.CombinedOutput()
+	out, err := utils.RunPowershellCmd(script, fmt.Sprintf("ServiceName=%s", name), fmt.Sprintf("Force=%t", force))
 	if err != nil {
-		return fmt.Errorf("error stopping service name=%s. cmd: %s, output: %s, error: %v", name, cmd, string(out), err)
+		return fmt.Errorf("error stopping service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
 	}
 
 	return nil
