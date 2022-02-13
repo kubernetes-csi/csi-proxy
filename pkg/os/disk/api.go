@@ -167,7 +167,7 @@ func (DiskAPI) CreateBasicPartition(diskNumber uint32) error {
 	cmd := fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNumber)
 	out, err := utils.RunPowershellCmd(cmd)
 	if err != nil {
-		return fmt.Errorf("error creating parition on disk %d: %v, %v", diskNumber, out, err)
+		return fmt.Errorf("error creating partition on disk %d: %v, %v", diskNumber, out, err)
 	}
 	return nil
 }

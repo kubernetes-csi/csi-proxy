@@ -20,7 +20,7 @@ type StopServiceRequest struct {
 	// Service name (as listed in System\CCS\Services keys)
 	Name string
 
-	// Forces stopping of services that has dependant services
+	// Forces stopping of services that has dependent services
 	Force bool
 }
 
