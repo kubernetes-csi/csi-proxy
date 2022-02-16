@@ -160,7 +160,7 @@ spec:
 
 ## Community, discussion, contribution, and support
 
-Check out [development.md](./docs/DEVELOPMENT.md) for instructions to set up a development enviroment to run CSI Proxy.
+Check out [development.md](./docs/DEVELOPMENT.md) for instructions to set up a development environment to run CSI Proxy.
 
 Learn how to engage with the Kubernetes community on the [community page](http://kubernetes.io/community/).
 
