@@ -420,7 +420,7 @@ func (imp DiskAPI) GetDiskState(diskNumber uint32) (bool, error) {
 }
 
 func (imp DiskAPI) SetDiskStateEx(diskPath string, isOffline bool, isReadOnly bool) error {
-	disk, err := getDiskHandleFromPath(diskPath, false)
+	disk, err := getDiskHandleFromPath(diskPath)
 	if err != nil {
 		return err
 	}
@@ -452,7 +452,7 @@ func (imp DiskAPI) GetDiskStateEx(diskPath string) (bool, bool, error) {
 	isDiskOnline := false
 	isDiskReadOnly := true
 
-	disk, err := getDiskHandleFromPath(diskPath, true)
+	disk, err := getDiskHandleFromPath(diskPath)
 	if err != nil {
 		return isDiskOnline, isDiskReadOnly, err
 	}
@@ -486,16 +486,9 @@ func (imp DiskAPI) GetDiskStateEx(diskPath string) (bool, bool, error) {
 	return isDiskOnline, isDiskReadOnly, nil
 }
 
-func getDiskHandleFromPath(diskPath string, isReadOnly bool) (syscall.Handle, error) {
-	var handle syscall.Handle
-	var err error
-	if isReadOnly {
-		handle, err = syscall.Open(diskPath, syscall.O_RDONLY, 0)
-	} else {
-		handle, err = syscall.Open(diskPath, syscall.O_RDWR, 0)
-	}
+func getDiskHandleFromPath(diskPath string) (syscall.Handle, error) {
+	handle, err := syscall.Open(diskPath, syscall.O_RDONLY|syscall.O_RDWR|syscall.O_NONBLOCK|syscall.O_SYNC, 7)
 
-	//defer syscall.Close(h)
 	if err != nil {
 		return 0, err
 	}
