@@ -146,12 +146,17 @@ func (DiskAPI) IsDiskInitialized(diskNumber uint32) (bool, error) {
 	return false, nil
 }
 
-func (DiskAPI) IsDiskInitializedEx(disk syscall.Handle) (bool, error) {
+func (DiskAPI) IsDiskInitializedEx(diskPath string) (bool, error) {
+	disk, err := getDiskHandleFromPath(diskPath)
+	if err != nil {
+		return false, err
+	}
+
 	partitionInfo := StoragePartitionInfo{}
 	partitionInfoSize := uint32(unsafe.Sizeof(partitionInfo))
 	var size uint32
 
-	err := syscall.DeviceIoControl(disk, IOCTL_DISK_GET_PARTITION_INFO_EX, nil, 0, (*byte)(unsafe.Pointer(&partitionInfo)), partitionInfoSize, &size, nil)
+	err = syscall.DeviceIoControl(disk, IOCTL_DISK_GET_PARTITION_INFO_EX, nil, 0, (*byte)(unsafe.Pointer(&partitionInfo)), partitionInfoSize, &size, nil)
 	if err != nil {
 		return false, fmt.Errorf("IOCTL_DISK_GET_PARTITION_INFO_EX failed: %v", err)
 	}
@@ -186,7 +191,12 @@ func (DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
 	return false, nil
 }
 
-func (DiskAPI) BasicPartitionsExistEx(disk syscall.Handle) (bool, error) {
+func (DiskAPI) BasicPartitionsExistEx(diskPath string) (bool, error) {
+	disk, err := getDiskHandleFromPath(diskPath)
+	if err != nil {
+		return false, err
+	}
+
 	driveInfo := StorageDriveLayoutInfo{}
 	// driveInfo.PartitionEntry = make([]StoragePartitionInfo, driveInfo.PartitionCount*10)
 	// TODO: Converting any size array to go types
@@ -194,7 +204,7 @@ func (DiskAPI) BasicPartitionsExistEx(disk syscall.Handle) (bool, error) {
 	var size uint32
 
 	// Without correct buffer size, errors with "The data area passed to a system call is too small."
-	err := syscall.DeviceIoControl(disk, IOCTL_DISK_GET_DRIVE_LAYOUT_EX, nil, 0, (*byte)(unsafe.Pointer(&driveInfo)), driveInfoSize, &size, nil)
+	err = syscall.DeviceIoControl(disk, IOCTL_DISK_GET_DRIVE_LAYOUT_EX, nil, 0, (*byte)(unsafe.Pointer(&driveInfo)), driveInfoSize, &size, nil)
 	if err != nil {
 
 		return false, fmt.Errorf("IOCTL_DISK_GET_DRIVE_LAYOUT_EX failed: %v", err)
