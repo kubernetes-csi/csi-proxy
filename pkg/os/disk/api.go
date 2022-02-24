@@ -20,8 +20,13 @@ var (
 )
 
 const (
-	IOCTL_STORAGE_GET_DEVICE_NUMBER = 0x2D1080
-	IOCTL_STORAGE_QUERY_PROPERTY    = 0x002d1400
+	IOCTL_STORAGE_GET_DEVICE_NUMBER  = 0x2D1080
+	IOCTL_STORAGE_QUERY_PROPERTY     = 0x002d1400
+	IOCTL_DISK_SET_DISK_ATTRIBUTES   = 0x0007c0f4
+	IOCTL_DISK_GET_DISK_ATTRIBUTES   = 0x000700f0
+	IOCTL_DISK_GET_PARTITION_INFO_EX = 0x00070048
+	IOCTL_DISK_GET_DRIVE_LAYOUT_EX   = 0x00070050
+	PARTITION_ENTRY_UNUSED_GUID      = "00000000-0000-0000-0000-000000000000"
 )
 
 // API declares the interface exposed by the internal API
@@ -141,6 +146,24 @@ func (DiskAPI) IsDiskInitialized(diskNumber uint32) (bool, error) {
 	return false, nil
 }
 
+func (DiskAPI) IsDiskInitializedEx(disk syscall.Handle) (bool, error) {
+	partitionInfo := StoragePartitionInfo{}
+	partitionInfoSize := uint32(unsafe.Sizeof(partitionInfo))
+	var size uint32
+
+	err := syscall.DeviceIoControl(disk, IOCTL_DISK_GET_PARTITION_INFO_EX, nil, 0, (*byte)(unsafe.Pointer(&partitionInfo)), partitionInfoSize, &size, nil)
+	if err != nil {
+		return false, fmt.Errorf("IOCTL_DISK_GET_PARTITION_INFO_EX failed: %v", err)
+	}
+
+	if partitionInfo.PartitionStyle != 2 {
+		// Raw partition.
+		// TODO: Incorrect value is returned by syscall
+		return true, nil
+	}
+	return false, nil
+}
+
 func (DiskAPI) InitializeDisk(diskNumber uint32) error {
 	cmd := fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle GPT", diskNumber)
 	out, err := utils.RunPowershellCmd(cmd)
@@ -161,6 +184,34 @@ func (DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (DiskAPI) BasicPartitionsExistEx(disk syscall.Handle) (bool, error) {
+	driveInfo := StorageDriveLayoutInfo{}
+	// driveInfo.PartitionEntry = make([]StoragePartitionInfo, driveInfo.PartitionCount*10)
+	// TODO: Converting any size array to go types
+	driveInfoSize := uint32(unsafe.Sizeof(driveInfo))
+	var size uint32
+
+	// Without correct buffer size, errors with "The data area passed to a system call is too small."
+	err := syscall.DeviceIoControl(disk, IOCTL_DISK_GET_DRIVE_LAYOUT_EX, nil, 0, (*byte)(unsafe.Pointer(&driveInfo)), driveInfoSize, &size, nil)
+	if err != nil {
+
+		return false, fmt.Errorf("IOCTL_DISK_GET_DRIVE_LAYOUT_EX failed: %v", err)
+	}
+
+	fmt.Printf("DriveInfo:\n%v\n", driveInfo)
+	if driveInfo.PartitionStyle == 1 && driveInfo.PartitionCount > 0 {
+		// GPT partition
+		return true, nil
+	} else if driveInfo.PartitionStyle == 0 && driveInfo.PartitionCount > 0 {
+		// MBR partition
+		return true, nil
+	} else {
+		// RAW partition
+		// Incorrect value returned by syscall for raw partition
+		return false, nil
+	}
 }
 
 func (DiskAPI) CreateBasicPartition(diskNumber uint32) error {
@@ -366,4 +417,87 @@ func (imp DiskAPI) GetDiskState(diskNumber uint32) (bool, error) {
 	}
 
 	return !isOffline, nil
+}
+
+func (imp DiskAPI) SetDiskStateEx(diskPath string, isOffline bool, isReadOnly bool) error {
+	disk, err := getDiskHandleFromPath(diskPath, false)
+	if err != nil {
+		return err
+	}
+
+	defer syscall.Close(disk)
+	attributes := SetStorageDeviceAttributes{}
+	attributesSize := uint32(unsafe.Sizeof(attributes))
+	attributes.Version = attributesSize
+	attributes.Persist = true
+	attributes.Reserved1 = 0
+	attributes.Reserved2 = 0
+	var size uint32
+
+	if isOffline {
+		attributes.Attributes += 1
+	}
+	if isReadOnly {
+		attributes.Attributes += 2
+	}
+	err = syscall.DeviceIoControl(disk, IOCTL_DISK_SET_DISK_ATTRIBUTES, (*byte)(unsafe.Pointer(&attributes)), attributesSize, nil, 0, &size, nil)
+	//  TODO: Errors with Access denied with write access to disk handle
+	if err != nil {
+		return fmt.Errorf("IOCTL_DISK_SET_DISK_ATTRIBUTES failed: %v", err)
+	}
+	return nil
+}
+
+func (imp DiskAPI) GetDiskStateEx(diskPath string) (bool, bool, error) {
+	isDiskOnline := false
+	isDiskReadOnly := true
+
+	disk, err := getDiskHandleFromPath(diskPath, true)
+	if err != nil {
+		return isDiskOnline, isDiskReadOnly, err
+	}
+
+	defer syscall.Close(disk)
+	attributes := GetStorageDeviceAtrributes{}
+	attributesSize := uint32(unsafe.Sizeof(attributes))
+	attributes.Version = attributesSize
+	var size uint32
+
+	err = syscall.DeviceIoControl(disk, IOCTL_DISK_GET_DISK_ATTRIBUTES, nil, 0, (*byte)(unsafe.Pointer(&attributes)), attributesSize, &size, nil)
+	if err != nil {
+		return isDiskOnline, isDiskReadOnly, fmt.Errorf("IOCTL_DISK_GET_DISK_ATTRIBUTES failed: %v", err)
+	}
+
+	diskAttributes := attributes.Attributes
+
+	if diskAttributes == 3 {
+		isDiskOnline = false
+		isDiskReadOnly = true
+	} else if diskAttributes == 2 {
+		isDiskOnline = true
+		isDiskReadOnly = true
+	} else if diskAttributes == 1 {
+		isDiskOnline = false
+		isDiskReadOnly = false
+	} else {
+		isDiskOnline = true
+		isDiskReadOnly = false
+	}
+	return isDiskOnline, isDiskReadOnly, nil
+}
+
+func getDiskHandleFromPath(diskPath string, isReadOnly bool) (syscall.Handle, error) {
+	var handle syscall.Handle
+	var err error
+	if isReadOnly {
+		handle, err = syscall.Open(diskPath, syscall.O_RDONLY, 0)
+	} else {
+		handle, err = syscall.Open(diskPath, syscall.O_RDWR, 0)
+	}
+
+	//defer syscall.Close(h)
+	if err != nil {
+		return 0, err
+	}
+	return handle, nil
 }

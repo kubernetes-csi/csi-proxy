@@ -1,5 +1,7 @@
 package disk
 
+import "golang.org/x/sys/windows"
+
 type StorageDeviceNumber struct {
 	DeviceType      DeviceType
 	DeviceNumber    uint32
@@ -112,4 +114,77 @@ type StorageIdentifier struct {
 type Disk struct {
 	Path         string `json:"Path"`
 	SerialNumber string `json:"SerialNumber"`
+}
+
+type SetStorageDeviceAttributes struct {
+	Version        uint32
+	Persist        bool
+	Reserved1      uint32
+	Attributes     uint64
+	AttributesMask uint64
+	Reserved2      uint64
+}
+
+type GetStorageDeviceAtrributes struct {
+	Version    uint32
+	Reserved1  uint32
+	Attributes uint64
+}
+
+type StoragePartitionStyle uint32
+
+const (
+	PartitionStyleMbr StoragePartitionStyle = iota
+	PartitionStyleGpt
+	PartitionStyleRaw
+)
+
+type PartitionInfoMbr struct {
+	PartitionType       byte
+	BootIndicator       bool
+	RecognizedPartition bool
+	HiddenSectors       uint32
+	PartitionId         windows.GUID
+}
+
+type PartitionInfoGpt struct {
+	PartitionType windows.GUID
+	PartitionId   windows.GUID
+	Attributes    uint64
+	Name          [36]uint16
+}
+
+type StoragePartitionInfo struct {
+	PartitionStyle     StoragePartitionStyle
+	StartingOffset     int64
+	PartitionLength    int64
+	PartitionNumber    uint32
+	RewritePartition   bool
+	IsServicePartition bool
+	DummmyUnionName    struct {
+		PartitionInfoMbr
+		PartitionInfoGpt
+	}
+}
+
+type DriveLayoutInfoMbr struct {
+	Signature uint32
+	CheckSum  uint32
+}
+
+type DriveLayoutInfoGpt struct {
+	DiskId               windows.GUID
+	StartingUsableOffset int64
+	UsableLength         int64
+	MaxPartitionCount    uint32
+}
+
+type StorageDriveLayoutInfo struct {
+	PartitionStyle  StoragePartitionStyle
+	PartitionCount  uint32
+	DummmyUnionName struct {
+		DriveLayoutInfoMbr
+		DriveLayoutInfoGpt
+	}
+	PartitionEntry []StoragePartitionInfo
 }
