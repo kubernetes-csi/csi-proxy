@@ -45,7 +45,7 @@ message StopServiceRequest {
   // Service name (as listed in System\CCS\Services keys)
   string name = 1;
 
-  // Forces stopping of services that has dependant services
+  // Forces stopping of services that has dependent services
   bool force = 2;
 }
 
