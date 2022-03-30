@@ -248,7 +248,7 @@ var xxx_messageInfo_StartServiceResponse proto.InternalMessageInfo
 type StopServiceRequest struct {
 	// Service name (as listed in System\CCS\Services keys)
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Forces stopping of services that has dependant services
+	// Forces stopping of services that has dependent services
 	Force                bool     `protobuf:"varint,2,opt,name=force,proto3" json:"force,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
