@@ -87,6 +87,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 		}
 	}
 
+	klog.V(2).Infof("NewSmbGlobalMapping on remote path %q is completed", request.RemotePath)
 	return response, nil
 }
 
@@ -105,5 +106,6 @@ func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *intern
 		klog.Errorf("failed RemoveSmbGlobalMapping %v", err)
 		return response, err
 	}
+	klog.V(2).Infof("RemoveSmbGlobalMapping on remote path %q is completed", request.RemotePath)
 	return response, nil
 }
