@@ -63,7 +63,8 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 		return response, fmt.Errorf("remote path is empty")
 	}
 
-	if mappingPath, err := getRootMappingPath(remotePath); err != nil {
+	mappingPath, err := getRootMappingPath(remotePath)
+	if err != nil {
 		return response, err;
 	}
 
@@ -130,7 +131,8 @@ func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *intern
 		return response, fmt.Errorf("remote path is empty")
 	}
 
-	if mappingPath, err := getRootMappingPath(remotePath); err != nil {
+	mappingPath, err := getRootMappingPath(remotePath)
+	if err != nil {
 		return response, err;
 	}
 
