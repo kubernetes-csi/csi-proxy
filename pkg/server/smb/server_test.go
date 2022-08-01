@@ -120,12 +120,12 @@ func TestGetRootMappingPath(t *testing.T) {
 	}{
 		{
 			remote:       "",
-			expectResult: nil,
+			expectResult: "",
 			expectError:  true,
 		},
 		{
 			remote:       "hostname",
-			expectResult: nil,
+			expectResult: "",
 			expectError:  true,
 		},
 		{
