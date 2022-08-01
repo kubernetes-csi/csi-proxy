@@ -38,7 +38,7 @@ func getRootMappingPath(path string) (string, error) {
 	}
 	if len(parts) != 2 {
 		klog.Errorf("remote path (%s) is invalid", path)
-		return nil, fmt.Errorf("remote path (%s) is invalid", path)
+		return "", fmt.Errorf("remote path (%s) is invalid", path)
 	}
 	// parts[0] is a smb host name
 	// parts[1] is a smb share name
