@@ -65,7 +65,7 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 
 	mappingPath, err := getRootMappingPath(remotePath)
 	if err != nil {
-		return response, err;
+		return response, err
 	}
 
 	isMapped, err := s.hostAPI.IsSmbMapped(mappingPath)
@@ -133,7 +133,7 @@ func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *intern
 
 	mappingPath, err := getRootMappingPath(remotePath)
 	if err != nil {
-		return response, err;
+		return response, err
 	}
 
 	err = s.hostAPI.RemoveSmbGlobalMapping(mappingPath)
