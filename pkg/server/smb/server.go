@@ -25,7 +25,7 @@ func normalizeWindowsPath(path string) string {
 	return normalizedPath
 }
 
-func normalizeMappingPath(path string) string {
+func getRootMappingPath(path string) (string, error) {
 	items := strings.Split(path, "\\")
 	parts := []string{}
 	for _, s := range items {
@@ -36,7 +36,13 @@ func normalizeMappingPath(path string) string {
 			}
 		}
 	}
-	return strings.ToLower("\\\\" + parts[0] + "\\" + parts[1])
+	if len(parts) != 2 {
+		klog.Errorf("remote path (%s) is invalid", path)
+		return nil, fmt.Errorf("remote path (%s) is invalid", path)
+	}
+	// parts[0] is a smb host name
+	// parts[1] is a smb share name
+	return strings.ToLower("\\\\" + parts[0] + "\\" + parts[1]), nil
 }
 
 func NewServer(hostAPI smb.API, fsServer *fsserver.Server) (*Server, error) {
@@ -57,7 +63,9 @@ func (s *Server) NewSmbGlobalMapping(context context.Context, request *internal.
 		return response, fmt.Errorf("remote path is empty")
 	}
 
-	mappingPath := normalizeMappingPath(remotePath)
+	if mappingPath, err := getRootMappingPath(remotePath); err != nil {
+		return response, err;
+	}
 
 	isMapped, err := s.hostAPI.IsSmbMapped(mappingPath)
 	if err != nil {
@@ -122,7 +130,10 @@ func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *intern
 		return response, fmt.Errorf("remote path is empty")
 	}
 
-	mappingPath := normalizeMappingPath(remotePath)
+	if mappingPath, err := getRootMappingPath(remotePath); err != nil {
+		return response, err;
+	}
+
 	err := s.hostAPI.RemoveSmbGlobalMapping(mappingPath)
 	if err != nil {
 		klog.Errorf("failed RemoveSmbGlobalMapping %v", err)
