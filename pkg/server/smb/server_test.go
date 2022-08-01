@@ -155,7 +155,7 @@ func TestGetRootMappingPath(t *testing.T) {
 			}
 			if expectResult != result {
 				t.Errorf("Expected (%s) but getRootMappingPath returned (%s)", expectResult, result)
-			} 
+			}
 		}
 	}
 }
