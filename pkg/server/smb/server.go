@@ -136,7 +136,7 @@ func (s *Server) RemoveSmbGlobalMapping(context context.Context, request *intern
 		return response, err;
 	}
 
-	err := s.hostAPI.RemoveSmbGlobalMapping(mappingPath)
+	err = s.hostAPI.RemoveSmbGlobalMapping(mappingPath)
 	if err != nil {
 		klog.Errorf("failed RemoveSmbGlobalMapping %v", err)
 		return response, err
