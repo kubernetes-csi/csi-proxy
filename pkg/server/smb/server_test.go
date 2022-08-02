@@ -153,8 +153,8 @@ func TestGetRootMappingPath(t *testing.T) {
 			if err != nil {
 				t.Errorf("Expected no errors but getRootMappingPath returned error: %v", err)
 			}
-			if expectResult != result {
-				t.Errorf("Expected (%s) but getRootMappingPath returned (%s)", expectResult, result)
+			if tc.expectResult != result {
+				t.Errorf("Expected (%s) but getRootMappingPath returned (%s)", tc.expectResult, result)
 			}
 		}
 	}
