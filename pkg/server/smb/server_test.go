@@ -79,7 +79,7 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 			expectError: true,
 		},
 		{
-			remote:      "\\test\\path",
+			remote:      "\\\\hostname\\path",
 			username:    "",
 			password:    "",
 			version:     v1,
@@ -108,6 +108,54 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 		}
 		if !tc.expectError && err != nil {
 			t.Errorf("Expected no errors but NewSmbGlobalMapping returned error: %v", err)
+		}
+	}
+}
+
+func TestGetRootMappingPath(t *testing.T) {
+	testCases := []struct {
+		remote       string
+		expectResult string
+		expectError  bool
+	}{
+		{
+			remote:       "",
+			expectResult: "",
+			expectError:  true,
+		},
+		{
+			remote:       "hostname",
+			expectResult: "",
+			expectError:  true,
+		},
+		{
+			remote:       "\\\\hostname\\path",
+			expectResult: "\\\\hostname\\path",
+			expectError:  false,
+		},
+		{
+			remote:       "\\\\hostname\\path\\",
+			expectResult: "\\\\hostname\\path",
+			expectError:  false,
+		},
+		{
+			remote:       "\\\\hostname\\path\\subpath",
+			expectResult: "\\\\hostname\\path",
+			expectError:  false,
+		},
+	}
+	for _, tc := range testCases {
+		result, err := getRootMappingPath(tc.remote)
+		if tc.expectError && err == nil {
+			t.Errorf("Expected error but getRootMappingPath returned a nil error")
+		}
+		if !tc.expectError {
+			if err != nil {
+				t.Errorf("Expected no errors but getRootMappingPath returned error: %v", err)
+			}
+			if tc.expectResult != result {
+				t.Errorf("Expected (%s) but getRootMappingPath returned (%s)", tc.expectResult, result)
+			}
 		}
 	}
 }
