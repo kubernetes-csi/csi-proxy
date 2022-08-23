@@ -61,9 +61,12 @@ func pathValid(path string) (bool, error) {
 }
 
 // PathValid determines whether all elements of a path exist
-//   https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-path?view=powershell-7
+//
+//	https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-path?view=powershell-7
+//
 // for a remote path, determines whether connection is ok
-//   e.g. in a SMB server connection, if password is changed, connection will be lost, this func will return false
+//
+//	e.g. in a SMB server connection, if password is changed, connection will be lost, this func will return false
 func (filesystemAPI) PathValid(path string) (bool, error) {
 	return pathValid(path)
 }
@@ -111,9 +114,10 @@ func (filesystemAPI) CreateSymlink(oldname, newname string) error {
 
 // IsSymlink - returns true if tgt is a mount point.
 // A path is considered a mount point if:
-//  - directory exists and
-//  - it is a soft link and
-//  - the target path of the link exists.
+//   - directory exists and
+//   - it is a soft link and
+//   - the target path of the link exists.
+//
 // If tgt path does not exist, it returns an error
 // if tgt path exists, but the source path tgt points to does not exist, it returns false without error.
 func (filesystemAPI) IsSymlink(tgt string) (bool, error) {
