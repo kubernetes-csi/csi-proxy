@@ -127,7 +127,7 @@ func (s *Server) PathExists(ctx context.Context, request *internal.PathExistsReq
 	}, err
 }
 
-// PathValid checks if the given path is accessiable.
+// PathValid checks if the given path is accessible.
 func (s *Server) PathValid(ctx context.Context, path string) (bool, error) {
 	klog.V(2).Infof("Request: PathValid with path %q", path)
 	return s.hostAPI.PathValid(path)
