@@ -99,28 +99,28 @@ func negativeVolumeTests(t *testing.T) {
 	require.Nil(t, err)
 
 	// Empty volume test
-	// runNegativeIsVolumeFormattedRequest(t, client, "")
+	runNegativeIsVolumeFormattedRequest(t, client, "")
 	// -ve volume id
 	runNegativeIsVolumeFormattedRequest(t, client, "-1")
 
 	// Format volume negative tests
-	// runNegativeFormatVolumeRequest(t, client, "")
+	runNegativeFormatVolumeRequest(t, client, "")
 	runNegativeFormatVolumeRequest(t, client, "-1")
 
 	// Resize volume negative tests
-	// runNegativeResizeVolumeRequest(t, client, "", 2*1024*1024)
-	// runNegativeResizeVolumeRequest(t, client, "-1", 2*1024*1024)
+	runNegativeResizeVolumeRequest(t, client, "", 2*1024*1024)
+	runNegativeResizeVolumeRequest(t, client, "-1", 2*1024*1024)
 
-	// // Mount volume negative tests
-	// runNegativeMountVolumeRequest(t, client, "", "")
-	// runNegativeMountVolumeRequest(t, client, "-1", "")
+	// Mount volume negative tests
+	runNegativeMountVolumeRequest(t, client, "", "")
+	runNegativeMountVolumeRequest(t, client, "-1", "")
 
-	// // Unmount volume negative tests
-	// runNegativeUnmountVolumeRequest(t, client, "", "")
-	// runNegativeUnmountVolumeRequest(t, client, "-1", "")
+	// Unmount volume negative tests
+	runNegativeUnmountVolumeRequest(t, client, "", "")
+	runNegativeUnmountVolumeRequest(t, client, "-1", "")
 
-	// runNegativeVolumeStatsRequest(t, client, "")
-	// runNegativeVolumeStatsRequest(t, client, "-1")
+	runNegativeVolumeStatsRequest(t, client, "")
+	runNegativeVolumeStatsRequest(t, client, "-1")
 }
 
 func negativeDiskTests(t *testing.T) {
