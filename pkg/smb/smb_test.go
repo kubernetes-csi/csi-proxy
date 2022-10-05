@@ -4,16 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/pkg/os/filesystem"
-	"github.com/kubernetes-csi/csi-proxy/pkg/os/smb"
-	fsserver "github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem"
-	internal "github.com/kubernetes-csi/csi-proxy/pkg/server/smb/impl"
+	fs "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem"
+	fsapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem/api"
+	smbapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/smb/api"
 )
 
 type fakeSmbAPI struct{}
 
-var _ smb.API = &fakeSmbAPI{}
+var _ smbapi.API = &fakeSmbAPI{}
 
 func (fakeSmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	return nil
@@ -33,7 +31,7 @@ func (fakeSmbAPI) NewSmbLink(remotePath, localPath string) error {
 
 type fakeFileSystemAPI struct{}
 
-var _ filesystem.API = &fakeFileSystemAPI{}
+var _ fsapi.API = &fakeFileSystemAPI{}
 
 func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
 	return true, nil
@@ -59,50 +57,43 @@ func (fakeFileSystemAPI) IsSymlink(path string) (bool, error) {
 }
 
 func TestNewSmbGlobalMapping(t *testing.T) {
-	v1, err := apiversion.NewVersion("v1")
-	if err != nil {
-		t.Fatalf("New version error: %v", err)
-	}
 	testCases := []struct {
 		remote      string
 		local       string
 		username    string
 		password    string
-		version     apiversion.Version
 		expectError bool
 	}{
 		{
 			remote:      "",
 			username:    "",
 			password:    "",
-			version:     v1,
 			expectError: true,
 		},
 		{
 			remote:      "\\\\hostname\\path",
 			username:    "",
 			password:    "",
-			version:     v1,
 			expectError: false,
 		},
 	}
-	fsSrv, err := fsserver.NewServer([]string{`C:\var\lib\kubelet`}, &fakeFileSystemAPI{})
+	fsClient, err := fs.New(&fakeFileSystemAPI{})
 	if err != nil {
-		t.Fatalf("FileSystem Server could not be initialized for testing: %v", err)
+		t.Fatalf("FileSystem client could not be initialized for testing: %v", err)
 	}
 
-	srv, err := NewServer(&fakeSmbAPI{}, fsSrv)
+	client, err := New(&fakeSmbAPI{}, fsClient)
 	if err != nil {
-		t.Fatalf("Smb Server could not be initialized for testing: %v", err)
+		t.Fatalf("Smb client could not be initialized for testing: %v", err)
 	}
 	for _, tc := range testCases {
-		req := &internal.NewSmbGlobalMappingRequest{
+		req := &NewSmbGlobalMappingRequest{
 			LocalPath:  tc.local,
 			RemotePath: tc.remote,
 			Username:   tc.username,
 			Password:   tc.password,
 		}
-		_, err := srv.NewSmbGlobalMapping(context.TODO(), req, tc.version)
+		_, err := client.NewSmbGlobalMapping(context.TODO(), req)
 		if tc.expectError && err == nil {
 			t.Errorf("Expected error but NewSmbGlobalMapping returned a nil error")
 		}

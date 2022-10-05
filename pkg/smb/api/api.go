@@ -1,10 +1,10 @@
-package smb
+package api
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 type API interface {
@@ -14,15 +14,15 @@ type API interface {
 	RemoveSmbGlobalMapping(remotePath string) error
 }
 
-type SmbAPI struct{}
+type smbAPI struct{}
 
-var _ API = &SmbAPI{}
+var _ API = &smbAPI{}
 
-func New() SmbAPI {
-	return SmbAPI{}
+func New() API {
+	return smbAPI{}
 }
 
-func (SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
+func (smbAPI) IsSmbMapped(remotePath string) (bool, error) {
 	cmdLine := `$(Get-SmbGlobalMapping -RemotePath $Env:smbremotepath -ErrorAction Stop).Status `
 	cmdEnv := fmt.Sprintf("smbremotepath=%s", remotePath)
 	out, err := utils.RunPowershellCmd(cmdLine, cmdEnv)
@@ -43,8 +43,7 @@ func (SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 // Since os.Symlink is currently being used in working code paths, no attempt is made in
 // alpha to merge the paths.
 // TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
-func (SmbAPI) NewSmbLink(remotePath, localPath string) error {
-
+func (smbAPI) NewSmbLink(remotePath, localPath string) error {
 	if !strings.HasSuffix(remotePath, "\\") {
 		// Golang has issues resolving paths mapped to file shares if they do not end in a trailing \
 		// so add one if needed.
@@ -60,7 +59,7 @@ func (SmbAPI) NewSmbLink(remotePath, localPath string) error {
 	return nil
 }
 
-func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
+func (smbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	// use PowerShell Environment Variables to store user input string to prevent command line injection
 	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1
 	cmdLine := fmt.Sprintf(`$PWord = ConvertTo-SecureString -String $Env:smbpassword -AsPlainText -Force` +
@@ -75,7 +74,7 @@ func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	return nil
 }
 
-func (SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
+func (smbAPI) RemoveSmbGlobalMapping(remotePath string) error {
 	cmd := `Remove-SmbGlobalMapping -RemotePath $Env:smbremotepath -Force`
 	if output, err := utils.RunPowershellCmd(cmd, fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
 		return fmt.Errorf("UnmountSmbShare failed. output: %q, err: %v", string(output), err)

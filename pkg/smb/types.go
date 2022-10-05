@@ -1,4 +1,4 @@
-package impl
+package smb
 
 type NewSmbGlobalMappingRequest struct {
 	RemotePath string
