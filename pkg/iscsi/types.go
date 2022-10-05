@@ -1,4 +1,4 @@
-package impl
+package iscsi
 
 type AddTargetPortalRequest struct {
 	// iSCSI Target Portal to register in the initiator

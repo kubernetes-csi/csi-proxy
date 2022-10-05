@@ -1,24 +1,39 @@
-package iscsi
+package api
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 // Implements the iSCSI OS API calls. All code here should be very simple
 // pass-through to the OS APIs. Any logic around the APIs should go in
-// internal/server/iscsi/server.go so that logic can be easily unit-tested
+// pkg/iscsi/iscsi.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 
-type APIImplementor struct{}
-
-func New() APIImplementor {
-	return APIImplementor{}
+type API interface {
+	AddTargetPortal(portal *TargetPortal) error
+	DiscoverTargetPortal(portal *TargetPortal) ([]string, error)
+	ListTargetPortals() ([]TargetPortal, error)
+	RemoveTargetPortal(portal *TargetPortal) error
+	ConnectTarget(portal *TargetPortal, iqn string, authType string,
+		chapUser string, chapSecret string) error
+	DisconnectTarget(portal *TargetPortal, iqn string) error
+	GetTargetDisks(portal *TargetPortal, iqn string) ([]string, error)
+	SetMutualChapSecret(mutualChapSecret string) error
 }
 
-func (APIImplementor) AddTargetPortal(portal *TargetPortal) error {
+type iscsiAPI struct{}
+
+// check that iscsiAPI implements API
+var _ API = &iscsiAPI{}
+
+func New() API {
+	return iscsiAPI{}
+}
+
+func (iscsiAPI) AddTargetPortal(portal *TargetPortal) error {
 	cmdLine := fmt.Sprintf(
 		`New-IscsiTargetPortal -TargetPortalAddress ${Env:iscsi_tp_address} ` +
 			`-TargetPortalPortNumber ${Env:iscsi_tp_port}`)
@@ -31,7 +46,7 @@ func (APIImplementor) AddTargetPortal(portal *TargetPortal) error {
 	return nil
 }
 
-func (APIImplementor) DiscoverTargetPortal(portal *TargetPortal) ([]string, error) {
+func (iscsiAPI) DiscoverTargetPortal(portal *TargetPortal) ([]string, error) {
 	// ConvertTo-Json is not part of the pipeline because powershell converts an
 	// array with one element to a single element
 	cmdLine := fmt.Sprintf(
@@ -53,7 +68,7 @@ func (APIImplementor) DiscoverTargetPortal(portal *TargetPortal) ([]string, erro
 	return iqns, nil
 }
 
-func (APIImplementor) ListTargetPortals() ([]TargetPortal, error) {
+func (iscsiAPI) ListTargetPortals() ([]TargetPortal, error) {
 	cmdLine := fmt.Sprintf(
 		`ConvertTo-Json -InputObject @(Get-IscsiTargetPortal | ` +
 			`Select-Object TargetPortalAddress, TargetPortalPortNumber)`)
@@ -72,7 +87,7 @@ func (APIImplementor) ListTargetPortals() ([]TargetPortal, error) {
 	return portals, nil
 }
 
-func (APIImplementor) RemoveTargetPortal(portal *TargetPortal) error {
+func (iscsiAPI) RemoveTargetPortal(portal *TargetPortal) error {
 	cmdLine := fmt.Sprintf(
 		`Get-IscsiTargetPortal -TargetPortalAddress ${Env:iscsi_tp_address} ` +
 			`-TargetPortalPortNumber ${Env:iscsi_tp_port} | Remove-IscsiTargetPortal ` +
@@ -87,7 +102,7 @@ func (APIImplementor) RemoveTargetPortal(portal *TargetPortal) error {
 	return nil
 }
 
-func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string,
+func (iscsiAPI) ConnectTarget(portal *TargetPortal, iqn string,
 	authType string, chapUser string, chapSecret string) error {
 	// Not using InputObject as Connect-IscsiTarget's InputObject does not work.
 	// This is due to being a static WMI method together with a bug in the
@@ -118,7 +133,7 @@ func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string,
 	return nil
 }
 
-func (APIImplementor) DisconnectTarget(portal *TargetPortal, iqn string) error {
+func (iscsiAPI) DisconnectTarget(portal *TargetPortal, iqn string) error {
 	// Using InputObject instead of pipe to verify input is not empty
 	cmdLine := fmt.Sprintf(
 		`Disconnect-IscsiTarget -InputObject (Get-IscsiTargetPortal ` +
@@ -136,7 +151,7 @@ func (APIImplementor) DisconnectTarget(portal *TargetPortal, iqn string) error {
 	return nil
 }
 
-func (APIImplementor) GetTargetDisks(portal *TargetPortal, iqn string) ([]string, error) {
+func (iscsiAPI) GetTargetDisks(portal *TargetPortal, iqn string) ([]string, error) {
 	// Converting DiskNumber to string for compatibility with disk api group
 	// Not using pipeline in order to validate that items are non-empty
 	cmdLine := fmt.Sprintf(
@@ -163,7 +178,7 @@ func (APIImplementor) GetTargetDisks(portal *TargetPortal, iqn string) ([]string
 	return ids, nil
 }
 
-func (APIImplementor) SetMutualChapSecret(mutualChapSecret string) error {
+func (iscsiAPI) SetMutualChapSecret(mutualChapSecret string) error {
 	cmdLine := `Set-IscsiChapSecret -ChapSecret ${Env:iscsi_mutual_chap_secret}`
 	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_mutual_chap_secret=%s", mutualChapSecret))
 	if err != nil {

@@ -1,4 +1,4 @@
-package iscsi
+package api
 
 // TargetPortal is an address and port pair for a specific iSCSI storage
 // target.
