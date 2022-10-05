@@ -1,4 +1,4 @@
-package disk
+package api
 
 import (
 	"encoding/hex"
@@ -10,8 +10,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	shared "github.com/kubernetes-csi/csi-proxy/pkg/shared/disk"
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 	"k8s.io/klog/v2"
 )
 
@@ -28,7 +27,7 @@ const (
 type API interface {
 	// ListDiskLocations - constructs a map with the disk number as the key and the DiskLocation structure
 	// as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
-	ListDiskLocations() (map[uint32]shared.DiskLocation, error)
+	ListDiskLocations() (map[uint32]DiskLocation, error)
 	// IsDiskInitialized returns true if the disk identified by `diskNumber` is initialized.
 	IsDiskInitialized(diskNumber uint32) (bool, error)
 	// InitializeDisk initializes the disk `diskNumber`
@@ -42,7 +41,7 @@ type API interface {
 	// GetDiskNumberByName gets a disk number by page83 ID (disk name)
 	GetDiskNumberByName(page83ID string) (uint32, error)
 	// ListDiskIDs list all disks by disk number.
-	ListDiskIDs() (map[uint32]shared.DiskIDs, error)
+	ListDiskIDs() (map[uint32]DiskIDs, error)
 	// GetDiskStats gets the disk stats of the disk `diskNumber`.
 	GetDiskStats(diskNumber uint32) (int64, error)
 	// SetDiskState sets the offline/online state of the disk `diskNumber`.
@@ -53,7 +52,7 @@ type API interface {
 
 // DiskAPI implements the OS API calls related to Disk Devices. All code here should be very simple
 // pass-through to the OS APIs or cmdlets. Any logic around the APIs/cmdlet invocation
-// should go in internal/server/filesystem/disk.go so that logic can be easily unit-tested
+// should go in pkg/disk/disk.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 type DiskAPI struct{}
 
@@ -66,13 +65,13 @@ func New() DiskAPI {
 
 // ListDiskLocations - constructs a map with the disk number as the key and the DiskLocation structure
 // as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
-func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
+func (DiskAPI) ListDiskLocations() (map[uint32]DiskLocation, error) {
 	// sample response
 	// [{
 	//    "number":  0,
 	//    "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
 	// }, ...]
-	cmd := fmt.Sprintf("ConvertTo-Json @(Get-Disk | select Number, Location)")
+	cmd := "ConvertTo-Json @(Get-Disk | select Number, Location)"
 	out, err := utils.RunPowershellCmd(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list disk location. cmd: %q, output: %q, err %v", cmd, string(out), err)
@@ -84,7 +83,7 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 		return nil, err
 	}
 
-	m := make(map[uint32]shared.DiskLocation)
+	m := make(map[uint32]DiskLocation)
 	for _, v := range getDisk {
 		str := v["Location"].(string)
 		num := v["Number"].(float64)
@@ -92,7 +91,7 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 		found := false
 		s := strings.Split(str, ":")
 		if len(s) >= 5 {
-			var d shared.DiskLocation
+			var d DiskLocation
 			for _, item := range s {
 				item = strings.TrimSpace(item)
 				itemSplit := strings.Split(item, " ")
@@ -199,8 +198,7 @@ func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	query.QueryType = PropertyStandardQuery
 	query.PropertyID = StorageDeviceIDProperty
 
-	querySize := uint32(unsafe.Sizeof(query.PropertyID)) + uint32(unsafe.Sizeof(query.QueryType)) + uint32(unsafe.Sizeof(query.Byte))
-	querySize = uint32(unsafe.Sizeof(query))
+	querySize := uint32(unsafe.Sizeof(query))
 	err := syscall.DeviceIoControl(disk, IOCTL_STORAGE_QUERY_PROPERTY, (*byte)(unsafe.Pointer(&query)), querySize, (*byte)(unsafe.Pointer(&buffer[0])), bufferSize, &size, nil)
 	if err != nil {
 		return "", fmt.Errorf("IOCTL_STORAGE_QUERY_PROPERTY failed: %v", err)
@@ -279,7 +277,7 @@ func (imp DiskAPI) GetDiskNumberAndPage83ID(path string) (uint32, string, error)
 
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
 // as the value. The DiskID struct has a field for the page83 ID.
-func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
+func (imp DiskAPI) ListDiskIDs() (map[uint32]DiskIDs, error) {
 	// sample response
 	// [
 	// {
@@ -293,7 +291,7 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 	cmd := "ConvertTo-Json @(Get-Disk | Select Path, SerialNumber)"
 	out, err := utils.RunPowershellCmd(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("Could not query disk paths")
+		return nil, fmt.Errorf("Could not query disk paths: %v", err)
 	}
 
 	outString := string(out)
@@ -303,7 +301,7 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 		return nil, err
 	}
 
-	m := make(map[uint32]shared.DiskIDs)
+	m := make(map[uint32]DiskIDs)
 
 	for i := range disks {
 		diskNumber, page83, err := imp.GetDiskNumberAndPage83ID(disks[i].Path)
@@ -311,7 +309,7 @@ func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 			return nil, err
 		}
 
-		m[diskNumber] = shared.DiskIDs{
+		m[diskNumber] = DiskIDs{
 			Page83:       page83,
 			SerialNumber: disks[i].SerialNumber,
 		}

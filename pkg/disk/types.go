@@ -1,4 +1,4 @@
-package impl
+package disk
 
 type DiskLocation struct {
 	Adapter string
