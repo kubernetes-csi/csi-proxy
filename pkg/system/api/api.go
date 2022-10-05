@@ -1,4 +1,4 @@
-package system
+package api
 
 import (
 	"encoding/json"
@@ -6,32 +6,28 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 // Implements the System OS API calls. All code here should be very simple
 // pass-through to the OS APIs. Any logic around the APIs should go in
-// internal/server/system/server.go so that logic can be easily unit-tested
+// pkg/system/system.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 
-type ServiceInfo struct {
-	// Service display name
-	DisplayName string `json:"DisplayName"`
-
-	// Service start type
-	StartType uint32 `json:"StartType"`
-
-	// Service status
-	Status uint32 `json:"Status"`
+type API interface {
+	GetBIOSSerialNumber() (string, error)
+	GetService(name string) (*ServiceInfo, error)
+	StartService(name string) error
+	StopService(name string, force bool) error
 }
 
-type APIImplementor struct{}
+type systemAPI struct{}
 
-func New() APIImplementor {
-	return APIImplementor{}
+func New() API {
+	return systemAPI{}
 }
 
-func (APIImplementor) GetBIOSSerialNumber() (string, error) {
+func (systemAPI) GetBIOSSerialNumber() (string, error) {
 	// Taken from Kubernetes vSphere cloud provider
 	// https://github.com/kubernetes/kubernetes/blob/103e926604de6f79161b78af3e792d0ed282bc06/staging/src/k8s.io/legacy-cloud-providers/vsphere/vsphere_util_windows.go#L28
 	result, err := exec.Command("wmic", "bios", "get", "serialnumber").Output()
@@ -52,7 +48,7 @@ func (APIImplementor) GetBIOSSerialNumber() (string, error) {
 	return lines[1], nil
 }
 
-func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
+func (systemAPI) GetService(name string) (*ServiceInfo, error) {
 	script := `Get-Service -Name $env:ServiceName | Select-Object DisplayName, Status, StartType | ` +
 		`ConvertTo-JSON`
 	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
@@ -70,7 +66,7 @@ func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 	return &serviceInfo, nil
 }
 
-func (APIImplementor) StartService(name string) error {
+func (systemAPI) StartService(name string) error {
 	script := `Start-Service -Name $env:ServiceName`
 	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
 	out, err := utils.RunPowershellCmd(script, cmdEnv)
@@ -81,7 +77,7 @@ func (APIImplementor) StartService(name string) error {
 	return nil
 }
 
-func (APIImplementor) StopService(name string, force bool) error {
+func (systemAPI) StopService(name string, force bool) error {
 	script := `Stop-Service -Name $env:ServiceName -Force:$([System.Convert]::ToBoolean($env:Force))`
 	out, err := utils.RunPowershellCmd(script, fmt.Sprintf("ServiceName=%s", name), fmt.Sprintf("Force=%t", force))
 	if err != nil {
