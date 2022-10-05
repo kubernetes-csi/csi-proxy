@@ -2,14 +2,23 @@ package integrationtests
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3"
-	v1beta3client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3"
+	disk "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk"
+	diskapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk/api"
+	volume "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume/api"
+
+	"github.com/stretchr/testify/require"
 )
 
-func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, diskNum uint32) {
-	listRequest := &v1beta3.ListVolumesOnDiskRequest{
+func runNegativeListVolumeRequest(t *testing.T, client volume.Interface, diskNum uint32) {
+	listRequest := &volume.ListVolumesOnDiskRequest{
 		DiskNumber: diskNum,
 	}
 	_, err := client.ListVolumesOnDisk(context.TODO(), listRequest)
@@ -18,8 +27,8 @@ func runNegativeListVolumeRequest(t *testing.T, client *v1beta3client.Client, di
 	}
 }
 
-func runNegativeIsVolumeFormattedRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
-	isVolumeFormattedRequest := &v1beta3.IsVolumeFormattedRequest{
+func runNegativeIsVolumeFormattedRequest(t *testing.T, client volume.Interface, volumeID string) {
+	isVolumeFormattedRequest := &volume.IsVolumeFormattedRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
@@ -28,8 +37,8 @@ func runNegativeIsVolumeFormattedRequest(t *testing.T, client *v1beta3client.Cli
 	}
 }
 
-func runNegativeFormatVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
-	formatVolumeRequest := &v1beta3.FormatVolumeRequest{
+func runNegativeFormatVolumeRequest(t *testing.T, client volume.Interface, volumeID string) {
+	formatVolumeRequest := &volume.FormatVolumeRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.FormatVolume(context.TODO(), formatVolumeRequest)
@@ -38,8 +47,8 @@ func runNegativeFormatVolumeRequest(t *testing.T, client *v1beta3client.Client, 
 	}
 }
 
-func runNegativeResizeVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID string, size int64) {
-	resizeVolumeRequest := &v1beta3.ResizeVolumeRequest{
+func runNegativeResizeVolumeRequest(t *testing.T, client volume.Interface, volumeID string, size int64) {
+	resizeVolumeRequest := &volume.ResizeVolumeRequest{
 		VolumeId:  volumeID,
 		SizeBytes: size,
 	}
@@ -49,9 +58,9 @@ func runNegativeResizeVolumeRequest(t *testing.T, client *v1beta3client.Client, 
 	}
 }
 
-func runNegativeMountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, targetPath string) {
+func runNegativeMountVolumeRequest(t *testing.T, client volume.Interface, volumeID, targetPath string) {
 	// Mount the volume
-	mountVolumeRequest := &v1beta3.MountVolumeRequest{
+	mountVolumeRequest := &volume.MountVolumeRequest{
 		VolumeId:   volumeID,
 		TargetPath: targetPath,
 	}
@@ -62,9 +71,9 @@ func runNegativeMountVolumeRequest(t *testing.T, client *v1beta3client.Client, v
 	}
 }
 
-func runNegativeUnmountVolumeRequest(t *testing.T, client *v1beta3client.Client, volumeID, targetPath string) {
+func runNegativeUnmountVolumeRequest(t *testing.T, client volume.Interface, volumeID, targetPath string) {
 	// Unmount the volume
-	unmountVolumeRequest := &v1beta3.UnmountVolumeRequest{
+	unmountVolumeRequest := &volume.UnmountVolumeRequest{
 		VolumeId:   volumeID,
 		TargetPath: targetPath,
 	}
@@ -74,9 +83,9 @@ func runNegativeUnmountVolumeRequest(t *testing.T, client *v1beta3client.Client,
 	}
 }
 
-func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta3client.Client, volumeID string) {
+func runNegativeVolumeStatsRequest(t *testing.T, client volume.Interface, volumeID string) {
 	// Get VolumeStats
-	volumeStatsRequest := &v1beta3.GetVolumeStatsRequest{
+	volumeStatsRequest := &volume.GetVolumeStatsRequest{
 		VolumeId: volumeID,
 	}
 	_, err := client.GetVolumeStats(context.TODO(), volumeStatsRequest)
@@ -86,61 +95,334 @@ func runNegativeVolumeStatsRequest(t *testing.T, client *v1beta3client.Client, v
 }
 
 func negativeVolumeTests(t *testing.T) {
-	var client *v1beta3client.Client
-	var err error
-
-	if client, err = v1beta3client.NewClient(); err != nil {
-		t.Fatalf("Client new error: %v", err)
-	}
-	defer client.Close()
+	client, err := volume.New(volumeapi.New())
+	require.Nil(t, err)
 
 	// Empty volume test
-	runNegativeIsVolumeFormattedRequest(t, client, "")
+	// runNegativeIsVolumeFormattedRequest(t, client, "")
 	// -ve volume id
 	runNegativeIsVolumeFormattedRequest(t, client, "-1")
 
 	// Format volume negative tests
-	runNegativeFormatVolumeRequest(t, client, "")
+	// runNegativeFormatVolumeRequest(t, client, "")
 	runNegativeFormatVolumeRequest(t, client, "-1")
 
 	// Resize volume negative tests
-	runNegativeResizeVolumeRequest(t, client, "", 2*1024*1024)
-	runNegativeResizeVolumeRequest(t, client, "-1", 2*1024*1024)
+	// runNegativeResizeVolumeRequest(t, client, "", 2*1024*1024)
+	// runNegativeResizeVolumeRequest(t, client, "-1", 2*1024*1024)
 
-	// Mount volume negative tests
-	runNegativeMountVolumeRequest(t, client, "", "")
-	runNegativeMountVolumeRequest(t, client, "-1", "")
+	// // Mount volume negative tests
+	// runNegativeMountVolumeRequest(t, client, "", "")
+	// runNegativeMountVolumeRequest(t, client, "-1", "")
 
-	// Unmount volume negative tests
-	runNegativeUnmountVolumeRequest(t, client, "", "")
-	runNegativeUnmountVolumeRequest(t, client, "-1", "")
+	// // Unmount volume negative tests
+	// runNegativeUnmountVolumeRequest(t, client, "", "")
+	// runNegativeUnmountVolumeRequest(t, client, "-1", "")
 
-	runNegativeVolumeStatsRequest(t, client, "")
-	runNegativeVolumeStatsRequest(t, client, "-1")
-}
-
-// sizeIsAround returns true if the actual size is around the expected size
-// (considers the fact that some bytes were lost)
-func sizeIsAround(t *testing.T, actualSize, expectedSize int64) bool {
-	// An upper bound on the number of bytes that are lost when creating or resizing a partition
-	var volumeSizeBytesLoss int64 = (20 * 1024 * 1024)
-	var lowerBound = expectedSize - volumeSizeBytesLoss
-	var upperBound = expectedSize
-	t.Logf("Checking that the size is inside the bounds: %d < (actual) %d < %d", lowerBound, actualSize, upperBound)
-	return lowerBound <= actualSize && actualSize <= upperBound
+	// runNegativeVolumeStatsRequest(t, client, "")
+	// runNegativeVolumeStatsRequest(t, client, "-1")
 }
 
 func negativeDiskTests(t *testing.T) {
-	var client *v1beta3client.Client
-	var err error
-
-	if client, err = v1beta3client.NewClient(); err != nil {
-		t.Fatalf("Client new error: %v", err)
-	}
-	defer client.Close()
+	_, err := volume.New(volumeapi.New())
+	require.Nil(t, err)
 }
 
-func TestVolumeAPIs(t *testing.T) {
+// volumeInit initializes a volume, it creates a VHD, initializes it,
+// creates a partition with the max size and formats the volume corresponding to that partition
+func volumeInit(volumeClient volume.Interface, t *testing.T) (*VirtualHardDisk, string, func()) {
+	vhd, vhdCleanup := diskInit(t)
+
+	listRequest := &volume.ListVolumesOnDiskRequest{
+		DiskNumber: vhd.DiskNumber,
+	}
+	listResponse, err := volumeClient.ListVolumesOnDisk(context.TODO(), listRequest)
+	if err != nil {
+		t.Fatalf("List response: %v", err)
+	}
+
+	volumeIDsLen := len(listResponse.VolumeIds)
+	if volumeIDsLen != 1 {
+		t.Fatalf("Number of volumes not equal to 1: %d", volumeIDsLen)
+	}
+	volumeID := listResponse.VolumeIds[0]
+	t.Logf("VolumeId %v", volumeID)
+
+	isVolumeFormattedRequest := &volume.IsVolumeFormattedRequest{
+		VolumeId: volumeID,
+	}
+	isVolumeFormattedResponse, err := volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	if err != nil {
+		t.Fatalf("Is volume formatted request error: %v", err)
+	}
+	if isVolumeFormattedResponse.Formatted {
+		t.Fatal("Volume formatted. Unexpected !!")
+	}
+
+	formatVolumeRequest := &volume.FormatVolumeRequest{
+		VolumeId: volumeID,
+	}
+	_, err = volumeClient.FormatVolume(context.TODO(), formatVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume format failed. Error: %v", err)
+	}
+
+	isVolumeFormattedResponse, err = volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	if err != nil {
+		t.Fatalf("Is volume formatted request error: %v", err)
+	}
+	if !isVolumeFormattedResponse.Formatted {
+		t.Fatal("Volume should be formatted. Unexpected !!")
+	}
+	return vhd, volumeID, vhdCleanup
+}
+
+func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient volume.Interface, t *testing.T) {
+	t.Run("DriveLetterVolume", func(t *testing.T) {
+		vhd, _, vhdCleanup := volumeInit(volumeClient, t)
+		defer vhdCleanup()
+
+		// vhd.Mount dir exists, because there are no volumes above it should return the C:\ volume
+		request := &volume.GetClosestVolumeIDFromTargetPathRequest{
+			TargetPath: vhd.Mount,
+		}
+		response, err := volumeClient.GetClosestVolumeIDFromTargetPath(context.TODO(), request)
+		if err != nil {
+			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
+		}
+
+		// the C drive volume
+		cmd := exec.Command("powershell", "/c", `(Get-Partition -DriveLetter C | Get-Volume).UniqueId`)
+		targetb, err := cmd.Output()
+		if err != nil {
+			t.Fatalf("Failed to get the C: drive volume")
+		}
+		cDriveVolume := strings.TrimSpace(string(targetb))
+
+		if response.VolumeId != cDriveVolume {
+			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the C: drive volume")
+		}
+	})
+	t.Run("AncestorVolumeFromNestedDirectory", func(t *testing.T) {
+		var err error
+		vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+		defer vhdCleanup()
+
+		// Mount the volume
+		mountVolumeRequest := &volume.MountVolumeRequest{
+			VolumeId:   volumeID,
+			TargetPath: vhd.Mount,
+		}
+		_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
+		if err != nil {
+			t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+		}
+
+		// Unmount the volume
+		defer func() {
+			unmountVolumeRequest := &volume.UnmountVolumeRequest{
+				VolumeId:   volumeID,
+				TargetPath: vhd.Mount,
+			}
+			_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
+			if err != nil {
+				t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+			}
+		}()
+
+		nestedDirectory := filepath.Join(vhd.Mount, "foo/bar")
+		err = os.MkdirAll(nestedDirectory, os.ModeDir)
+		if err != nil {
+			t.Fatalf("Failed to create directory=%s", nestedDirectory)
+		}
+
+		// the volume returned should be the VHD volume
+		request := &volume.GetClosestVolumeIDFromTargetPathRequest{
+			TargetPath: nestedDirectory,
+		}
+		response, err := volumeClient.GetClosestVolumeIDFromTargetPath(context.TODO(), request)
+		if err != nil {
+			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
+		}
+
+		if response.VolumeId != volumeID {
+			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the VHD volume=%s", volumeID)
+		}
+	})
+
+	t.Run("SymlinkToVolume", func(t *testing.T) {
+		var err error
+		vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+		defer vhdCleanup()
+
+		// Mount the volume
+		mountVolumeRequest := &volume.MountVolumeRequest{
+			VolumeId:   volumeID,
+			TargetPath: vhd.Mount,
+		}
+		_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
+		if err != nil {
+			t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+		}
+
+		// Unmount the volume
+		defer func() {
+			unmountVolumeRequest := &volume.UnmountVolumeRequest{
+				VolumeId:   volumeID,
+				TargetPath: vhd.Mount,
+			}
+			_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
+			if err != nil {
+				t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+			}
+		}()
+
+		testPluginPath, _ := getTestPluginPath()
+		err = os.MkdirAll(testPluginPath, os.ModeDir)
+		if err != nil {
+			t.Fatalf("Failed to create directory=%s", testPluginPath)
+		}
+
+		sourceSymlink := filepath.Join(testPluginPath, "source")
+		err = os.Symlink(vhd.Mount, sourceSymlink)
+		if err != nil {
+			t.Fatalf("Failed to create the symlink=%s", sourceSymlink)
+		}
+
+		// the volume returned should be the VHD volume
+		var request *volume.GetClosestVolumeIDFromTargetPathRequest
+		var response *volume.GetClosestVolumeIDFromTargetPathResponse
+		request = &volume.GetClosestVolumeIDFromTargetPathRequest{
+			TargetPath: sourceSymlink,
+		}
+		response, err = volumeClient.GetClosestVolumeIDFromTargetPath(context.TODO(), request)
+		if err != nil {
+			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
+		}
+
+		if response.VolumeId != volumeID {
+			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the VHD volume=%s", volumeID)
+		}
+	})
+}
+
+func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, t *testing.T) {
+	vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+	defer vhdCleanup()
+
+	volumeStatsRequest := &volume.GetVolumeStatsRequest{
+		VolumeId: volumeID,
+	}
+
+	volumeStatsResponse, err := volumeClient.GetVolumeStats(context.TODO(), volumeStatsRequest)
+	if err != nil {
+		t.Fatalf("VolumeStats request error: %v", err)
+	}
+	// For a volume formatted with 1GB it should be around 1GB, in practice it was 1056947712 bytes or 0.9844GB
+	// let's compare with a range of +- 20MB
+	if !sizeIsAround(t, volumeStatsResponse.TotalBytes, vhd.InitialSize) {
+		t.Fatalf("volumeStatsResponse.TotalBytes reported is not valid, it is %v", volumeStatsResponse.TotalBytes)
+	}
+
+	// Resize the disk to twice its size (from 1GB to 2GB)
+	// To resize a volume we need to resize the virtual hard disk first and then the partition
+	cmd := fmt.Sprintf("Resize-VHD -Path %s -SizeBytes %d", vhd.Path, int64(vhd.InitialSize*2))
+	if out, err := runPowershellCmd(t, cmd); err != nil {
+		t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
+	}
+
+	// Resize the volume to 1.5GB
+	oldVolumeSize := volumeStatsResponse.TotalBytes
+	newVolumeSize := int64(float32(oldVolumeSize) * 1.5)
+
+	// This is the max partition size when doing a resize to 2GB
+	//
+	//    Get-PartitionSupportedSize -DiskNumber 7 -PartitionNumber 2 | ConvertTo-Json
+	//    {
+	//    	"SizeMin":  404725760,
+	//    	"SizeMax":  2130689536
+	//    }
+	resizeVolumeRequest := &volume.ResizeVolumeRequest{
+		VolumeId: volumeID,
+		// resize the partition to 1.5x times instead
+		SizeBytes: newVolumeSize,
+	}
+
+	t.Logf("Attempt to resize volume from sizeBytes=%d to sizeBytes=%d", oldVolumeSize, newVolumeSize)
+
+	_, err = volumeClient.ResizeVolume(context.TODO(), resizeVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume resize request failed. Error: %v", err)
+	}
+
+	volumeStatsResponse, err = volumeClient.GetVolumeStats(context.TODO(), volumeStatsRequest)
+	if err != nil {
+		t.Fatalf("VolumeStats request after resize error: %v", err)
+	}
+	// resizing from 1GB to approximately 1.5GB
+	if !sizeIsAround(t, volumeStatsResponse.TotalBytes, newVolumeSize) {
+		t.Fatalf("VolumeSize reported should be greater than the old size, it is %v", volumeStatsResponse.TotalBytes)
+	}
+
+	volumeDiskNumberRequest := &volume.GetDiskNumberFromVolumeIDRequest{
+		VolumeId: volumeID,
+	}
+
+	volumeDiskNumberResponse, err := volumeClient.GetDiskNumberFromVolumeID(context.TODO(), volumeDiskNumberRequest)
+	if err != nil {
+		t.Fatalf("GetDiskNumberFromVolumeID failed: %v", err)
+	}
+
+	diskStatsRequest := &disk.GetDiskStatsRequest{
+		DiskNumber: volumeDiskNumberResponse.DiskNumber,
+	}
+
+	diskStatsResponse, err := diskClient.GetDiskStats(context.TODO(), diskStatsRequest)
+	if err != nil {
+		t.Fatalf("DiskStats request error: %v", err)
+	}
+
+	if diskStatsResponse.TotalBytes < 0 {
+		t.Fatalf("Invalid disk size was returned %v", diskStatsResponse.TotalBytes)
+	}
+
+	// Mount the volume
+	mountVolumeRequest := &volume.MountVolumeRequest{
+		VolumeId:   volumeID,
+		TargetPath: vhd.Mount,
+	}
+	_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+	}
+
+	// Unmount the volume
+	unmountVolumeRequest := &volume.UnmountVolumeRequest{
+		VolumeId:   volumeID,
+		TargetPath: vhd.Mount,
+	}
+	_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume id %s mount to path %s failed. Error: %v", volumeID, vhd.Mount, err)
+	}
+}
+
+func volumeTests(t *testing.T) {
+	volumeClient, err := volume.New(volumeapi.New())
+	require.Nil(t, err)
+
+	diskClient, err := disk.New(diskapi.New())
+	require.Nil(t, err)
+
+	t.Run("MountVolume", func(t *testing.T) {
+		mountVolumeTests(diskClient, volumeClient, t)
+	})
+	t.Run("GetClosestVolumeFromTargetPath", func(t *testing.T) {
+		getClosestVolumeFromTargetPathTests(diskClient, volumeClient, t)
+	})
+}
+
+func TestVolume(t *testing.T) {
 	t.Run("NegativeDiskTests", func(t *testing.T) {
 		negativeDiskTests(t)
 	})
@@ -152,28 +434,8 @@ func TestVolumeAPIs(t *testing.T) {
 	// see https://github.com/actions/virtual-environments/pull/2525
 
 	// these tests should be considered frozen from the API point of view
-	t.Run("v1alpha1Tests", func(t *testing.T) {
+	t.Run("volumeTests", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
-		v1alpha1VolumeTests(t)
-	})
-	t.Run("v1beta1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-		v1beta1VolumeTests(t)
-	})
-	t.Run("v1beta2Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-		v1beta2VolumeTests(t)
-	})
-	t.Run("v1beta3Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-		v1beta3VolumeTests(t)
-	})
-	t.Run("v1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-		v1VolumeTests(t)
-	})
-	t.Run("v2alpha1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-		v2alpha1VolumeTests(t)
+		volumeTests(t)
 	})
 }

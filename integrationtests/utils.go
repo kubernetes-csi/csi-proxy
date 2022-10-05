@@ -20,34 +20,7 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/kubernetes-csi/csi-proxy/pkg/server"
-	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
 )
-
-// startServer starts the proxy's GRPC servers, and returns a function to shut them down when done with testing
-func startServer(t *testing.T, apiGroups ...srvtypes.APIGroup) func() {
-	s := server.NewServer(apiGroups...)
-
-	listeningChan := make(chan interface{})
-	go func() {
-		assert.Nil(t, s.Start(listeningChan))
-	}()
-
-	select {
-	case <-listeningChan:
-	case <-time.After(5 * time.Second):
-		t.Fatalf("Timed out waiting for GRPC servers to start listening")
-	}
-
-	return func() {
-		assert.Nil(t, s.Stop())
-	}
-}
-
-func close(t *testing.T, closer io.Closer) {
-	assert.Nil(t, closer.Close())
-}
 
 // recursiveDiff ensures that dir1 and dir2 contain the same files, with the same contents.
 // fileSuffixesToRemove will be removed from file names, if found.
@@ -272,4 +245,26 @@ func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
 	}
 
 	return vhd, cleanup
+}
+
+// sizeIsAround returns true if the actual size is around the expected size
+// (considers the fact that some bytes were lost)
+func sizeIsAround(t *testing.T, actualSize, expectedSize int64) bool {
+	// An upper bound on the number of bytes that are lost when creating or resizing a partition
+	var volumeSizeBytesLoss int64 = (20 * 1024 * 1024)
+	var lowerBound = expectedSize - volumeSizeBytesLoss
+	var upperBound = expectedSize
+	t.Logf("Checking that the size is inside the bounds: %d < (actual) %d < %d", lowerBound, actualSize, upperBound)
+	return lowerBound <= actualSize && actualSize <= upperBound
+}
+
+func pathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
