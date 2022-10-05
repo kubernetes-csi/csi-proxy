@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kubernetes-csi/csi-proxy/client/apiversion"
-	"github.com/kubernetes-csi/csi-proxy/pkg/os/volume"
-	internal "github.com/kubernetes-csi/csi-proxy/pkg/server/volume/impl"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume/api"
 )
 
 type fakeVolumeAPI struct {
 	diskVolMap map[uint32][]string
 }
 
-var _ volume.API = &fakeVolumeAPI{}
+var _ volumeapi.API = &fakeVolumeAPI{}
 
 func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[uint32][]string) {
 	for d, v := range diskToVolMapIn {
@@ -71,11 +69,6 @@ func (volumeAPI *fakeVolumeAPI) WriteVolumeCache(volumeID string) error {
 }
 
 func TestListVolumesOnDisk(t *testing.T) {
-	v1, err := apiversion.NewVersion("v1")
-	if err != nil {
-		t.Fatalf("New version error: %v", err)
-	}
-
 	testCases := []struct {
 		name              string
 		inputDiskNumber   uint32
@@ -115,17 +108,17 @@ func TestListVolumesOnDisk(t *testing.T) {
 	}
 	volAPI.Fill(diskToVolMap)
 
-	volumeSrv, err := NewServer(volAPI)
+	client, err := New(volAPI)
 	if err != nil {
 		t.Fatalf("Volume server could not be initialized: %v", err)
 	}
 
 	for _, tc := range testCases {
 		t.Logf("test case: %s", tc.name)
-		listInput := &internal.ListVolumesOnDiskRequest{
+		listInput := &ListVolumesOnDiskRequest{
 			DiskNumber: tc.inputDiskNumber,
 		}
-		volumeListResponse, err := volumeSrv.ListVolumesOnDisk(context.TODO(), listInput, v1)
+		volumeListResponse, err := client.ListVolumesOnDisk(context.TODO(), listInput)
 		if tc.isErrorExpected {
 			if tc.expectedError.Error() != err.Error() {
 				t.Fatalf("Expected error: %v. Got error: %v", tc.expectedError, err)

@@ -1,9 +1,4 @@
-// Defines all the structs that the server is aware of, because all
-// the apis are included as the target for code generation it also
-// has definition for older APIs e.g. volume/v1alpha1, volume/v1beta1, etc
-// Because of this some structs are needed but are no longer used in newer APIs
-
-package impl
+package volume
 
 type ListVolumesOnDiskRequest struct {
 	DiskNumber      uint32
