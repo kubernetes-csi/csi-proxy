@@ -1,4 +1,4 @@
-package impl
+package filesystem
 
 // PathExistsRequest is the internal representation of requests to the PathExists endpoint.
 type PathExistsRequest struct {
@@ -10,6 +10,18 @@ type PathExistsRequest struct {
 type PathExistsResponse struct {
 	// Indicates whether the path in PathExistsRequest exists in the host's filesystem
 	Exists bool
+}
+
+// PathValidRequest is the internal representation of requests to the PathValid endpoint.
+type PathValidRequest struct {
+	// The path whose validity we want to check in the host's filesystem
+	Path string
+}
+
+// PathValidResponse is the internal representation of responses from the PathValid endpoint.
+type PathValidResponse struct {
+	// Indicates whether the path in PathValidRequest is a valid path
+	Valid bool
 }
 
 type MkdirRequest struct {

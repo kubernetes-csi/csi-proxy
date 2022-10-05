@@ -1,4 +1,4 @@
-package filesystem
+package api
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
 // pass-through to the OS APIs. Any logic around the APIs should go in
-// internal/server/filesystem/server.go so that logic can be easily unit-tested
+// pkg/filesystem/filesystem.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 
 // API is the exposed Filesystem API
