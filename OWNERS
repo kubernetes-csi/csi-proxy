@@ -4,12 +4,13 @@ approvers:
 - kubernetes-csi-approvers
 - andyzhangx
 - ddebroy
-- PatrickLang
 - jingxu97
 - kkmsft
+- mauriciopoppe
+- PatrickLang
 
 reviewers:
 - kubernetes-csi-reviewers
 - ddebroy
-- PatrickLang
 - kkmsft
+- PatrickLang
