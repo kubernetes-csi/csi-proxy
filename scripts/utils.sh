@@ -57,11 +57,7 @@ run_csi_proxy_integration_tests() {
   "& {
     $ErrorActionPreference = \"Stop\";
     Import-Module (Resolve-Path(\"utils.psm1\"));
-    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestAPIGroups\";
-    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestFilesystemAPIGroup\";
-    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestDiskAPIGroup\";
-    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestVolumeAPIs\";
-    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestSmbAPIGroup\";
+    Run-CSIProxyIntegrationTests -test_args \"--test.v\";
   }"
 EOF
 );
