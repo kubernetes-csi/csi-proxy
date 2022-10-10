@@ -15,9 +15,9 @@ import (
 	v2alpha1client "github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1"
 )
 
-// volumeInit initializes a volume, it creates a VHD, initializes it,
+// volumeInitV2Alpha1 initializes a volume, it creates a VHD, initializes it,
 // creates a partition with the max size and formats the volume corresponding to that partition
-func volumeInit(volumeClient *v2alpha1client.Client, t *testing.T) (*VirtualHardDisk, string, func()) {
+func volumeInitV2Alpha1(volumeClient *v2alpha1client.Client, t *testing.T) (*VirtualHardDisk, string, func()) {
 	vhd, vhdCleanup := diskInit(t)
 
 	listRequest := &v2alpha1.ListVolumesOnDiskRequest{
@@ -66,7 +66,7 @@ func volumeInit(volumeClient *v2alpha1client.Client, t *testing.T) (*VirtualHard
 
 func v2alpha1GetClosestVolumeFromTargetPathTests(diskClient *diskv1client.Client, volumeClient *v2alpha1client.Client, t *testing.T) {
 	t.Run("DriveLetterVolume", func(t *testing.T) {
-		vhd, _, vhdCleanup := volumeInit(volumeClient, t)
+		vhd, _, vhdCleanup := volumeInitV2Alpha1(volumeClient, t)
 		defer vhdCleanup()
 
 		// vhd.Mount dir exists, because there are no volumes above it should return the C:\ volume
@@ -94,7 +94,7 @@ func v2alpha1GetClosestVolumeFromTargetPathTests(diskClient *diskv1client.Client
 	})
 	t.Run("AncestorVolumeFromNestedDirectory", func(t *testing.T) {
 		var err error
-		vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+		vhd, volumeID, vhdCleanup := volumeInitV2Alpha1(volumeClient, t)
 		defer vhdCleanup()
 
 		// Mount the volume
@@ -143,7 +143,7 @@ func v2alpha1GetClosestVolumeFromTargetPathTests(diskClient *diskv1client.Client
 
 	t.Run("SymlinkToVolume", func(t *testing.T) {
 		var err error
-		vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+		vhd, volumeID, vhdCleanup := volumeInitV2Alpha1(volumeClient, t)
 		defer vhdCleanup()
 
 		// Mount the volume
@@ -198,7 +198,7 @@ func v2alpha1GetClosestVolumeFromTargetPathTests(diskClient *diskv1client.Client
 }
 
 func v2alpha1MountVolumeTests(diskClient *diskv1client.Client, volumeClient *v2alpha1client.Client, t *testing.T) {
-	vhd, volumeID, vhdCleanup := volumeInit(volumeClient, t)
+	vhd, volumeID, vhdCleanup := volumeInitV2Alpha1(volumeClient, t)
 	defer vhdCleanup()
 
 	volumeStatsRequest := &v2alpha1.GetVolumeStatsRequest{

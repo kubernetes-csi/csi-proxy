@@ -274,6 +274,17 @@ func diskInit(t *testing.T) (*VirtualHardDisk, func()) {
 	return vhd, cleanup
 }
 
+// sizeIsAround returns true if the actual size is around the expected size
+// (considers the fact that some bytes were lost)
+func sizeIsAround(t *testing.T, actualSize, expectedSize int64) bool {
+	// An upper bound on the number of bytes that are lost when creating or resizing a partition
+	var volumeSizeBytesLoss int64 = (20 * 1024 * 1024)
+	var lowerBound = expectedSize - volumeSizeBytesLoss
+	var upperBound = expectedSize
+	t.Logf("Checking that the size is inside the bounds: %d < (actual) %d < %d", lowerBound, actualSize, upperBound)
+	return lowerBound <= actualSize && actualSize <= upperBound
+}
+
 func pathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
