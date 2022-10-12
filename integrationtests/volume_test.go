@@ -158,55 +158,6 @@ func TestVolumeAPIs(t *testing.T) {
 	})
 }
 
-// volumeInit initializes a volume, it creates a VHD, initializes it,
-// creates a partition with the max size and formats the volume corresponding to that partition
-func volumeInit(volumeClient volume.Interface, t *testing.T) (*VirtualHardDisk, string, func()) {
-	vhd, vhdCleanup := diskInit(t)
-
-	listRequest := &volume.ListVolumesOnDiskRequest{
-		DiskNumber: vhd.DiskNumber,
-	}
-	listResponse, err := volumeClient.ListVolumesOnDisk(context.TODO(), listRequest)
-	if err != nil {
-		t.Fatalf("List response: %v", err)
-	}
-
-	volumeIDsLen := len(listResponse.VolumeIds)
-	if volumeIDsLen != 1 {
-		t.Fatalf("Number of volumes not equal to 1: %d", volumeIDsLen)
-	}
-	volumeID := listResponse.VolumeIds[0]
-	t.Logf("VolumeId %v", volumeID)
-
-	isVolumeFormattedRequest := &volume.IsVolumeFormattedRequest{
-		VolumeId: volumeID,
-	}
-	isVolumeFormattedResponse, err := volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
-	if err != nil {
-		t.Fatalf("Is volume formatted request error: %v", err)
-	}
-	if isVolumeFormattedResponse.Formatted {
-		t.Fatal("Volume formatted. Unexpected !!")
-	}
-
-	formatVolumeRequest := &volume.FormatVolumeRequest{
-		VolumeId: volumeID,
-	}
-	_, err = volumeClient.FormatVolume(context.TODO(), formatVolumeRequest)
-	if err != nil {
-		t.Fatalf("Volume format failed. Error: %v", err)
-	}
-
-	isVolumeFormattedResponse, err = volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
-	if err != nil {
-		t.Fatalf("Is volume formatted request error: %v", err)
-	}
-	if !isVolumeFormattedResponse.Formatted {
-		t.Fatal("Volume should be formatted. Unexpected !!")
-	}
-	return vhd, volumeID, vhdCleanup
-}
-
 func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient volume.Interface, t *testing.T) {
 	t.Run("DriveLetterVolume", func(t *testing.T) {
 		vhd, _, vhdCleanup := volumeInit(volumeClient, t)
@@ -436,21 +387,6 @@ func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, 
 	}
 }
 
-func volumeTests(t *testing.T) {
-	volumeClient, err := volume.New(volumeapi.New())
-	require.Nil(t, err)
-
-	diskClient, err := disk.New(diskapi.New())
-	require.Nil(t, err)
-
-	t.Run("MountVolume", func(t *testing.T) {
-		mountVolumeTests(diskClient, volumeClient, t)
-	})
-	t.Run("GetClosestVolumeFromTargetPath", func(t *testing.T) {
-		getClosestVolumeFromTargetPathTests(diskClient, volumeClient, t)
-	})
-}
-
 func TestVolume(t *testing.T) {
 	t.Run("NegativeDiskTests", func(t *testing.T) {
 		negativeDiskTests(t)
@@ -463,8 +399,19 @@ func TestVolume(t *testing.T) {
 	// see https://github.com/actions/virtual-environments/pull/2525
 
 	// these tests should be considered frozen from the API point of view
-	t.Run("volumeTests", func(t *testing.T) {
+	volumeClient, err := volume.New(volumeapi.New())
+	require.Nil(t, err)
+
+	diskClient, err := disk.New(diskapi.New())
+	require.Nil(t, err)
+
+	t.Run("MountVolume", func(t *testing.T) {
 		skipTestOnCondition(t, isRunningOnGhActions())
-		volumeTests(t)
+		mountVolumeTests(diskClient, volumeClient, t)
+	})
+
+	t.Run("GetClosestVolumeFromTargetPath", func(t *testing.T) {
+		skipTestOnCondition(t, isRunningOnGhActions())
+		getClosestVolumeFromTargetPathTests(diskClient, volumeClient, t)
 	})
 }

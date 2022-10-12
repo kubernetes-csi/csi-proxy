@@ -1,6 +1,7 @@
 package integrationtests
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/server"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
+	"github.com/kubernetes-csi/csi-proxy/pkg/volume"
 )
 
 // startServer starts the proxy's GRPC servers, and returns a function to shut them down when done with testing
@@ -294,4 +296,53 @@ func pathExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+// volumeInit initializes a volume, it creates a VHD, initializes it,
+// creates a partition with the max size and formats the volume corresponding to that partition
+func volumeInit(volumeClient volume.Interface, t *testing.T) (*VirtualHardDisk, string, func()) {
+	vhd, vhdCleanup := diskInit(t)
+
+	listRequest := &volume.ListVolumesOnDiskRequest{
+		DiskNumber: vhd.DiskNumber,
+	}
+	listResponse, err := volumeClient.ListVolumesOnDisk(context.TODO(), listRequest)
+	if err != nil {
+		t.Fatalf("List response: %v", err)
+	}
+
+	volumeIDsLen := len(listResponse.VolumeIds)
+	if volumeIDsLen != 1 {
+		t.Fatalf("Number of volumes not equal to 1: %d", volumeIDsLen)
+	}
+	volumeID := listResponse.VolumeIds[0]
+	t.Logf("VolumeId %v", volumeID)
+
+	isVolumeFormattedRequest := &volume.IsVolumeFormattedRequest{
+		VolumeId: volumeID,
+	}
+	isVolumeFormattedResponse, err := volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	if err != nil {
+		t.Fatalf("Is volume formatted request error: %v", err)
+	}
+	if isVolumeFormattedResponse.Formatted {
+		t.Fatal("Volume formatted. Unexpected !!")
+	}
+
+	formatVolumeRequest := &volume.FormatVolumeRequest{
+		VolumeId: volumeID,
+	}
+	_, err = volumeClient.FormatVolume(context.TODO(), formatVolumeRequest)
+	if err != nil {
+		t.Fatalf("Volume format failed. Error: %v", err)
+	}
+
+	isVolumeFormattedResponse, err = volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
+	if err != nil {
+		t.Fatalf("Is volume formatted request error: %v", err)
+	}
+	if !isVolumeFormattedResponse.Formatted {
+		t.Fatal("Volume should be formatted. Unexpected !!")
+	}
+	return vhd, volumeID, vhdCleanup
 }
