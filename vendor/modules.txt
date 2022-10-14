@@ -50,27 +50,6 @@ github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/api/volume/v2alpha1
 github.com/kubernetes-csi/csi-proxy/client/apiversion
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v2alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/system/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -78,7 +57,6 @@ github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.0.0
 ## explicit
-github.com/sergi/go-diff/diffmatchpatch
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
