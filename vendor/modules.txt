@@ -60,7 +60,6 @@ github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v2alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/iscsi/v1alpha2
 github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1
 github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1alpha1
 github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta1
