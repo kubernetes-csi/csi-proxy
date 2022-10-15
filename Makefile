@@ -23,13 +23,13 @@ lint: $(GOLANGCI_LINT)
 test: test-go
 test-go:
 	@ echo; echo "### $@:"
-	GO111MODULE=on go test ./pkg/...
+	@ echo "No need to run test. Testing is done in GitHub Actions and custom Prow job."
 
 .PHONY: test-vet
 test: test-vet
 test-vet:
 	@ echo; echo "### $@:"
-	GO111MODULE=on go vet ./pkg/...
+	@ echo "No need to run vet. Testing is done in GitHub Actions and custom Prow job."
 
 # see https://github.com/golangci/golangci-lint#binary-release
 $(GOLANGCI_LINT):
