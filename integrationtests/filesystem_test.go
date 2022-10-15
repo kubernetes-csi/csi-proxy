@@ -241,21 +241,3 @@ func TestFilesystem(t *testing.T) {
 		}
 	})
 }
-
-func TestFilesystemAPIGroup(t *testing.T) {
-	t.Run("v2alpha1FilesystemTests", func(t *testing.T) {
-		v2alpha1FilesystemTests(t)
-	})
-	t.Run("v1FilesystemTests", func(t *testing.T) {
-		v1FilesystemTests(t)
-	})
-	t.Run("v1beta2FilesystemTests", func(t *testing.T) {
-		v1beta2FilesystemTests(t)
-	})
-	t.Run("v1beta1FilesystemTests", func(t *testing.T) {
-		v1beta1FilesystemTests(t)
-	})
-	t.Run("v1alpha1FilesystemTests", func(t *testing.T) {
-		v1alpha1FilesystemTests(t)
-	})
-}

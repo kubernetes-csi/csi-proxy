@@ -20,21 +20,6 @@ import (
 	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/api"
 )
 
-func TestSmbAPIGroup(t *testing.T) {
-	t.Run("v1alpha1SmbTests", func(t *testing.T) {
-		v1alpha1SmbTests(t)
-	})
-	t.Run("v1beta1SmbTests", func(t *testing.T) {
-		v1beta1SmbTests(t)
-	})
-	t.Run("v1beta2SmbTests", func(t *testing.T) {
-		v1beta2SmbTests(t)
-	})
-	t.Run("v1SmbTests", func(t *testing.T) {
-		v1SmbTests(t)
-	})
-}
-
 func TestSmb(t *testing.T) {
 	fsClient, err := fs.New(fsapi.New())
 	require.Nil(t, err)

@@ -17,7 +17,6 @@ jobs:
       - name: Build
         run: |
           go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
-          go build -v -a -o ./bin/csi-proxy-api-gen.exe ./cmd/csi-proxy-api-gen
       - name: Run Windows Integration Tests
         run: |
           # start the CSI Proxy before running tests on windows
@@ -46,36 +45,3 @@ jobs:
         run: |
           make all
           go test -v -race ./pkg/...
-
-  bump_version_test:
-    strategy:
-      matrix:
-        go: ['1.16']
-        platform: [ubuntu-latest]
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ matrix.go }}
-      - name: Install Tools
-        run: |
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
-          echo "/home/runner/work/csi-proxy/csi-proxy/go/bin" >> $GITHUB_PATH
-          PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-          curl -LO $PB_REL/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip
-          unzip protoc-3.15.8-linux-x86_64.zip -d $HOME/.local
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
-          path: go/src/github.com/kubernetes-csi/csi-proxy
-      - name: Run bump version script
-        env:
-          GOPATH: /home/runner/work/csi-proxy/csi-proxy/go
-          GOBIN: /home/runner/work/csi-proxy/csi-proxy/go/bin
-        run: |
-          go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
-          protoc --version
-          cd /home/runner/work/csi-proxy/csi-proxy/go/src/github.com/kubernetes-csi/csi-proxy
-          API_GROUP=filesystem OLD_API_VERSION=v1beta2 NEW_API_VERSION=v99 scripts/bump-version.sh

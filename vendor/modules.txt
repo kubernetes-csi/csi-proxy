@@ -20,9 +20,6 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
-## explicit
-github.com/iancoleman/strcase
 # github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000 => ./client
 ## explicit
 github.com/kubernetes-csi/csi-proxy/client
@@ -50,38 +47,11 @@ github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/api/volume/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/api/volume/v2alpha1
 github.com/kubernetes-csi/csi-proxy/client/apiversion
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/disk/v1beta3
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/filesystem/v2alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/smb/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/system/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1alpha1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3
-github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/sergi/go-diff v1.0.0
-## explicit
-github.com/sergi/go-diff/diffmatchpatch
-# github.com/spf13/pflag v1.0.5
-## explicit
-github.com/spf13/pflag
 # github.com/stretchr/testify v1.5.1
 ## explicit
 github.com/stretchr/testify/assert
@@ -105,18 +75,6 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135
-golang.org/x/tools/go/ast/astutil
-golang.org/x/tools/go/gcexportdata
-golang.org/x/tools/go/internal/gcimporter
-golang.org/x/tools/go/internal/packagesdriver
-golang.org/x/tools/go/packages
-golang.org/x/tools/imports
-golang.org/x/tools/internal/fastwalk
-golang.org/x/tools/internal/gopathwalk
-golang.org/x/tools/internal/imports
-golang.org/x/tools/internal/module
-golang.org/x/tools/internal/semver
 # golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
@@ -203,17 +161,6 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
-# k8s.io/gengo v0.0.0-00010101000000-000000000000 => github.com/mauriciopoppe/gengo v0.0.0-20210525224835-9c78f58f3486
-## explicit
-k8s.io/gengo/args
-k8s.io/gengo/examples/conversion-gen/generators/generator
-k8s.io/gengo/generator
-k8s.io/gengo/namer
-k8s.io/gengo/parser
-k8s.io/gengo/types
-# k8s.io/klog v1.0.0
-## explicit
-k8s.io/klog
 # k8s.io/klog/v2 v2.9.0
 ## explicit
 k8s.io/klog/v2
