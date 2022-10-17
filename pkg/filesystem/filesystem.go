@@ -12,14 +12,31 @@ type Filesystem struct {
 }
 
 type Interface interface {
+	// CreateSymlink creates a symbolic link called target_path that points to source_path
+	// in the host filesystem (target_path is the name of the symbolic link created,
+	// source_path is the existing path).
 	CreateSymlink(context.Context, *CreateSymlinkRequest) (*CreateSymlinkResponse, error)
 	IsMountPoint(context.Context, *IsMountPointRequest) (*IsMountPointResponse, error)
+
+	// IsSymlink checks if a given path is a symlink.
 	IsSymlink(context.Context, *IsSymlinkRequest) (*IsSymlinkResponse, error)
 	LinkPath(context.Context, *LinkPathRequest) (*LinkPathResponse, error)
+
+	// Mkdir creates a directory at the requested path in the host filesystem.
 	Mkdir(context.Context, *MkdirRequest) (*MkdirResponse, error)
+
+	// PathExists checks if the requested path exists in the host filesystem.
 	PathExists(context.Context, *PathExistsRequest) (*PathExistsResponse, error)
+
+	// PathValid checks if the given path is accessible.
 	PathValid(context.Context, *PathValidRequest) (*PathValidResponse, error)
+
+	// Rmdir removes the directory at the requested path in the host filesystem.
+	// This may be used for unlinking a symlink created through CreateSymlink.
 	Rmdir(context.Context, *RmdirRequest) (*RmdirResponse, error)
+
+	// RmdirContents removes the contents of a directory in the host filesystem.
+	// Unlike Rmdir it won't delete the requested path, it'll only delete its contents.
 	RmdirContents(context.Context, *RmdirContentsRequest) (*RmdirContentsResponse, error)
 }
 
@@ -50,7 +67,6 @@ func (f *Filesystem) PathExists(ctx context.Context, request *PathExistsRequest)
 	}, err
 }
 
-// PathValid checks if the given path is accessible.
 func (f *Filesystem) PathValid(ctx context.Context, request *PathValidRequest) (*PathValidResponse, error) {
 	klog.V(2).Infof("Request: PathValid with path %q", request.Path)
 	valid, err := f.hostAPI.PathValid(request.Path)

@@ -12,9 +12,20 @@ type System struct {
 }
 
 type Interface interface {
+	// GetBIOSSerialNumber returns the device's serial number
 	GetBIOSSerialNumber(context.Context, *GetBIOSSerialNumberRequest) (*GetBIOSSerialNumberResponse, error)
+
+	// GetService queries a Windows service state
 	GetService(context.Context, *GetServiceRequest) (*GetServiceResponse, error)
+
+	// StartService starts a Windows service
+	// NOTE: This method affects global node state and should only be used
+	//       with consideration to other CSI drivers that run concurrently.
 	StartService(context.Context, *StartServiceRequest) (*StartServiceResponse, error)
+
+	// StopService stops a Windows service
+	// NOTE: This method affects global node state and should only be used
+	//       with consideration to other CSI drivers that run concurrently.
 	StopService(context.Context, *StopServiceRequest) (*StopServiceResponse, error)
 }
 

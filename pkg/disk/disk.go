@@ -17,13 +17,28 @@ type Interface interface {
 	DiskStats(context.Context, *DiskStatsRequest) (*DiskStatsResponse, error)
 	GetAttachState(context.Context, *GetAttachStateRequest) (*GetAttachStateResponse, error)
 	GetDiskNumberByName(context.Context, *GetDiskNumberByNameRequest) (*GetDiskNumberByNameResponse, error)
+	// GetDiskState gets the offline/online state of a disk.
 	GetDiskState(context.Context, *GetDiskStateRequest) (*GetDiskStateResponse, error)
+
+	// GetDiskStats returns the stats of a disk (currently it returns the disk size).
 	GetDiskStats(context.Context, *GetDiskStatsRequest) (*GetDiskStatsResponse, error)
+
+	// ListDiskIDs returns a map of DiskID objects where the key is the disk number.
 	ListDiskIDs(context.Context, *ListDiskIDsRequest) (*ListDiskIDsResponse, error)
+
+	// ListDiskLocations returns locations <Adapter, Bus, Target, LUN ID> of all
+	// disk devices enumerated by the host.
 	ListDiskLocations(context.Context, *ListDiskLocationsRequest) (*ListDiskLocationsResponse, error)
+
+	// PartitionDisk initializes and partitions a disk device with the GPT partition style
+	// (if the disk has not been partitioned already) and returns the resulting volume device ID.
 	PartitionDisk(context.Context, *PartitionDiskRequest) (*PartitionDiskResponse, error)
+
+	// Rescan refreshes the host's storage cache.
 	Rescan(context.Context, *RescanRequest) (*RescanResponse, error)
 	SetAttachState(context.Context, *SetAttachStateRequest) (*SetAttachStateResponse, error)
+
+	// SetDiskState sets the offline/online state of a disk.
 	SetDiskState(context.Context, *SetDiskStateRequest) (*SetDiskStateResponse, error)
 }
 
