@@ -14,18 +14,8 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build
-        run: |
-          go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
       - name: Run Windows Integration Tests
         run: |
-          # start the CSI Proxy before running tests on windows
-          Start-Job -Name CSIProxy -ScriptBlock {
-            .\bin\csi-proxy.exe
-          };
-          Start-Sleep -Seconds 30;
-          Write-Output "getting named pipes"
-          [System.IO.Directory]::GetFiles("\\.\\pipe\\")
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
           go test -v -race ./integrationtests/...
   unit_tests:
