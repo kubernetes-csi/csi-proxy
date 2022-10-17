@@ -15,19 +15,43 @@ type Volume struct {
 
 type Interface interface {
 	DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error)
+	// FormatVolume formats a volume with NTFS.
 	FormatVolume(context.Context, *FormatVolumeRequest) (*FormatVolumeResponse, error)
+
+	// GetClosestVolumeIDFromTargetPath gets the closest volume id for a given target path
+	// by following symlinks and moving up in the filesystem, if after moving up in the filesystem
+	// we get to a DriveLetter then the volume corresponding to this drive letter is returned instead.
 	GetClosestVolumeIDFromTargetPath(context.Context, *GetClosestVolumeIDFromTargetPathRequest) (*GetClosestVolumeIDFromTargetPathResponse, error)
+
+	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
 	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error)
 	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest) (*VolumeDiskNumberResponse, error)
 	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error)
+
+	// GetVolumeIDFromTargetPath gets the volume id for a given target path.
 	GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error)
+
+	// GetVolumeStats gathers total bytes and used bytes for a volume.
 	GetVolumeStats(context.Context, *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error)
+
+	// IsVolumeFormatted checks if a volume is formatted.
 	IsVolumeFormatted(context.Context, *IsVolumeFormattedRequest) (*IsVolumeFormattedResponse, error)
+
+	// ListVolumesOnDisk returns the volume IDs (in \\.\Volume{GUID} format) for all volumes from a
+	// given disk number and partition number (optional)
 	ListVolumesOnDisk(context.Context, *ListVolumesOnDiskRequest) (*ListVolumesOnDiskResponse, error)
+
+	// MountVolume mounts the volume at the requested global staging path.
 	MountVolume(context.Context, *MountVolumeRequest) (*MountVolumeResponse, error)
+
+	// ResizeVolume performs resizing of the partition and file system for a block based volume.
 	ResizeVolume(context.Context, *ResizeVolumeRequest) (*ResizeVolumeResponse, error)
+
+	// UnmountVolume flushes data cache to disk and removes the global staging path.
 	UnmountVolume(context.Context, *UnmountVolumeRequest) (*UnmountVolumeResponse, error)
 	VolumeStats(context.Context, *VolumeStatsRequest) (*VolumeStatsResponse, error)
+
+	// WriteVolumeCache write volume cache to disk.
 	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error)
 }
 

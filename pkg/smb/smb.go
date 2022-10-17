@@ -16,7 +16,10 @@ type Smb struct {
 }
 
 type Interface interface {
+	// NewSmbGlobalMapping creates an SMB mapping on the SMB client to an SMB share.
 	NewSmbGlobalMapping(context.Context, *NewSmbGlobalMappingRequest) (*NewSmbGlobalMappingResponse, error)
+
+	// RemoveSmbGlobalMapping removes the SMB mapping to an SMB share.
 	RemoveSmbGlobalMapping(context.Context, *RemoveSmbGlobalMappingRequest) (*RemoveSmbGlobalMappingResponse, error)
 }
 

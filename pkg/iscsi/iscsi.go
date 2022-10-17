@@ -15,13 +15,39 @@ type IsCSI struct {
 }
 
 type Interface interface {
+	// AddTargetPortal registers an iSCSI target network address for later
+	// discovery.
+	// AddTargetPortal currently does not support selecting different NICs or
+	// a different iSCSI initiator (e.g a hardware initiator). This means that
+	// Windows will select the initiator NIC and instance on its own.
 	AddTargetPortal(context.Context, *AddTargetPortalRequest) (*AddTargetPortalResponse, error)
+
+	// ConnectTarget connects to an iSCSI Target
 	ConnectTarget(context.Context, *ConnectTargetRequest) (*ConnectTargetResponse, error)
+
+	// DisconnectTarget disconnects from an iSCSI Target
 	DisconnectTarget(context.Context, *DisconnectTargetRequest) (*DisconnectTargetResponse, error)
+
+	// DiscoverTargetPortal initiates discovery on an iSCSI target network address
+	// and returns discovered IQNs.
 	DiscoverTargetPortal(context.Context, *DiscoverTargetPortalRequest) (*DiscoverTargetPortalResponse, error)
+
+	// GetTargetDisks returns the disk addresses that correspond to an iSCSI
+	// target
 	GetTargetDisks(context.Context, *GetTargetDisksRequest) (*GetTargetDisksResponse, error)
+
+	// ListTargetPortal lists all currently registered iSCSI target network
+	// addresses.
 	ListTargetPortals(context.Context, *ListTargetPortalsRequest) (*ListTargetPortalsResponse, error)
+
+	// RemoveTargetPortal removes an iSCSI target network address registration.
 	RemoveTargetPortal(context.Context, *RemoveTargetPortalRequest) (*RemoveTargetPortalResponse, error)
+
+	// SetMutualChapSecret sets the default CHAP secret that all initiators on
+	// this machine (node) use to authenticate the target on mutual CHAP
+	// authentication.
+	// NOTE: This method affects global node state and should only be used
+	//       with consideration to other CSI drivers that run concurrently.
 	SetMutualChapSecret(context.Context, *SetMutualChapSecretRequest) (*SetMutualChapSecretResponse, error)
 }
 
