@@ -1,20 +1,20 @@
 package smb
 
-type NewSmbGlobalMappingRequest struct {
+type NewSMBGlobalMappingRequest struct {
 	RemotePath string
 	LocalPath  string
 	Username   string
 	Password   string
 }
 
-type NewSmbGlobalMappingResponse struct {
+type NewSMBGlobalMappingResponse struct {
 	// Intentionally empty.
 }
 
-type RemoveSmbGlobalMappingRequest struct {
+type RemoveSMBGlobalMappingRequest struct {
 	RemotePath string
 }
 
-type RemoveSmbGlobalMappingResponse struct {
+type RemoveSMBGlobalMappingResponse struct {
 	// Intentionally empty.
 }

@@ -9,23 +9,23 @@ import (
 	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/api"
 )
 
-type fakeSmbAPI struct{}
+type fakeSMBAPI struct{}
 
-var _ smbapi.API = &fakeSmbAPI{}
+var _ smbapi.API = &fakeSMBAPI{}
 
-func (fakeSmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
+func (fakeSMBAPI) NewSMBGlobalMapping(remotePath, username, password string) error {
 	return nil
 }
 
-func (fakeSmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
+func (fakeSMBAPI) RemoveSMBGlobalMapping(remotePath string) error {
 	return nil
 }
 
-func (fakeSmbAPI) IsSmbMapped(remotePath string) (bool, error) {
+func (fakeSMBAPI) IsSMBMapped(remotePath string) (bool, error) {
 	return false, nil
 }
 
-func (fakeSmbAPI) NewSmbLink(remotePath, localPath string) error {
+func (fakeSMBAPI) NewSMBLink(remotePath, localPath string) error {
 	return nil
 }
 
@@ -56,7 +56,7 @@ func (fakeFileSystemAPI) IsSymlink(path string) (bool, error) {
 	return true, nil
 }
 
-func TestNewSmbGlobalMapping(t *testing.T) {
+func TestNewSMBGlobalMapping(t *testing.T) {
 	testCases := []struct {
 		remote      string
 		local       string
@@ -82,23 +82,23 @@ func TestNewSmbGlobalMapping(t *testing.T) {
 		t.Fatalf("FileSystem client could not be initialized for testing: %v", err)
 	}
 
-	client, err := New(&fakeSmbAPI{}, fsClient)
+	client, err := New(&fakeSMBAPI{}, fsClient)
 	if err != nil {
-		t.Fatalf("Smb client could not be initialized for testing: %v", err)
+		t.Fatalf("SMB client could not be initialized for testing: %v", err)
 	}
 	for _, tc := range testCases {
-		req := &NewSmbGlobalMappingRequest{
+		req := &NewSMBGlobalMappingRequest{
 			LocalPath:  tc.local,
 			RemotePath: tc.remote,
 			Username:   tc.username,
 			Password:   tc.password,
 		}
-		_, err := client.NewSmbGlobalMapping(context.TODO(), req)
+		_, err := client.NewSMBGlobalMapping(context.TODO(), req)
 		if tc.expectError && err == nil {
-			t.Errorf("Expected error but NewSmbGlobalMapping returned a nil error")
+			t.Errorf("Expected error but NewSMBGlobalMapping returned a nil error")
 		}
 		if !tc.expectError && err != nil {
-			t.Errorf("Expected no errors but NewSmbGlobalMapping returned error: %v", err)
+			t.Errorf("Expected no errors but NewSMBGlobalMapping returned error: %v", err)
 		}
 	}
 }
