@@ -29,15 +29,6 @@ type RescanRequest struct {
 type RescanResponse struct {
 }
 
-type GetDiskNumberByNameRequest struct {
-	// Disk name is the page83 ID of the disk
-	DiskName string
-}
-
-type GetDiskNumberByNameResponse struct {
-	DiskNumber uint32
-}
-
 type ListDiskIDsRequest struct {
 }
 
@@ -77,37 +68,6 @@ type GetDiskStateRequest struct {
 }
 
 type GetDiskStateResponse struct {
-	// Online state of the disk. true for online, false for offline
-	IsOnline bool
-}
-
-// These structs are used in pre v1beta3 API versions
-
-type DiskStatsRequest struct {
-	DiskID string
-}
-
-type DiskStatsResponse struct {
-	DiskSize int64
-}
-
-type SetAttachStateRequest struct {
-	// Disk device ID of the disk which state will change
-	DiskID string
-
-	// Online state to set for the disk. true for online, false for offline
-	IsOnline bool
-}
-
-type SetAttachStateResponse struct {
-}
-
-type GetAttachStateRequest struct {
-	// Disk device ID of the disk
-	DiskID string
-}
-
-type GetAttachStateResponse struct {
 	// Online state of the disk. true for online, false for offline
 	IsOnline bool
 }
