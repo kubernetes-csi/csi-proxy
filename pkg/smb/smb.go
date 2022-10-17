@@ -10,21 +10,21 @@ import (
 	"k8s.io/klog/v2"
 )
 
-type Smb struct {
+type SMB struct {
 	hostAPI smbapi.API
 	fs      fs.Interface
 }
 
 type Interface interface {
-	// NewSmbGlobalMapping creates an SMB mapping on the SMB client to an SMB share.
-	NewSmbGlobalMapping(context.Context, *NewSmbGlobalMappingRequest) (*NewSmbGlobalMappingResponse, error)
+	// NewSMBGlobalMapping creates an SMB mapping on the SMB client to an SMB share.
+	NewSMBGlobalMapping(context.Context, *NewSMBGlobalMappingRequest) (*NewSMBGlobalMappingResponse, error)
 
-	// RemoveSmbGlobalMapping removes the SMB mapping to an SMB share.
-	RemoveSmbGlobalMapping(context.Context, *RemoveSmbGlobalMappingRequest) (*RemoveSmbGlobalMappingResponse, error)
+	// RemoveSMBGlobalMapping removes the SMB mapping to an SMB share.
+	RemoveSMBGlobalMapping(context.Context, *RemoveSMBGlobalMappingRequest) (*RemoveSMBGlobalMappingResponse, error)
 }
 
-// check that Smb implements the Interface
-var _ Interface = &Smb{}
+// check that SMB implements the Interface
+var _ Interface = &SMB{}
 
 func normalizeWindowsPath(path string) string {
 	normalizedPath := strings.Replace(path, "/", "\\", -1)
@@ -46,21 +46,21 @@ func getRootMappingPath(path string) (string, error) {
 		klog.Errorf("remote path (%s) is invalid", path)
 		return "", fmt.Errorf("remote path (%s) is invalid", path)
 	}
-	// parts[0] is a smb host name
-	// parts[1] is a smb share name
+	// parts[0] is a SMB host name
+	// parts[1] is a SMB share name
 	return strings.ToLower("\\\\" + parts[0] + "\\" + parts[1]), nil
 }
 
-func New(hostAPI smbapi.API, fsClient fs.Interface) (*Smb, error) {
-	return &Smb{
+func New(hostAPI smbapi.API, fsClient fs.Interface) (*SMB, error) {
+	return &SMB{
 		hostAPI: hostAPI,
 		fs:      fsClient,
 	}, nil
 }
 
-func (s *Smb) NewSmbGlobalMapping(context context.Context, request *NewSmbGlobalMappingRequest) (*NewSmbGlobalMappingResponse, error) {
-	klog.V(2).Infof("calling NewSmbGlobalMapping with remote path %q", request.RemotePath)
-	response := &NewSmbGlobalMappingResponse{}
+func (s *SMB) NewSMBGlobalMapping(context context.Context, request *NewSMBGlobalMappingRequest) (*NewSMBGlobalMappingResponse, error) {
+	klog.V(2).Infof("calling NewSMBGlobalMapping with remote path %q", request.RemotePath)
+	response := &NewSMBGlobalMappingResponse{}
 	remotePath := normalizeWindowsPath(request.RemotePath)
 	localPath := request.LocalPath
 
@@ -74,7 +74,7 @@ func (s *Smb) NewSmbGlobalMapping(context context.Context, request *NewSmbGlobal
 		return response, err
 	}
 
-	isMapped, err := s.hostAPI.IsSmbMapped(mappingPath)
+	isMapped, err := s.hostAPI.IsSMBMapped(mappingPath)
 	if err != nil {
 		isMapped = false
 	}
@@ -89,9 +89,9 @@ func (s *Smb) NewSmbGlobalMapping(context context.Context, request *NewSmbGlobal
 
 		if !validResp.Valid {
 			klog.V(4).Infof("RemotePath %s is not valid, removing now", mappingPath)
-			err := s.hostAPI.RemoveSmbGlobalMapping(mappingPath)
+			err := s.hostAPI.RemoveSMBGlobalMapping(mappingPath)
 			if err != nil {
-				klog.Errorf("RemoveSmbGlobalMapping(%s) failed with %v", mappingPath, err)
+				klog.Errorf("RemoveSMBGlobalMapping(%s) failed with %v", mappingPath, err)
 				return response, err
 			}
 			isMapped = false
@@ -102,9 +102,9 @@ func (s *Smb) NewSmbGlobalMapping(context context.Context, request *NewSmbGlobal
 
 	if !isMapped {
 		klog.V(4).Infof("Remote %s not mapped. Mapping now!", mappingPath)
-		err = s.hostAPI.NewSmbGlobalMapping(mappingPath, request.Username, request.Password)
+		err = s.hostAPI.NewSMBGlobalMapping(mappingPath, request.Username, request.Password)
 		if err != nil {
-			klog.Errorf("failed NewSmbGlobalMapping %v", err)
+			klog.Errorf("failed NewSMBGlobalMapping %v", err)
 			return response, err
 		}
 	}
@@ -116,20 +116,20 @@ func (s *Smb) NewSmbGlobalMapping(context context.Context, request *NewSmbGlobal
 			klog.Errorf("failed validate plugin path %v", err)
 			return response, err
 		}
-		err = s.hostAPI.NewSmbLink(remotePath, localPath)
+		err = s.hostAPI.NewSMBLink(remotePath, localPath)
 		if err != nil {
-			klog.Errorf("failed NewSmbLink %v", err)
+			klog.Errorf("failed NewSMBLink %v", err)
 			return response, fmt.Errorf("creating link %s to %s failed with error: %v", localPath, remotePath, err)
 		}
 	}
 
-	klog.V(2).Infof("NewSmbGlobalMapping on remote path %q is completed", request.RemotePath)
+	klog.V(2).Infof("NewSMBGlobalMapping on remote path %q is completed", request.RemotePath)
 	return response, nil
 }
 
-func (s *Smb) RemoveSmbGlobalMapping(context context.Context, request *RemoveSmbGlobalMappingRequest) (*RemoveSmbGlobalMappingResponse, error) {
-	klog.V(2).Infof("calling RemoveSmbGlobalMapping with remote path %q", request.RemotePath)
-	response := &RemoveSmbGlobalMappingResponse{}
+func (s *SMB) RemoveSMBGlobalMapping(context context.Context, request *RemoveSMBGlobalMappingRequest) (*RemoveSMBGlobalMappingResponse, error) {
+	klog.V(2).Infof("calling RemoveSMBGlobalMapping with remote path %q", request.RemotePath)
+	response := &RemoveSMBGlobalMappingResponse{}
 	remotePath := normalizeWindowsPath(request.RemotePath)
 
 	if remotePath == "" {
@@ -142,12 +142,12 @@ func (s *Smb) RemoveSmbGlobalMapping(context context.Context, request *RemoveSmb
 		return response, err
 	}
 
-	err = s.hostAPI.RemoveSmbGlobalMapping(mappingPath)
+	err = s.hostAPI.RemoveSMBGlobalMapping(mappingPath)
 	if err != nil {
-		klog.Errorf("failed RemoveSmbGlobalMapping %v", err)
+		klog.Errorf("failed RemoveSMBGlobalMapping %v", err)
 		return response, err
 	}
 
-	klog.V(2).Infof("RemoveSmbGlobalMapping on remote path %q is completed", request.RemotePath)
+	klog.V(2).Infof("RemoveSMBGlobalMapping on remote path %q is completed", request.RemotePath)
 	return response, nil
 }
