@@ -17,17 +17,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const defaultIscsiPort = 3260
+const defaultISCSIPort = 3260
 const defaultProtoPort = 0 // default value when port is not set
 
-func TestIscsi(t *testing.T) {
-	skipTestOnCondition(t, !shouldRunIscsiTests())
+func TestISCSI(t *testing.T) {
+	skipTestOnCondition(t, !shouldRunISCSITests())
 
-	err := installIscsiTarget()
+	err := installISCSITarget()
 	require.NoError(t, err, "Failed installing iSCSI target")
 
 	t.Run("List/Add/Remove TargetPortal (Port=3260)", func(t *testing.T) {
-		targetPortalTest(t, defaultIscsiPort)
+		targetPortalTest(t, defaultISCSIPort)
 	})
 
 	t.Run("List/Add/Remove TargetPortal (Port not mentioned, effectively 3260)", func(t *testing.T) {
@@ -58,7 +58,7 @@ func e2eTest(t *testing.T) {
 
 	defer requireCleanup(t)
 
-	iscsiClient, err := iscsi.New(iscsiapi.New())
+	iSCSIClient, err := iscsi.New(iscsiapi.New())
 	require.Nil(t, err)
 
 	diskClient, err := disk.New(diskapi.New())
@@ -73,27 +73,27 @@ func e2eTest(t *testing.T) {
 
 	tp := &iscsi.TargetPortal{
 		TargetAddress: config.Ip,
-		TargetPort:    defaultIscsiPort,
+		TargetPort:    defaultISCSIPort,
 	}
 
 	addTpReq := &iscsi.AddTargetPortalRequest{
 		TargetPortal: tp,
 	}
-	_, err = iscsiClient.AddTargetPortal(context.Background(), addTpReq)
+	_, err = iSCSIClient.AddTargetPortal(context.Background(), addTpReq)
 	assert.Nil(t, err)
 
 	discReq := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
-	discResp, err := iscsiClient.DiscoverTargetPortal(context.TODO(), discReq)
+	discResp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), discReq)
 	if assert.Nil(t, err) {
 		assert.Contains(t, discResp.Iqns, config.Iqn)
 	}
 
 	connectReq := &iscsi.ConnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
-	_, err = iscsiClient.ConnectTarget(context.TODO(), connectReq)
+	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
 	tgtDisksReq := &iscsi.GetTargetDisksRequest{TargetPortal: tp, Iqn: config.Iqn}
-	tgtDisksResp, err := iscsiClient.GetTargetDisks(context.TODO(), tgtDisksReq)
+	tgtDisksResp, err := iSCSIClient.GetTargetDisks(context.TODO(), tgtDisksReq)
 	require.Nil(t, err)
 	require.Len(t, tgtDisksResp.DiskIDs, 1)
 
@@ -120,7 +120,7 @@ func targetTest(t *testing.T) {
 
 	defer requireCleanup(t)
 
-	iscsiClient, err := iscsi.New(iscsiapi.New())
+	iSCSIClient, err := iscsi.New(iscsiapi.New())
 	require.Nil(t, err)
 
 	systemClient, err := system.New(systemapi.New())
@@ -132,27 +132,27 @@ func targetTest(t *testing.T) {
 
 	tp := &iscsi.TargetPortal{
 		TargetAddress: config.Ip,
-		TargetPort:    defaultIscsiPort,
+		TargetPort:    defaultISCSIPort,
 	}
 
 	addTpReq := &iscsi.AddTargetPortalRequest{
 		TargetPortal: tp,
 	}
-	_, err = iscsiClient.AddTargetPortal(context.Background(), addTpReq)
+	_, err = iSCSIClient.AddTargetPortal(context.Background(), addTpReq)
 	assert.Nil(t, err)
 
 	discReq := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
-	discResp, err := iscsiClient.DiscoverTargetPortal(context.TODO(), discReq)
+	discResp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), discReq)
 	if assert.Nil(t, err) {
 		assert.Contains(t, discResp.Iqns, config.Iqn)
 	}
 
 	connectReq := &iscsi.ConnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
-	_, err = iscsiClient.ConnectTarget(context.TODO(), connectReq)
+	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
 	disconReq := &iscsi.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
-	_, err = iscsiClient.DisconnectTarget(context.TODO(), disconReq)
+	_, err = iSCSIClient.DisconnectTarget(context.TODO(), disconReq)
 	assert.Nil(t, err)
 }
 
@@ -169,7 +169,7 @@ func targetChapTest(t *testing.T) {
 	err = setChap(targetName, username, password)
 	require.NoError(t, err)
 
-	iscsiClient, err := iscsi.New(iscsiapi.New())
+	iSCSIClient, err := iscsi.New(iscsiapi.New())
 	require.Nil(t, err)
 
 	systemClient, err := system.New(systemapi.New())
@@ -181,17 +181,17 @@ func targetChapTest(t *testing.T) {
 
 	tp := &iscsi.TargetPortal{
 		TargetAddress: config.Ip,
-		TargetPort:    defaultIscsiPort,
+		TargetPort:    defaultISCSIPort,
 	}
 
 	addTpReq := &iscsi.AddTargetPortalRequest{
 		TargetPortal: tp,
 	}
-	_, err = iscsiClient.AddTargetPortal(context.Background(), addTpReq)
+	_, err = iSCSIClient.AddTargetPortal(context.Background(), addTpReq)
 	assert.Nil(t, err)
 
 	discReq := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
-	discResp, err := iscsiClient.DiscoverTargetPortal(context.TODO(), discReq)
+	discResp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), discReq)
 	if assert.Nil(t, err) {
 		assert.Contains(t, discResp.Iqns, config.Iqn)
 	}
@@ -203,11 +203,11 @@ func targetChapTest(t *testing.T) {
 		ChapSecret:   password,
 		AuthType:     iscsi.ONE_WAY_CHAP,
 	}
-	_, err = iscsiClient.ConnectTarget(context.TODO(), connectReq)
+	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
 	disconReq := &iscsi.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
-	_, err = iscsiClient.DisconnectTarget(context.TODO(), disconReq)
+	_, err = iSCSIClient.DisconnectTarget(context.TODO(), disconReq)
 	assert.Nil(t, err)
 }
 
@@ -228,7 +228,7 @@ func targetMutualChapTest(t *testing.T) {
 	err = setReverseChap(targetName, reverse_password)
 	require.NoError(t, err)
 
-	iscsiClient, err := iscsi.New(iscsiapi.New())
+	iSCSIClient, err := iscsi.New(iscsiapi.New())
 	require.Nil(t, err)
 
 	systemClient, err := system.New(systemapi.New())
@@ -243,21 +243,21 @@ func targetMutualChapTest(t *testing.T) {
 
 	tp := &iscsi.TargetPortal{
 		TargetAddress: config.Ip,
-		TargetPort:    defaultIscsiPort,
+		TargetPort:    defaultISCSIPort,
 	}
 
 	{
 		req := &iscsi.AddTargetPortalRequest{
 			TargetPortal: tp,
 		}
-		resp, err := iscsiClient.AddTargetPortal(context.Background(), req)
+		resp, err := iSCSIClient.AddTargetPortal(context.Background(), req)
 		assert.Nil(t, err)
 		assert.NotNil(t, resp)
 	}
 
 	{
 		req := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
-		resp, err := iscsiClient.DiscoverTargetPortal(context.TODO(), req)
+		resp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), req)
 		if assert.Nil(t, err) && assert.NotNil(t, resp) {
 			assert.Contains(t, resp.Iqns, config.Iqn)
 		}
@@ -266,7 +266,7 @@ func targetMutualChapTest(t *testing.T) {
 	{
 		// Try using a wrong initiator password and expect error on connection
 		req := &iscsi.SetMutualChapSecretRequest{MutualChapSecret: "made-up-pass"}
-		resp, err := iscsiClient.SetMutualChapSecret(context.TODO(), req)
+		resp, err := iSCSIClient.SetMutualChapSecret(context.TODO(), req)
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
 	}
@@ -279,22 +279,22 @@ func targetMutualChapTest(t *testing.T) {
 		AuthType:     iscsi.MUTUAL_CHAP,
 	}
 
-	_, err = iscsiClient.ConnectTarget(context.TODO(), connectReq)
+	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.NotNil(t, err)
 
 	{
 		req := &iscsi.SetMutualChapSecretRequest{MutualChapSecret: reverse_password}
-		resp, err := iscsiClient.SetMutualChapSecret(context.TODO(), req)
+		resp, err := iSCSIClient.SetMutualChapSecret(context.TODO(), req)
 		require.NoError(t, err)
 		assert.NotNil(t, resp)
 	}
 
-	_, err = iscsiClient.ConnectTarget(context.TODO(), connectReq)
+	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
 	{
 		req := &iscsi.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
-		resp, err := iscsiClient.DisconnectTarget(context.TODO(), req)
+		resp, err := iSCSIClient.DisconnectTarget(context.TODO(), req)
 		assert.Nil(t, err)
 		assert.NotNil(t, resp)
 	}
@@ -306,7 +306,7 @@ func targetPortalTest(t *testing.T, port uint32) {
 
 	defer requireCleanup(t)
 
-	iscsiClient, err := iscsi.New(iscsiapi.New())
+	iSCSIClient, err := iscsi.New(iscsiapi.New())
 	require.Nil(t, err)
 
 	systemClient, err := system.New(systemapi.New())
@@ -323,23 +323,23 @@ func targetPortalTest(t *testing.T, port uint32) {
 
 	listReq := &iscsi.ListTargetPortalsRequest{}
 
-	listResp, err := iscsiClient.ListTargetPortals(context.Background(), listReq)
+	listResp, err := iSCSIClient.ListTargetPortals(context.Background(), listReq)
 	if assert.Nil(t, err) {
 		assert.Len(t, listResp.TargetPortals, 0,
 			"Expect no registered target portals")
 	}
 
 	addTpReq := &iscsi.AddTargetPortalRequest{TargetPortal: tp}
-	_, err = iscsiClient.AddTargetPortal(context.Background(), addTpReq)
+	_, err = iSCSIClient.AddTargetPortal(context.Background(), addTpReq)
 	assert.Nil(t, err)
 
 	// Port 0 (unset) is handled as the default iSCSI port
 	expectedPort := port
 	if expectedPort == 0 {
-		expectedPort = defaultIscsiPort
+		expectedPort = defaultISCSIPort
 	}
 
-	gotListResp, err := iscsiClient.ListTargetPortals(context.Background(), listReq)
+	gotListResp, err := iSCSIClient.ListTargetPortals(context.Background(), listReq)
 	if assert.Nil(t, err) {
 		assert.Len(t, gotListResp.TargetPortals, 1)
 		assert.Equal(t, gotListResp.TargetPortals[0].TargetPort, expectedPort)
@@ -349,10 +349,10 @@ func targetPortalTest(t *testing.T, port uint32) {
 	remReq := &iscsi.RemoveTargetPortalRequest{
 		TargetPortal: tp,
 	}
-	_, err = iscsiClient.RemoveTargetPortal(context.Background(), remReq)
+	_, err = iSCSIClient.RemoveTargetPortal(context.Background(), remReq)
 	assert.Nil(t, err)
 
-	listResp, err = iscsiClient.ListTargetPortals(context.Background(), listReq)
+	listResp, err = iSCSIClient.ListTargetPortals(context.Background(), listReq)
 	if assert.Nil(t, err) {
 		assert.Len(t, listResp.TargetPortals, 0,
 			"Expect no registered target portals after delete")

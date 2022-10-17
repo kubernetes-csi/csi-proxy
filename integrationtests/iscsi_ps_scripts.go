@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-func installIscsiTarget() error {
-	_, err := runPowershellScript(IscsiTargetInstallScript)
+func installISCSITarget() error {
+	_, err := runPowershellScript(iSCSITargetInstallScript)
 	if err != nil {
 		return fmt.Errorf("failed installing iSCSI target. err=%v", err)
 	}
@@ -18,7 +18,7 @@ func installIscsiTarget() error {
 	return nil
 }
 
-const IscsiTargetInstallScript = `
+const iSCSITargetInstallScript = `
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
@@ -30,12 +30,12 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\iSCSI Target" -Name AllowLoopBa
 Restart-Service WinTarget
 `
 
-type IscsiSetupConfig struct {
+type iSCSISetupConfig struct {
 	Iqn string `json:"iqn"`
 	Ip  string `json:"ip"`
 }
 
-const IscsiEnvironmentSetupScript = `
+const iSCSIEnvironmentSetupScript = `
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
@@ -59,7 +59,7 @@ $output = @{
 $output | ConvertTo-Json | Write-Output
 `
 
-const IscsiSetChapScript = `
+const iSCSISetChapScript = `
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
@@ -72,7 +72,7 @@ Set-IscsiServerTarget -TargetName $targetName -EnableChap $true -Chap $chap
 `
 
 func setChap(targetName string, username string, password string) error {
-	script := fmt.Sprintf(IscsiSetChapScript, targetName, username, password)
+	script := fmt.Sprintf(iSCSISetChapScript, targetName, username, password)
 	_, err := runPowershellScript(script)
 	if err != nil {
 		return fmt.Errorf("failed setting CHAP on iSCSI target=%v. err=%v", targetName, err)
@@ -81,7 +81,7 @@ func setChap(targetName string, username string, password string) error {
 	return nil
 }
 
-const IscsiSetReverseChapScript = `
+const iSCSISetReverseChapScript = `
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
@@ -96,7 +96,7 @@ Set-IscsiServerTarget -TargetName $targetName -EnableReverseChap $true -ReverseC
 `
 
 func setReverseChap(targetName string, password string) error {
-	script := fmt.Sprintf(IscsiSetReverseChapScript, targetName, password)
+	script := fmt.Sprintf(iSCSISetReverseChapScript, targetName, password)
 	_, err := runPowershellScript(script)
 	if err != nil {
 		return fmt.Errorf("failed setting reverse CHAP on iSCSI target=%v. err=%v", targetName, err)
@@ -106,7 +106,7 @@ func setReverseChap(targetName string, password string) error {
 }
 
 func cleanup() error {
-	_, err := runPowershellScript(IscsiCleanupScript)
+	_, err := runPowershellScript(iSCSICleanupScript)
 	if err != nil {
 		return fmt.Errorf("failed cleaning up environment. err=%v", err)
 	}
@@ -121,7 +121,7 @@ func requireCleanup(t *testing.T) {
 	}
 }
 
-const IscsiCleanupScript = `
+const iSCSICleanupScript = `
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
@@ -172,14 +172,14 @@ func runPowershellScript(script string) (string, error) {
 	return string(out), nil
 }
 
-func setupEnv(targetName string) (*IscsiSetupConfig, error) {
-	script := fmt.Sprintf(IscsiEnvironmentSetupScript, targetName)
+func setupEnv(targetName string) (*iSCSISetupConfig, error) {
+	script := fmt.Sprintf(iSCSIEnvironmentSetupScript, targetName)
 	out, err := runPowershellScript(script)
 	if err != nil {
 		return nil, fmt.Errorf("failed setting up environment. err=%v", err)
 	}
 
-	config := IscsiSetupConfig{}
+	config := iSCSISetupConfig{}
 	err = json.Unmarshal([]byte(out), &config)
 	if err != nil {
 		return nil, err
