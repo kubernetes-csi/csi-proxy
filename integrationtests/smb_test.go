@@ -20,7 +20,7 @@ import (
 	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/api"
 )
 
-func TestSmb(t *testing.T) {
+func TestSMB(t *testing.T) {
 	fsClient, err := fs.New(fsapi.New())
 	require.Nil(t, err)
 	client, err := smb.New(smbapi.New(), fsClient)
@@ -34,14 +34,14 @@ func TestSmb(t *testing.T) {
 	localPath := fmt.Sprintf("C:\\localpath%s", randomString(5))
 
 	if err = setupUser(username, password); err != nil {
-		t.Fatalf("TestSmbAPIGroup %v", err)
+		t.Fatalf("TestSMBAPIGroup %v", err)
 	}
 	defer removeUser(t, username)
 
-	if err = setupSmbShare(smbShare, sharePath, username); err != nil {
-		t.Fatalf("TestSmbAPIGroup %v", err)
+	if err = setupSMBShare(smbShare, sharePath, username); err != nil {
+		t.Fatalf("TestSMBAPIGroup %v", err)
 	}
-	defer removeSmbShare(t, smbShare)
+	defer removeSMBShare(t, smbShare)
 
 	hostname, err := os.Hostname()
 	assert.Nil(t, err)
@@ -49,30 +49,30 @@ func TestSmb(t *testing.T) {
 	username = "domain\\" + username
 	remotePath := "\\\\" + hostname + "\\" + smbShare
 	// simulate Mount SMB operations around staging a volume on a node
-	mountSmbShareReq := &smb.NewSmbGlobalMappingRequest{
+	mountSMBShareReq := &smb.NewSMBGlobalMappingRequest{
 		RemotePath: remotePath,
 		Username:   username,
 		Password:   password,
 	}
-	_, err = client.NewSmbGlobalMapping(context.Background(), mountSmbShareReq)
+	_, err = client.NewSMBGlobalMapping(context.Background(), mountSMBShareReq)
 	if err != nil {
-		t.Fatalf("TestSmbAPIGroup %v", err)
+		t.Fatalf("TestSMBAPIGroup %v", err)
 	}
 
-	err = getSmbGlobalMapping(remotePath)
+	err = getSMBGlobalMapping(remotePath)
 	assert.Nil(t, err)
 
 	err = writeReadFile(remotePath)
 	assert.Nil(t, err)
 
-	unmountSmbShareReq := &smb.RemoveSmbGlobalMappingRequest{
+	unmountSMBShareReq := &smb.RemoveSMBGlobalMappingRequest{
 		RemotePath: remotePath,
 	}
-	_, err = client.RemoveSmbGlobalMapping(context.Background(), unmountSmbShareReq)
+	_, err = client.RemoveSMBGlobalMapping(context.Background(), unmountSMBShareReq)
 	if err != nil {
-		t.Fatalf("TestSmbAPIGroup %v", err)
+		t.Fatalf("TestSMBAPIGroup %v", err)
 	}
-	err = getSmbGlobalMapping(remotePath)
+	err = getSMBGlobalMapping(remotePath)
 	assert.NotNil(t, err)
 	err = writeReadFile(localPath)
 	assert.NotNil(t, err)
@@ -118,9 +118,9 @@ func removeUser(t *testing.T, username string) {
 	}
 }
 
-func setupSmbShare(shareName, localPath, username string) error {
+func setupSMBShare(shareName, localPath, username string) error {
 	if err := os.MkdirAll(localPath, 0755); err != nil {
-		return fmt.Errorf("setupSmbShare failed to create local path %q: %v", localPath, err)
+		return fmt.Errorf("setupSMBShare failed to create local path %q: %v", localPath, err)
 	}
 	cmdLine := fmt.Sprintf(`New-SMBShare -Name $Env:sharename -Path $Env:path -fullaccess $Env:username`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
@@ -129,24 +129,24 @@ func setupSmbShare(shareName, localPath, username string) error {
 		fmt.Sprintf("path=%s", localPath),
 		fmt.Sprintf("username=%s", username))
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("setupSmbShare failed: %v, output: %q", err, string(output))
+		return fmt.Errorf("setupSMBShare failed: %v, output: %q", err, string(output))
 	}
 
 	return nil
 }
 
-func removeSmbShare(t *testing.T, shareName string) {
+func removeSMBShare(t *testing.T, shareName string) {
 	cmdLine := fmt.Sprintf(`Remove-SMBShare -Name $Env:sharename -Force`)
 	cmd := exec.Command("powershell", "/c", cmdLine)
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("sharename=%s", shareName))
 	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("setupSmbShare failed: %v, output: %q", err, string(output))
+		t.Fatalf("setupSMBShare failed: %v, output: %q", err, string(output))
 	}
 	return
 }
 
-func getSmbGlobalMapping(remotePath string) error {
+func getSMBGlobalMapping(remotePath string) error {
 	// use PowerShell Environment Variables to store user input string to prevent command line injection
 	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1
 	cmdLine := fmt.Sprintf(`(Get-SmbGlobalMapping -RemotePath $Env:smbremotepath).Status`)
