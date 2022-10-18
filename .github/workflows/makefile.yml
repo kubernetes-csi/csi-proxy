@@ -1,0 +1,19 @@
+name: Makefile Checks
+on: [push, pull_request]
+jobs:
+  makefile_checks:
+    strategy:
+      matrix:
+        go: ['1.16']
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run Makefile checks
+        run: |
+          make all
