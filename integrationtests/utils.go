@@ -194,15 +194,15 @@ func volumeInit(volumeClient volume.Interface, t *testing.T) (*VirtualHardDisk, 
 		t.Fatalf("List response: %v", err)
 	}
 
-	volumeIDsLen := len(listResponse.VolumeIds)
+	volumeIDsLen := len(listResponse.VolumeIDs)
 	if volumeIDsLen != 1 {
 		t.Fatalf("Number of volumes not equal to 1: %d", volumeIDsLen)
 	}
-	volumeID := listResponse.VolumeIds[0]
-	t.Logf("VolumeId %v", volumeID)
+	volumeID := listResponse.VolumeIDs[0]
+	t.Logf("VolumeID %v", volumeID)
 
 	isVolumeFormattedRequest := &volume.IsVolumeFormattedRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 	isVolumeFormattedResponse, err := volumeClient.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
 	if err != nil {
@@ -213,7 +213,7 @@ func volumeInit(volumeClient volume.Interface, t *testing.T) (*VirtualHardDisk, 
 	}
 
 	formatVolumeRequest := &volume.FormatVolumeRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 	_, err = volumeClient.FormatVolume(context.TODO(), formatVolumeRequest)
 	if err != nil {

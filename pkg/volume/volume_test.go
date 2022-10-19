@@ -72,28 +72,28 @@ func TestListVolumesOnDisk(t *testing.T) {
 	testCases := []struct {
 		name              string
 		inputDiskNumber   uint32
-		expectedVolumeIds []string
+		expectedVolumeIDs []string
 		isErrorExpected   bool
 		expectedError     error
 	}{
 		{
 			name:              "return two volumeIDs",
 			inputDiskNumber:   1,
-			expectedVolumeIds: []string{"volumeID1", "volumeID2"},
+			expectedVolumeIDs: []string{"volumeID1", "volumeID2"},
 			isErrorExpected:   false,
 			expectedError:     nil,
 		},
 		{
 			name:              "return one volumeIDs",
 			inputDiskNumber:   2,
-			expectedVolumeIds: []string{"volumeID3"},
+			expectedVolumeIDs: []string{"volumeID3"},
 			isErrorExpected:   false,
 			expectedError:     nil,
 		},
 		{
 			name:              "return error",
 			inputDiskNumber:   3,
-			expectedVolumeIds: nil,
+			expectedVolumeIDs: nil,
 			isErrorExpected:   true,
 			expectedError:     fmt.Errorf("returning error for 3 list"),
 		},
@@ -129,10 +129,10 @@ func TestListVolumesOnDisk(t *testing.T) {
 			}
 
 			expectedVolumeIDMap := make(map[string]int)
-			for _, j := range tc.expectedVolumeIds {
+			for _, j := range tc.expectedVolumeIDs {
 				expectedVolumeIDMap[j] = 0
 			}
-			for _, i := range volumeListResponse.VolumeIds {
+			for _, i := range volumeListResponse.VolumeIDs {
 				if _, found := expectedVolumeIDMap[i]; found == true {
 					expectedVolumeIDMap[i]++
 				} else {

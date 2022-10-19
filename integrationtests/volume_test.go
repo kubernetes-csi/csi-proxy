@@ -54,7 +54,7 @@ func runNegativeListVolumeRequest(t *testing.T, client volume.Interface, diskNum
 
 func runNegativeIsVolumeFormattedRequest(t *testing.T, client volume.Interface, volumeID string) {
 	isVolumeFormattedRequest := &volume.IsVolumeFormattedRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 	_, err := client.IsVolumeFormatted(context.TODO(), isVolumeFormattedRequest)
 	if err == nil {
@@ -64,7 +64,7 @@ func runNegativeIsVolumeFormattedRequest(t *testing.T, client volume.Interface, 
 
 func runNegativeFormatVolumeRequest(t *testing.T, client volume.Interface, volumeID string) {
 	formatVolumeRequest := &volume.FormatVolumeRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 	_, err := client.FormatVolume(context.TODO(), formatVolumeRequest)
 	if err == nil {
@@ -74,7 +74,7 @@ func runNegativeFormatVolumeRequest(t *testing.T, client volume.Interface, volum
 
 func runNegativeResizeVolumeRequest(t *testing.T, client volume.Interface, volumeID string, size int64) {
 	resizeVolumeRequest := &volume.ResizeVolumeRequest{
-		VolumeId:  volumeID,
+		VolumeID:  volumeID,
 		SizeBytes: size,
 	}
 	_, err := client.ResizeVolume(context.TODO(), resizeVolumeRequest)
@@ -86,7 +86,7 @@ func runNegativeResizeVolumeRequest(t *testing.T, client volume.Interface, volum
 func runNegativeMountVolumeRequest(t *testing.T, client volume.Interface, volumeID, targetPath string) {
 	// Mount the volume
 	mountVolumeRequest := &volume.MountVolumeRequest{
-		VolumeId:   volumeID,
+		VolumeID:   volumeID,
 		TargetPath: targetPath,
 	}
 
@@ -99,7 +99,7 @@ func runNegativeMountVolumeRequest(t *testing.T, client volume.Interface, volume
 func runNegativeUnmountVolumeRequest(t *testing.T, client volume.Interface, volumeID, targetPath string) {
 	// Unmount the volume
 	unmountVolumeRequest := &volume.UnmountVolumeRequest{
-		VolumeId:   volumeID,
+		VolumeID:   volumeID,
 		TargetPath: targetPath,
 	}
 	_, err := client.UnmountVolume(context.TODO(), unmountVolumeRequest)
@@ -111,7 +111,7 @@ func runNegativeUnmountVolumeRequest(t *testing.T, client volume.Interface, volu
 func runNegativeVolumeStatsRequest(t *testing.T, client volume.Interface, volumeID string) {
 	// Get VolumeStats
 	volumeStatsRequest := &volume.GetVolumeStatsRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 	_, err := client.GetVolumeStats(context.TODO(), volumeStatsRequest)
 	if err == nil {
@@ -169,7 +169,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 		}
 		cDriveVolume := strings.TrimSpace(string(targetb))
 
-		if response.VolumeId != cDriveVolume {
+		if response.VolumeID != cDriveVolume {
 			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the C: drive volume")
 		}
 	})
@@ -180,7 +180,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 
 		// Mount the volume
 		mountVolumeRequest := &volume.MountVolumeRequest{
-			VolumeId:   volumeID,
+			VolumeID:   volumeID,
 			TargetPath: vhd.Mount,
 		}
 		_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
@@ -191,7 +191,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 		// Unmount the volume
 		defer func() {
 			unmountVolumeRequest := &volume.UnmountVolumeRequest{
-				VolumeId:   volumeID,
+				VolumeID:   volumeID,
 				TargetPath: vhd.Mount,
 			}
 			_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
@@ -215,7 +215,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
 		}
 
-		if response.VolumeId != volumeID {
+		if response.VolumeID != volumeID {
 			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the VHD volume=%s", volumeID)
 		}
 	})
@@ -227,7 +227,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 
 		// Mount the volume
 		mountVolumeRequest := &volume.MountVolumeRequest{
-			VolumeId:   volumeID,
+			VolumeID:   volumeID,
 			TargetPath: vhd.Mount,
 		}
 		_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
@@ -238,7 +238,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 		// Unmount the volume
 		defer func() {
 			unmountVolumeRequest := &volume.UnmountVolumeRequest{
-				VolumeId:   volumeID,
+				VolumeID:   volumeID,
 				TargetPath: vhd.Mount,
 			}
 			_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)
@@ -270,7 +270,7 @@ func getClosestVolumeFromTargetPathTests(diskClient disk.Interface, volumeClient
 			t.Fatalf("GetClosestVolumeIDFromTargetPath request error, err=%v", err)
 		}
 
-		if response.VolumeId != volumeID {
+		if response.VolumeID != volumeID {
 			t.Fatalf("The volume from GetClosestVolumeIDFromTargetPath doesn't match the VHD volume=%s", volumeID)
 		}
 	})
@@ -281,7 +281,7 @@ func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, 
 	defer vhdCleanup()
 
 	volumeStatsRequest := &volume.GetVolumeStatsRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 
 	volumeStatsResponse, err := volumeClient.GetVolumeStats(context.TODO(), volumeStatsRequest)
@@ -313,7 +313,7 @@ func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, 
 	//    	"SizeMax":  2130689536
 	//    }
 	resizeVolumeRequest := &volume.ResizeVolumeRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 		// resize the partition to 1.5x times instead
 		SizeBytes: newVolumeSize,
 	}
@@ -335,7 +335,7 @@ func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, 
 	}
 
 	volumeDiskNumberRequest := &volume.GetDiskNumberFromVolumeIDRequest{
-		VolumeId: volumeID,
+		VolumeID: volumeID,
 	}
 
 	volumeDiskNumberResponse, err := volumeClient.GetDiskNumberFromVolumeID(context.TODO(), volumeDiskNumberRequest)
@@ -358,7 +358,7 @@ func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, 
 
 	// Mount the volume
 	mountVolumeRequest := &volume.MountVolumeRequest{
-		VolumeId:   volumeID,
+		VolumeID:   volumeID,
 		TargetPath: vhd.Mount,
 	}
 	_, err = volumeClient.MountVolume(context.TODO(), mountVolumeRequest)
@@ -368,7 +368,7 @@ func mountVolumeTests(diskClient disk.Interface, volumeClient volume.Interface, 
 
 	// Unmount the volume
 	unmountVolumeRequest := &volume.UnmountVolumeRequest{
-		VolumeId:   volumeID,
+		VolumeID:   volumeID,
 		TargetPath: vhd.Mount,
 	}
 	_, err = volumeClient.UnmountVolume(context.TODO(), unmountVolumeRequest)

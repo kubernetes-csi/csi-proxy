@@ -10,12 +10,12 @@ type ListVolumesOnDiskRequest struct {
 
 type ListVolumesOnDiskResponse struct {
 	// Volume device IDs of volumes on the specified disk
-	VolumeIds []string
+	VolumeIDs []string
 }
 
 type MountVolumeRequest struct {
 	// Volume device ID of the volume to mount
-	VolumeId string
+	VolumeID string
 
 	// Path in the host's file system where the volume needs to be mounted
 	TargetPath string
@@ -27,7 +27,7 @@ type MountVolumeResponse struct {
 
 type IsVolumeFormattedRequest struct {
 	// Volume device ID of the volume to check
-	VolumeId string
+	VolumeID string
 }
 
 type IsVolumeFormattedResponse struct {
@@ -37,7 +37,7 @@ type IsVolumeFormattedResponse struct {
 
 type FormatVolumeRequest struct {
 	// Volume device ID of the volume to format
-	VolumeId string
+	VolumeID string
 }
 
 type FormatVolumeResponse struct {
@@ -46,7 +46,7 @@ type FormatVolumeResponse struct {
 
 type WriteVolumeCacheRequest struct {
 	// Volume device ID of the volume to flush the cache
-	VolumeId string
+	VolumeID string
 }
 
 type WriteVolumeCacheResponse struct {
@@ -55,7 +55,7 @@ type WriteVolumeCacheResponse struct {
 
 type UnmountVolumeRequest struct {
 	// Volume device ID of the volume to dismount
-	VolumeId string
+	VolumeID string
 
 	// Path where the volume has been mounted
 	TargetPath string
@@ -67,7 +67,7 @@ type UnmountVolumeResponse struct {
 
 type ResizeVolumeRequest struct {
 	// Volume device ID of the volume to resize
-	VolumeId string
+	VolumeID string
 
 	// New size in bytes of the volume
 	SizeBytes int64
@@ -79,7 +79,7 @@ type ResizeVolumeResponse struct {
 
 type GetVolumeStatsRequest struct {
 	// Volume device Id of the volume to get the stats for
-	VolumeId string
+	VolumeID string
 }
 
 type GetVolumeStatsResponse struct {
@@ -92,7 +92,7 @@ type GetVolumeStatsResponse struct {
 
 type GetDiskNumberFromVolumeIDRequest struct {
 	// Volume device ID of the volume to get the disk number for
-	VolumeId string
+	VolumeID string
 }
 
 type GetDiskNumberFromVolumeIDResponse struct {
@@ -107,7 +107,7 @@ type GetVolumeIDFromTargetPathRequest struct {
 
 type GetVolumeIDFromTargetPathResponse struct {
 	// The volume device ID
-	VolumeId string
+	VolumeID string
 }
 
 type GetClosestVolumeIDFromTargetPathRequest struct {
@@ -117,5 +117,5 @@ type GetClosestVolumeIDFromTargetPathRequest struct {
 
 type GetClosestVolumeIDFromTargetPathResponse struct {
 	// The volume device ID
-	VolumeId string
+	VolumeID string
 }
