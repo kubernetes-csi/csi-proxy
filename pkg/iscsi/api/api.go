@@ -62,7 +62,7 @@ func (iscsiAPI) DiscoverTargetPortal(portal *TargetPortal) ([]string, error) {
 	var iqns []string
 	err = json.Unmarshal(out, &iqns)
 	if err != nil {
-		return nil, fmt.Errorf("failed parsing iqn list. cmd: %s output: %s, err: %w", cmdLine, string(out), err)
+		return nil, fmt.Errorf("failed parsing IQN list. cmd: %s output: %s, err: %w", cmdLine, string(out), err)
 	}
 
 	return iqns, nil

@@ -31,7 +31,7 @@ Restart-Service WinTarget
 `
 
 type iSCSISetupConfig struct {
-	Iqn string `json:"iqn"`
+	IQN string `json:"iqn"`
 	Ip  string `json:"ip"`
 }
 

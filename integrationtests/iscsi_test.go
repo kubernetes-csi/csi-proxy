@@ -85,14 +85,14 @@ func e2eTest(t *testing.T) {
 	discReq := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
 	discResp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), discReq)
 	if assert.Nil(t, err) {
-		assert.Contains(t, discResp.Iqns, config.Iqn)
+		assert.Contains(t, discResp.IQNs, config.IQN)
 	}
 
-	connectReq := &iscsi.ConnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
+	connectReq := &iscsi.ConnectTargetRequest{TargetPortal: tp, IQN: config.IQN}
 	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
-	tgtDisksReq := &iscsi.GetTargetDisksRequest{TargetPortal: tp, Iqn: config.Iqn}
+	tgtDisksReq := &iscsi.GetTargetDisksRequest{TargetPortal: tp, IQN: config.IQN}
 	tgtDisksResp, err := iSCSIClient.GetTargetDisks(context.TODO(), tgtDisksReq)
 	require.Nil(t, err)
 	require.Len(t, tgtDisksResp.DiskIDs, 1)
@@ -144,14 +144,14 @@ func targetTest(t *testing.T) {
 	discReq := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
 	discResp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), discReq)
 	if assert.Nil(t, err) {
-		assert.Contains(t, discResp.Iqns, config.Iqn)
+		assert.Contains(t, discResp.IQNs, config.IQN)
 	}
 
-	connectReq := &iscsi.ConnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
+	connectReq := &iscsi.ConnectTargetRequest{TargetPortal: tp, IQN: config.IQN}
 	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
-	disconReq := &iscsi.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
+	disconReq := &iscsi.DisconnectTargetRequest{TargetPortal: tp, IQN: config.IQN}
 	_, err = iSCSIClient.DisconnectTarget(context.TODO(), disconReq)
 	assert.Nil(t, err)
 }
@@ -193,12 +193,12 @@ func targetChapTest(t *testing.T) {
 	discReq := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
 	discResp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), discReq)
 	if assert.Nil(t, err) {
-		assert.Contains(t, discResp.Iqns, config.Iqn)
+		assert.Contains(t, discResp.IQNs, config.IQN)
 	}
 
 	connectReq := &iscsi.ConnectTargetRequest{
 		TargetPortal: tp,
-		Iqn:          config.Iqn,
+		IQN:          config.IQN,
 		ChapUsername: username,
 		ChapSecret:   password,
 		AuthType:     iscsi.ONE_WAY_CHAP,
@@ -206,7 +206,7 @@ func targetChapTest(t *testing.T) {
 	_, err = iSCSIClient.ConnectTarget(context.TODO(), connectReq)
 	assert.Nil(t, err)
 
-	disconReq := &iscsi.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
+	disconReq := &iscsi.DisconnectTargetRequest{TargetPortal: tp, IQN: config.IQN}
 	_, err = iSCSIClient.DisconnectTarget(context.TODO(), disconReq)
 	assert.Nil(t, err)
 }
@@ -259,7 +259,7 @@ func targetMutualChapTest(t *testing.T) {
 		req := &iscsi.DiscoverTargetPortalRequest{TargetPortal: tp}
 		resp, err := iSCSIClient.DiscoverTargetPortal(context.TODO(), req)
 		if assert.Nil(t, err) && assert.NotNil(t, resp) {
-			assert.Contains(t, resp.Iqns, config.Iqn)
+			assert.Contains(t, resp.IQNs, config.IQN)
 		}
 	}
 
@@ -273,7 +273,7 @@ func targetMutualChapTest(t *testing.T) {
 
 	connectReq := &iscsi.ConnectTargetRequest{
 		TargetPortal: tp,
-		Iqn:          config.Iqn,
+		IQN:          config.IQN,
 		ChapUsername: username,
 		ChapSecret:   password,
 		AuthType:     iscsi.MUTUAL_CHAP,
@@ -293,7 +293,7 @@ func targetMutualChapTest(t *testing.T) {
 	assert.Nil(t, err)
 
 	{
-		req := &iscsi.DisconnectTargetRequest{TargetPortal: tp, Iqn: config.Iqn}
+		req := &iscsi.DisconnectTargetRequest{TargetPortal: tp, IQN: config.IQN}
 		resp, err := iSCSIClient.DisconnectTarget(context.TODO(), req)
 		assert.Nil(t, err)
 		assert.NotNil(t, resp)

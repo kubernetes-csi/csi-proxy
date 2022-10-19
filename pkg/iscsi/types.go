@@ -28,7 +28,7 @@ type ConnectTargetRequest struct {
 	TargetPortal *TargetPortal
 
 	// IQN of the iSCSI Target
-	Iqn string
+	IQN string
 
 	// Connection authentication type, None by default
 	//
@@ -54,7 +54,7 @@ type DisconnectTargetRequest struct {
 	// Target portal from which initiator will disconnect
 	TargetPortal *TargetPortal
 	// IQN of the iSCSI Target
-	Iqn string
+	IQN string
 }
 
 type DisconnectTargetResponse struct {
@@ -69,14 +69,14 @@ type DiscoverTargetPortalRequest struct {
 type DiscoverTargetPortalResponse struct {
 	// List of discovered IQN addresses
 	// follows IQN format: iqn.yyyy-mm.naming-authority:unique-name
-	Iqns []string
+	IQNs []string
 }
 
 type GetTargetDisksRequest struct {
 	// Target portal whose disks will be queried
 	TargetPortal *TargetPortal
 	// IQN of the iSCSI Target
-	Iqn string
+	IQN string
 }
 
 type GetTargetDisksResponse struct {
