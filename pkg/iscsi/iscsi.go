@@ -8,9 +8,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const defaultIscsiPort = 3260
+const defaultISCSIPort = 3260
 
-type IsCSI struct {
+type ISCSI struct {
 	hostAPI iscsiapi.API
 }
 
@@ -51,23 +51,23 @@ type Interface interface {
 	SetMutualChapSecret(context.Context, *SetMutualChapSecretRequest) (*SetMutualChapSecretResponse, error)
 }
 
-var _ Interface = &IsCSI{}
+var _ Interface = &ISCSI{}
 
-func New(hostAPI iscsiapi.API) (*IsCSI, error) {
-	return &IsCSI{
+func New(hostAPI iscsiapi.API) (*ISCSI, error) {
+	return &ISCSI{
 		hostAPI: hostAPI,
 	}, nil
 }
 
-func (ic *IsCSI) requestTPtoAPITP(portal *TargetPortal) *iscsiapi.TargetPortal {
+func (ic *ISCSI) requestTPtoAPITP(portal *TargetPortal) *iscsiapi.TargetPortal {
 	port := portal.TargetPort
 	if port == 0 {
-		port = defaultIscsiPort
+		port = defaultISCSIPort
 	}
 	return &iscsiapi.TargetPortal{Address: portal.TargetAddress, Port: port}
 }
 
-func (ic *IsCSI) AddTargetPortal(context context.Context, request *AddTargetPortalRequest) (*AddTargetPortalResponse, error) {
+func (ic *ISCSI) AddTargetPortal(context context.Context, request *AddTargetPortalRequest) (*AddTargetPortalResponse, error) {
 	klog.V(4).Infof("calling AddTargetPortal with portal %s:%d", request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort)
 	response := &AddTargetPortalResponse{}
 	err := ic.hostAPI.AddTargetPortal(ic.requestTPtoAPITP(request.TargetPortal))
@@ -92,7 +92,7 @@ func AuthTypeToString(authType AuthenticationType) (string, error) {
 	}
 }
 
-func (ic *IsCSI) ConnectTarget(context context.Context, req *ConnectTargetRequest) (*ConnectTargetResponse, error) {
+func (ic *ISCSI) ConnectTarget(context context.Context, req *ConnectTargetRequest) (*ConnectTargetResponse, error) {
 	klog.V(4).Infof("calling ConnectTarget with portal %s:%d and iqn %s"+
 		" auth=%v chapuser=%v", req.TargetPortal.TargetAddress,
 		req.TargetPortal.TargetPort, req.Iqn, req.AuthType, req.ChapUsername)
@@ -114,7 +114,7 @@ func (ic *IsCSI) ConnectTarget(context context.Context, req *ConnectTargetReques
 	return response, nil
 }
 
-func (ic *IsCSI) DisconnectTarget(context context.Context, request *DisconnectTargetRequest) (*DisconnectTargetResponse, error) {
+func (ic *ISCSI) DisconnectTarget(context context.Context, request *DisconnectTargetRequest) (*DisconnectTargetResponse, error) {
 	klog.V(4).Infof("calling DisconnectTarget with portal %s:%d and iqn %s",
 		request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort, request.Iqn)
 
@@ -128,7 +128,7 @@ func (ic *IsCSI) DisconnectTarget(context context.Context, request *DisconnectTa
 	return response, nil
 }
 
-func (ic *IsCSI) DiscoverTargetPortal(context context.Context, request *DiscoverTargetPortalRequest) (*DiscoverTargetPortalResponse, error) {
+func (ic *ISCSI) DiscoverTargetPortal(context context.Context, request *DiscoverTargetPortalRequest) (*DiscoverTargetPortalResponse, error) {
 	klog.V(4).Infof("calling DiscoverTargetPortal with portal %s:%d", request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort)
 	response := &DiscoverTargetPortalResponse{}
 	iqns, err := ic.hostAPI.DiscoverTargetPortal(ic.requestTPtoAPITP(request.TargetPortal))
@@ -141,7 +141,7 @@ func (ic *IsCSI) DiscoverTargetPortal(context context.Context, request *Discover
 	return response, nil
 }
 
-func (ic *IsCSI) GetTargetDisks(context context.Context, request *GetTargetDisksRequest) (*GetTargetDisksResponse, error) {
+func (ic *ISCSI) GetTargetDisks(context context.Context, request *GetTargetDisksRequest) (*GetTargetDisksResponse, error) {
 	klog.V(4).Infof("calling GetTargetDisks with portal %s:%d and iqn %s",
 		request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort, request.Iqn)
 	response := &GetTargetDisksResponse{}
@@ -161,7 +161,7 @@ func (ic *IsCSI) GetTargetDisks(context context.Context, request *GetTargetDisks
 	return response, nil
 }
 
-func (ic *IsCSI) ListTargetPortals(context context.Context, request *ListTargetPortalsRequest) (*ListTargetPortalsResponse, error) {
+func (ic *ISCSI) ListTargetPortals(context context.Context, request *ListTargetPortalsRequest) (*ListTargetPortalsResponse, error) {
 	klog.V(4).Infof("calling ListTargetPortals")
 	response := &ListTargetPortalsResponse{}
 	portals, err := ic.hostAPI.ListTargetPortals()
@@ -183,7 +183,7 @@ func (ic *IsCSI) ListTargetPortals(context context.Context, request *ListTargetP
 	return response, nil
 }
 
-func (ic *IsCSI) RemoveTargetPortal(context context.Context, request *RemoveTargetPortalRequest) (*RemoveTargetPortalResponse, error) {
+func (ic *ISCSI) RemoveTargetPortal(context context.Context, request *RemoveTargetPortalRequest) (*RemoveTargetPortalResponse, error) {
 	klog.V(4).Infof("calling RemoveTargetPortal with portal %s:%d", request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort)
 	response := &RemoveTargetPortalResponse{}
 	err := ic.hostAPI.RemoveTargetPortal(ic.requestTPtoAPITP(request.TargetPortal))
@@ -195,7 +195,7 @@ func (ic *IsCSI) RemoveTargetPortal(context context.Context, request *RemoveTarg
 	return response, nil
 }
 
-func (ic *IsCSI) SetMutualChapSecret(context context.Context, request *SetMutualChapSecretRequest) (*SetMutualChapSecretResponse, error) {
+func (ic *ISCSI) SetMutualChapSecret(context context.Context, request *SetMutualChapSecretRequest) (*SetMutualChapSecretResponse, error) {
 	klog.V(4).Info("calling SetMutualChapSecret")
 
 	response := &SetMutualChapSecretResponse{}

@@ -36,7 +36,7 @@ func skipTestOnCondition(t *testing.T, condition bool) {
 // used to skip iSCSI tests as they affect the test machine
 // e.g. install an iSCSI target, format a disk, etc.
 // Take care to use disposable clean VMs for tests
-func shouldRunIscsiTests() bool {
+func shouldRunISCSITests() bool {
 	return os.Getenv("ENABLE_ISCSI_TESTS") == "TRUE"
 }
 
