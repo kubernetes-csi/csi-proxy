@@ -8,6 +8,7 @@ type DiskLocation struct {
 }
 
 type ListDiskLocationsRequest struct {
+	// Intentionally empty
 }
 
 type ListDiskLocationsResponse struct {
@@ -21,20 +22,26 @@ type PartitionDiskRequest struct {
 }
 
 type PartitionDiskResponse struct {
+	// Intentionally empty
 }
 
 type RescanRequest struct {
+	// Intentionally empty
 }
 
 type RescanResponse struct {
+	// Intentionally empty
 }
 
 type ListDiskIDsRequest struct {
+	// Intentionally empty
 }
 
 type DiskIDs struct {
 	// Map of Disk ID types and Disk ID values
-	Page83       string
+	Page83 string
+
+	// The disk serial number
 	SerialNumber string
 }
 
@@ -44,6 +51,7 @@ type ListDiskIDsResponse struct {
 }
 
 type GetDiskStatsRequest struct {
+	// Disk device number of the disk to get the stats from
 	DiskNumber uint32
 }
 

@@ -1,9 +1,11 @@
 package system
 
 type GetBIOSSerialNumberRequest struct {
+	// Intentionally empty
 }
 
 type GetBIOSSerialNumberResponse struct {
+	// Serial number
 	SerialNumber string
 }
 
@@ -30,6 +32,7 @@ type StopServiceResponse struct {
 
 type ServiceStatus uint32
 
+// https://docs.microsoft.com/en-us/windows/win32/api/winsvc/ns-winsvc-service_status#members
 const (
 	SERVICE_STATUS_UNKNOWN ServiceStatus = iota
 	SERVICE_STATUS_STOPPED
@@ -43,6 +46,7 @@ const (
 
 type Startype uint32
 
+// https://docs.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-changeserviceconfiga
 const (
 	START_TYPE_BOOT Startype = iota
 	START_TYPE_SYSTEM
@@ -60,9 +64,9 @@ type GetServiceResponse struct {
 	// Service display name
 	DisplayName string
 
-	// Service start type.
+	// Service start type
 	// Used to control whether a service will start on boot, and if so on which
-	// boot phase.
+	// boot phase
 	StartType Startype
 
 	// Service status, e.g. stopped, running, paused
