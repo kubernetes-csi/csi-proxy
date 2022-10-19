@@ -12,7 +12,7 @@ import (
 // pkg/iscsi/iscsi.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 
-type API interface {
+type HostAPI interface {
 	AddTargetPortal(portal *TargetPortal) error
 	DiscoverTargetPortal(portal *TargetPortal) ([]string, error)
 	ListTargetPortals() ([]TargetPortal, error)
@@ -26,10 +26,10 @@ type API interface {
 
 type iscsiAPI struct{}
 
-// check that iscsiAPI implements API
-var _ API = &iscsiAPI{}
+// check that iscsiAPI implements HostAPI
+var _ HostAPI = &iscsiAPI{}
 
-func New() API {
+func New() HostAPI {
 	return iscsiAPI{}
 }
 

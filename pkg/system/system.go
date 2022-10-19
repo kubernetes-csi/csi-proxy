@@ -3,12 +3,12 @@ package system
 import (
 	"context"
 
-	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/api"
+	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/hostapi"
 	"k8s.io/klog/v2"
 )
 
 type System struct {
-	hostAPI systemapi.API
+	hostAPI systemapi.HostAPI
 }
 
 type Interface interface {
@@ -32,7 +32,7 @@ type Interface interface {
 // check that System implements Interface
 var _ Interface = &System{}
 
-func New(hostAPI systemapi.API) (*System, error) {
+func New(hostAPI systemapi.HostAPI) (*System, error) {
 	return &System{
 		hostAPI: hostAPI,
 	}, nil

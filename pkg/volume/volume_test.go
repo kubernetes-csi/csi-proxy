@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"testing"
 
-	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/api"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/hostapi"
 )
 
 type fakeVolumeAPI struct {
 	diskVolMap map[uint32][]string
 }
 
-var _ volumeapi.API = &fakeVolumeAPI{}
+var _ volumeapi.HostAPI = &fakeVolumeAPI{}
 
 func (volumeAPI *fakeVolumeAPI) Fill(diskToVolMapIn map[uint32][]string) {
 	for d, v := range diskToVolMapIn {

@@ -13,8 +13,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// API exposes the internal volume operations available in the server
-type API interface {
+// HostAPI exposes the internal volume operations available in the server
+type HostAPI interface {
 	// ListVolumesOnDisk lists volumes on a disk identified by a `diskNumber` and optionally a partition identified by `partitionNumber`.
 	ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error)
 	// MountVolume mounts the volume at the requested global staging target path.
@@ -42,8 +42,8 @@ type API interface {
 // volumeAPI implements the internal Volume APIs
 type volumeAPI struct{}
 
-// verifies that the API is implemented
-var _ API = &volumeAPI{}
+// verifies that HostAPI is implemented
+var _ HostAPI = &volumeAPI{}
 
 var (
 	// VolumeRegexp matches a Windows Volume
@@ -57,7 +57,7 @@ var (
 )
 
 // New - Construct a new Volume API Implementation.
-func New() API {
+func New() HostAPI {
 	return &volumeAPI{}
 }
 

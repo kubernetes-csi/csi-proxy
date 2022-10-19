@@ -14,8 +14,8 @@ import (
 // pkg/filesystem/filesystem.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 
-// API is the exposed Filesystem API
-type API interface {
+// HostAPI is the exposed Filesystem API
+type HostAPI interface {
 	PathExists(path string) (bool, error)
 	PathValid(path string) (bool, error)
 	Mkdir(path string) error
@@ -27,10 +27,10 @@ type API interface {
 
 type filesystemAPI struct{}
 
-// check that filesystemAPI implements API
-var _ API = &filesystemAPI{}
+// check that filesystemAPI implements HostAPI
+var _ HostAPI = &filesystemAPI{}
 
-func New() API {
+func New() HostAPI {
 	return filesystemAPI{}
 }
 

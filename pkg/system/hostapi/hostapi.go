@@ -14,7 +14,7 @@ import (
 // pkg/system/system.go so that logic can be easily unit-tested
 // without requiring specific OS environments.
 
-type API interface {
+type HostAPI interface {
 	GetBIOSSerialNumber() (string, error)
 	GetService(name string) (*ServiceInfo, error)
 	StartService(name string) error
@@ -23,7 +23,10 @@ type API interface {
 
 type systemAPI struct{}
 
-func New() API {
+// check that systemAPI implements HostAPI
+var _ HostAPI = &systemAPI{}
+
+func New() HostAPI {
 	return systemAPI{}
 }
 

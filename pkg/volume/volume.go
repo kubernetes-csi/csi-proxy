@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/api"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/hostapi"
 	"k8s.io/klog/v2"
 )
 
 // Volume wraps the host API and implements the interface
 type Volume struct {
-	hostAPI volumeapi.API
+	hostAPI volumeapi.HostAPI
 }
 
 type Interface interface {
@@ -53,7 +53,7 @@ type Interface interface {
 
 var _ Interface = &Volume{}
 
-func New(hostAPI volumeapi.API) (*Volume, error) {
+func New(hostAPI volumeapi.HostAPI) (*Volume, error) {
 	return &Volume{
 		hostAPI: hostAPI,
 	}, nil

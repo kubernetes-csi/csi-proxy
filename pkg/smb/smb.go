@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	fs "github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/api"
+	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/hostapi"
 	"k8s.io/klog/v2"
 )
 
 type SMB struct {
-	hostAPI smbapi.API
+	hostAPI smbapi.HostAPI
 	fs      fs.Interface
 }
 
@@ -51,7 +51,7 @@ func getRootMappingPath(path string) (string, error) {
 	return strings.ToLower("\\\\" + parts[0] + "\\" + parts[1]), nil
 }
 
-func New(hostAPI smbapi.API, fsClient fs.Interface) (*SMB, error) {
+func New(hostAPI smbapi.HostAPI, fsClient fs.Interface) (*SMB, error) {
 	return &SMB{
 		hostAPI: hostAPI,
 		fs:      fsClient,

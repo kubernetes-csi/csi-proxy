@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	system "github.com/kubernetes-csi/csi-proxy/pkg/system"
-	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/api"
+	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/hostapi"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
