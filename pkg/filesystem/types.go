@@ -1,24 +1,20 @@
 package filesystem
 
-// PathExistsRequest is the internal representation of requests to the PathExists endpoint.
 type PathExistsRequest struct {
 	// The path whose existence we want to check in the host's filesystem
 	Path string
 }
 
-// PathExistsResponse is the internal representation of responses from the PathExists endpoint.
 type PathExistsResponse struct {
 	// Indicates whether the path in PathExistsRequest exists in the host's filesystem
 	Exists bool
 }
 
-// PathValidRequest is the internal representation of requests to the PathValid endpoint.
 type PathValidRequest struct {
 	// The path whose validity we want to check in the host's filesystem
 	Path string
 }
 
-// PathValidResponse is the internal representation of responses from the PathValid endpoint.
 type PathValidResponse struct {
 	// Indicates whether the path in PathValidRequest is a valid path
 	Valid bool
@@ -47,6 +43,7 @@ type MkdirRequest struct {
 }
 
 type MkdirResponse struct {
+	// Intentionally empty
 }
 
 type RmdirRequest struct {
@@ -66,11 +63,13 @@ type RmdirRequest struct {
 	// Path cannot be a file of type symlink.
 	// Maximum path length will be capped to 260 characters.
 	Path string
+
 	// Force remove all contents under path (if any).
 	Force bool
 }
 
 type RmdirResponse struct {
+	// Intentionally empty
 }
 
 type RmdirContentsRequest struct {
@@ -93,6 +92,7 @@ type RmdirContentsRequest struct {
 }
 
 type RmdirContentsResponse struct {
+	// Intentionally empty
 }
 
 type CreateSymlinkRequest struct {
@@ -111,6 +111,7 @@ type CreateSymlinkRequest struct {
 	// source_path cannot already exist in the host filesystem.
 	// Maximum path length will be capped to 260 characters.
 	SourcePath string
+
 	// Target path is the location of the new directory entry to be created in the host's filesystem.
 	// All special characters allowed by Windows in path names will be allowed
 	// except for restrictions noted below. For details, please check:
@@ -130,12 +131,15 @@ type CreateSymlinkRequest struct {
 }
 
 type CreateSymlinkResponse struct {
+	// Intentionally empty
 }
 
 type IsSymlinkRequest struct {
+	// The path whose existence as a symlink we want to check in the host's filesystem
 	Path string
 }
 
 type IsSymlinkResponse struct {
+	// Indicates whether the path in IsSymlinkRequest is a symlink
 	IsSymlink bool
 }

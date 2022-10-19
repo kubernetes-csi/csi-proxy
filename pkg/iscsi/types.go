@@ -75,6 +75,7 @@ type DiscoverTargetPortalResponse struct {
 type GetTargetDisksRequest struct {
 	// Target portal whose disks will be queried
 	TargetPortal *TargetPortal
+
 	// IQN of the iSCSI Target
 	Iqn string
 }
@@ -86,6 +87,7 @@ type GetTargetDisksResponse struct {
 }
 
 type ListTargetPortalsRequest struct {
+	// Intentionally empty
 }
 
 type ListTargetPortalsResponse struct {
@@ -105,6 +107,7 @@ type RemoveTargetPortalResponse struct {
 type TargetPortal struct {
 	// iSCSI Target (server) address
 	TargetAddress string
+
 	// iSCSI Target port (default iSCSI port is 3260)
 	TargetPort uint32
 }
