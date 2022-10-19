@@ -2,8 +2,6 @@ package disk
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/api"
 	"k8s.io/klog/v2"
@@ -14,9 +12,6 @@ type Disk struct {
 }
 
 type Interface interface {
-	DiskStats(context.Context, *DiskStatsRequest) (*DiskStatsResponse, error)
-	GetAttachState(context.Context, *GetAttachStateRequest) (*GetAttachStateResponse, error)
-	GetDiskNumberByName(context.Context, *GetDiskNumberByNameRequest) (*GetDiskNumberByNameResponse, error)
 	// GetDiskState gets the offline/online state of a disk.
 	GetDiskState(context.Context, *GetDiskStateRequest) (*GetDiskStateResponse, error)
 
@@ -36,7 +31,6 @@ type Interface interface {
 
 	// Rescan refreshes the host's storage cache.
 	Rescan(context.Context, *RescanRequest) (*RescanResponse, error)
-	SetAttachState(context.Context, *SetAttachStateRequest) (*SetAttachStateResponse, error)
 
 	// SetDiskState sets the offline/online state of a disk.
 	SetDiskState(context.Context, *SetDiskStateRequest) (*SetDiskStateResponse, error)
@@ -123,19 +117,6 @@ func (d *Disk) Rescan(context context.Context, request *RescanRequest) (*RescanR
 	return response, nil
 }
 
-func (d *Disk) GetDiskNumberByName(context context.Context, request *GetDiskNumberByNameRequest) (*GetDiskNumberByNameResponse, error) {
-	klog.V(4).Infof("Request: GetDiskNumberByName with diskName %q", request.DiskName)
-	response := &GetDiskNumberByNameResponse{}
-	diskName := request.DiskName
-	number, err := d.hostAPI.GetDiskNumberByName(diskName)
-	if err != nil {
-		klog.Errorf("GetDiskNumberByName failed: %v", err)
-		return nil, err
-	}
-	response.DiskNumber = number
-	return response, nil
-}
-
 func (d *Disk) ListDiskIDs(context context.Context, request *ListDiskIDsRequest) (*ListDiskIDsResponse, error) {
 	klog.V(4).Infof("Request: ListDiskIDs")
 
@@ -158,26 +139,6 @@ func (d *Disk) ListDiskIDs(context context.Context, request *ListDiskIDsRequest)
 	return response, nil
 }
 
-func (d *Disk) DiskStats(context context.Context, request *DiskStatsRequest) (*DiskStatsResponse, error) {
-	klog.V(2).Infof("Request: DiskStats: diskNumber=%d", request.DiskID)
-	// forward to GetDiskStats
-	diskNumber, err := strconv.ParseUint(request.DiskID, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to format DiskStatsRequest.DiskID with err: %w", err)
-	}
-	getDiskStatsRequest := &GetDiskStatsRequest{
-		DiskNumber: uint32(diskNumber),
-	}
-	getDiskStatsResponse, err := d.GetDiskStats(context, getDiskStatsRequest)
-	if err != nil {
-		klog.Errorf("Forward to GetDiskStats failed: %+v", err)
-		return nil, err
-	}
-	return &DiskStatsResponse{
-		DiskSize: getDiskStatsResponse.TotalBytes,
-	}, nil
-}
-
 func (d *Disk) GetDiskStats(context context.Context, request *GetDiskStatsRequest) (*GetDiskStatsResponse, error) {
 	klog.V(2).Infof("Request: GetDiskStats: diskNumber=%d", request.DiskNumber)
 	diskNumber := request.DiskNumber
@@ -191,26 +152,6 @@ func (d *Disk) GetDiskStats(context context.Context, request *GetDiskStatsReques
 	}, nil
 }
 
-func (d *Disk) SetAttachState(context context.Context, request *SetAttachStateRequest) (*SetAttachStateResponse, error) {
-	klog.V(2).Infof("Request: SetAttachState: %+v", request)
-
-	// forward to SetDiskState
-	diskNumber, err := strconv.ParseUint(request.DiskID, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to format SetAttachStateRequest.DiskID with err: %w", err)
-	}
-	setDiskStateRequest := &SetDiskStateRequest{
-		DiskNumber: uint32(diskNumber),
-		IsOnline:   request.IsOnline,
-	}
-	_, err = d.SetDiskState(context, setDiskStateRequest)
-	if err != nil {
-		klog.Errorf("Forward to SetDiskState failed with: %+v", err)
-		return nil, err
-	}
-	return &SetAttachStateResponse{}, nil
-}
-
 func (d *Disk) SetDiskState(context context.Context, request *SetDiskStateRequest) (*SetDiskStateResponse, error) {
 	klog.V(2).Infof("Request: SetDiskState with diskNumber=%d and isOnline=%v", request.DiskNumber, request.IsOnline)
 	err := d.hostAPI.SetDiskState(request.DiskNumber, request.IsOnline)
@@ -219,27 +160,6 @@ func (d *Disk) SetDiskState(context context.Context, request *SetDiskStateReques
 		return nil, err
 	}
 	return &SetDiskStateResponse{}, nil
-}
-
-func (d *Disk) GetAttachState(context context.Context, request *GetAttachStateRequest) (*GetAttachStateResponse, error) {
-	klog.V(2).Infof("Request: GetAttachState: %+v", request)
-
-	// forward to GetDiskState
-	diskNumber, err := strconv.ParseUint(request.DiskID, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to format GetAttachStateRequest.DiskID with err: %w", err)
-	}
-	getDiskStateRequest := &GetDiskStateRequest{
-		DiskNumber: uint32(diskNumber),
-	}
-	getDiskStateResponse, err := d.GetDiskState(context, getDiskStateRequest)
-	if err != nil {
-		klog.Errorf("Forward to GetDiskState failed with: %+v", err)
-		return nil, err
-	}
-	return &GetAttachStateResponse{
-		IsOnline: getDiskStateResponse.IsOnline,
-	}, nil
 }
 
 func (d *Disk) GetDiskState(context context.Context, request *GetDiskStateRequest) (*GetDiskStateResponse, error) {

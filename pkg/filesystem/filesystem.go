@@ -16,11 +16,9 @@ type Interface interface {
 	// in the host filesystem (target_path is the name of the symbolic link created,
 	// source_path is the existing path).
 	CreateSymlink(context.Context, *CreateSymlinkRequest) (*CreateSymlinkResponse, error)
-	IsMountPoint(context.Context, *IsMountPointRequest) (*IsMountPointResponse, error)
 
 	// IsSymlink checks if a given path is a symlink.
 	IsSymlink(context.Context, *IsSymlinkRequest) (*IsSymlinkResponse, error)
-	LinkPath(context.Context, *LinkPathRequest) (*LinkPathResponse, error)
 
 	// Mkdir creates a directory at the requested path in the host filesystem.
 	Mkdir(context.Context, *MkdirRequest) (*MkdirResponse, error)
@@ -121,19 +119,6 @@ func (f *Filesystem) RmdirContents(ctx context.Context, request *RmdirContentsRe
 	return nil, err
 }
 
-func (f *Filesystem) LinkPath(ctx context.Context, request *LinkPathRequest) (*LinkPathResponse, error) {
-	klog.V(2).Infof("Request: LinkPath with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
-	createSymlinkRequest := &CreateSymlinkRequest{
-		SourcePath: request.SourcePath,
-		TargetPath: request.TargetPath,
-	}
-	if _, err := f.CreateSymlink(ctx, createSymlinkRequest); err != nil {
-		klog.Errorf("Failed to forward to CreateSymlink: %v", err)
-		return nil, err
-	}
-	return &LinkPathResponse{}, nil
-}
-
 func (f *Filesystem) CreateSymlink(ctx context.Context, request *CreateSymlinkRequest) (*CreateSymlinkResponse, error) {
 	klog.V(2).Infof("Request: CreateSymlink with targetPath=%q sourcePath=%q", request.TargetPath, request.SourcePath)
 	err := ValidatePathWindows(request.TargetPath)
@@ -152,21 +137,6 @@ func (f *Filesystem) CreateSymlink(ctx context.Context, request *CreateSymlinkRe
 		return nil, err
 	}
 	return &CreateSymlinkResponse{}, nil
-}
-
-func (f *Filesystem) IsMountPoint(ctx context.Context, request *IsMountPointRequest) (*IsMountPointResponse, error) {
-	klog.V(2).Infof("Request: IsMountPoint with path=%q", request.Path)
-	isSymlinkRequest := &IsSymlinkRequest{
-		Path: request.Path,
-	}
-	isSymlinkResponse, err := f.IsSymlink(ctx, isSymlinkRequest)
-	if err != nil {
-		klog.Errorf("Failed to forward to IsSymlink: %v", err)
-		return nil, err
-	}
-	return &IsMountPointResponse{
-		IsMountPoint: isSymlinkResponse.IsSymlink,
-	}, nil
 }
 
 func (f *Filesystem) IsSymlink(ctx context.Context, request *IsSymlinkRequest) (*IsSymlinkResponse, error) {

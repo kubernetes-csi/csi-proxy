@@ -87,30 +87,3 @@ type GetClosestVolumeIDFromTargetPathRequest struct {
 type GetClosestVolumeIDFromTargetPathResponse struct {
 	VolumeId string
 }
-
-// These structs are used in APIs less than v1beta3 and rerouted internally
-
-type DismountVolumeRequest struct {
-	VolumeId string
-	Path     string
-}
-type DismountVolumeResponse struct{}
-type VolumeDiskNumberRequest struct {
-	VolumeId string
-}
-type VolumeDiskNumberResponse struct {
-	DiskNumber int64
-}
-type VolumeIDFromMountRequest struct {
-	Mount string
-}
-type VolumeIDFromMountResponse struct {
-	VolumeId string
-}
-type VolumeStatsRequest struct {
-	VolumeId string
-}
-type VolumeStatsResponse struct {
-	VolumeSize     int64
-	VolumeUsedSize int64
-}

@@ -14,7 +14,6 @@ type Volume struct {
 }
 
 type Interface interface {
-	DismountVolume(context.Context, *DismountVolumeRequest) (*DismountVolumeResponse, error)
 	// FormatVolume formats a volume with NTFS.
 	FormatVolume(context.Context, *FormatVolumeRequest) (*FormatVolumeResponse, error)
 
@@ -25,8 +24,6 @@ type Interface interface {
 
 	// GetDiskNumberFromVolumeID gets the disk number of the disk where the volume is located.
 	GetDiskNumberFromVolumeID(context.Context, *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error)
-	GetVolumeDiskNumber(context.Context, *VolumeDiskNumberRequest) (*VolumeDiskNumberResponse, error)
-	GetVolumeIDFromMount(context.Context, *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error)
 
 	// GetVolumeIDFromTargetPath gets the volume id for a given target path.
 	GetVolumeIDFromTargetPath(context.Context, *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error)
@@ -49,7 +46,6 @@ type Interface interface {
 
 	// UnmountVolume flushes data cache to disk and removes the global staging path.
 	UnmountVolume(context.Context, *UnmountVolumeRequest) (*UnmountVolumeResponse, error)
-	VolumeStats(context.Context, *VolumeStatsRequest) (*VolumeStatsResponse, error)
 
 	// WriteVolumeCache write volume cache to disk.
 	WriteVolumeCache(context.Context, *WriteVolumeCacheRequest) (*WriteVolumeCacheResponse, error)
@@ -98,19 +94,6 @@ func (v *Volume) MountVolume(context context.Context, request *MountVolumeReques
 		return response, err
 	}
 	return response, nil
-}
-
-func (v *Volume) DismountVolume(context context.Context, request *DismountVolumeRequest) (*DismountVolumeResponse, error) {
-	unmountVolumeRequest := &UnmountVolumeRequest{
-		VolumeId:   request.VolumeId,
-		TargetPath: request.Path,
-	}
-	_, err := v.UnmountVolume(context, unmountVolumeRequest)
-	if err != nil {
-		return nil, fmt.Errorf("Forward to UnmountVolume failed, err=%+v", err)
-	}
-	dismountVolumeResponse := &DismountVolumeResponse{}
-	return dismountVolumeResponse, nil
 }
 
 func (v *Volume) UnmountVolume(context context.Context, request *UnmountVolumeRequest) (*UnmountVolumeResponse, error) {
@@ -210,21 +193,6 @@ func (v *Volume) ResizeVolume(context context.Context, request *ResizeVolumeRequ
 	return response, nil
 }
 
-func (v *Volume) VolumeStats(context context.Context, request *VolumeStatsRequest) (*VolumeStatsResponse, error) {
-	getVolumeStatsRequest := &GetVolumeStatsRequest{
-		VolumeId: request.VolumeId,
-	}
-	getVolumeStatsResponse, err := v.GetVolumeStats(context, getVolumeStatsRequest)
-	if err != nil {
-		return nil, fmt.Errorf("Forward to GetVolumeStats failed, err=%+v", err)
-	}
-	volumeStatsResponse := &VolumeStatsResponse{
-		VolumeSize:     getVolumeStatsResponse.TotalBytes,
-		VolumeUsedSize: getVolumeStatsResponse.UsedBytes,
-	}
-	return volumeStatsResponse, nil
-}
-
 func (v *Volume) GetVolumeStats(context context.Context, request *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error) {
 	klog.V(2).Infof("GetVolumeStats: Request: %+v", request)
 	volumeID := request.VolumeId
@@ -248,20 +216,6 @@ func (v *Volume) GetVolumeStats(context context.Context, request *GetVolumeStats
 	return response, nil
 }
 
-func (v *Volume) GetVolumeDiskNumber(context context.Context, request *VolumeDiskNumberRequest) (*VolumeDiskNumberResponse, error) {
-	getDiskNumberFromVolumeIDRequest := &GetDiskNumberFromVolumeIDRequest{
-		VolumeId: request.VolumeId,
-	}
-	getDiskNumberFromVolumeIDResponse, err := v.GetDiskNumberFromVolumeID(context, getDiskNumberFromVolumeIDRequest)
-	if err != nil {
-		return nil, fmt.Errorf("Forward to GetDiskNumberFromVolumeID failed, err=%+v", err)
-	}
-	volumeStatsResponse := &VolumeDiskNumberResponse{
-		DiskNumber: int64(getDiskNumberFromVolumeIDResponse.DiskNumber),
-	}
-	return volumeStatsResponse, nil
-}
-
 func (v *Volume) GetDiskNumberFromVolumeID(context context.Context, request *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error) {
 	klog.V(2).Infof("GetDiskNumberFromVolumeID: Request: %+v", request)
 
@@ -281,20 +235,6 @@ func (v *Volume) GetDiskNumberFromVolumeID(context context.Context, request *Get
 	}
 
 	return response, nil
-}
-
-func (v *Volume) GetVolumeIDFromMount(context context.Context, request *VolumeIDFromMountRequest) (*VolumeIDFromMountResponse, error) {
-	getVolumeIDFromTargetPathRequest := &GetVolumeIDFromTargetPathRequest{
-		TargetPath: request.Mount,
-	}
-	getVolumeIDFromTargetPathResponse, err := v.GetVolumeIDFromTargetPath(context, getVolumeIDFromTargetPathRequest)
-	if err != nil {
-		return nil, fmt.Errorf("Forward to GetVolumeIDFromTargetPath failed, err=%+v", err)
-	}
-	volumeIDFromMountResponse := &VolumeIDFromMountResponse{
-		VolumeId: getVolumeIDFromTargetPathResponse.VolumeId,
-	}
-	return volumeIDFromMountResponse, nil
 }
 
 func (v *Volume) GetVolumeIDFromTargetPath(context context.Context, request *GetVolumeIDFromTargetPathRequest) (*GetVolumeIDFromTargetPathResponse, error) {
