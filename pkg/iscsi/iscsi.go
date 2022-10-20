@@ -95,7 +95,7 @@ func AuthTypeToString(authType AuthenticationType) (string, error) {
 func (ic *ISCSI) ConnectTarget(context context.Context, req *ConnectTargetRequest) (*ConnectTargetResponse, error) {
 	klog.V(4).Infof("calling ConnectTarget with portal %s:%d and iqn %s"+
 		" auth=%v chapuser=%v", req.TargetPortal.TargetAddress,
-		req.TargetPortal.TargetPort, req.Iqn, req.AuthType, req.ChapUsername)
+		req.TargetPortal.TargetPort, req.IQN, req.AuthType, req.ChapUsername)
 
 	response := &ConnectTargetResponse{}
 	authType, err := AuthTypeToString(req.AuthType)
@@ -104,7 +104,7 @@ func (ic *ISCSI) ConnectTarget(context context.Context, req *ConnectTargetReques
 		return response, err
 	}
 
-	err = ic.hostAPI.ConnectTarget(ic.requestTPtoAPITP(req.TargetPortal), req.Iqn,
+	err = ic.hostAPI.ConnectTarget(ic.requestTPtoAPITP(req.TargetPortal), req.IQN,
 		authType, req.ChapUsername, req.ChapSecret)
 	if err != nil {
 		klog.Errorf("failed ConnectTarget %v", err)
@@ -116,10 +116,10 @@ func (ic *ISCSI) ConnectTarget(context context.Context, req *ConnectTargetReques
 
 func (ic *ISCSI) DisconnectTarget(context context.Context, request *DisconnectTargetRequest) (*DisconnectTargetResponse, error) {
 	klog.V(4).Infof("calling DisconnectTarget with portal %s:%d and iqn %s",
-		request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort, request.Iqn)
+		request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort, request.IQN)
 
 	response := &DisconnectTargetResponse{}
-	err := ic.hostAPI.DisconnectTarget(ic.requestTPtoAPITP(request.TargetPortal), request.Iqn)
+	err := ic.hostAPI.DisconnectTarget(ic.requestTPtoAPITP(request.TargetPortal), request.IQN)
 	if err != nil {
 		klog.Errorf("failed DisconnectTarget %v", err)
 		return response, err
@@ -137,15 +137,15 @@ func (ic *ISCSI) DiscoverTargetPortal(context context.Context, request *Discover
 		return response, err
 	}
 
-	response.Iqns = iqns
+	response.IQNs = iqns
 	return response, nil
 }
 
 func (ic *ISCSI) GetTargetDisks(context context.Context, request *GetTargetDisksRequest) (*GetTargetDisksResponse, error) {
 	klog.V(4).Infof("calling GetTargetDisks with portal %s:%d and iqn %s",
-		request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort, request.Iqn)
+		request.TargetPortal.TargetAddress, request.TargetPortal.TargetPort, request.IQN)
 	response := &GetTargetDisksResponse{}
-	disks, err := ic.hostAPI.GetTargetDisks(ic.requestTPtoAPITP(request.TargetPortal), request.Iqn)
+	disks, err := ic.hostAPI.GetTargetDisks(ic.requestTPtoAPITP(request.TargetPortal), request.IQN)
 	if err != nil {
 		klog.Errorf("failed GetTargetDisks %v", err)
 		return response, err
