@@ -69,7 +69,7 @@ func (v *Volume) ListVolumesOnDisk(context context.Context, request *ListVolumes
 		return response, err
 	}
 
-	response.VolumeIds = volumeIDs
+	response.VolumeIDs = volumeIDs
 	return response, nil
 }
 
@@ -77,10 +77,10 @@ func (v *Volume) MountVolume(context context.Context, request *MountVolumeReques
 	klog.V(2).Infof("MountVolume: Request: %+v", request)
 	response := &MountVolumeResponse{}
 
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
-		return response, fmt.Errorf("MountVolumeRequest.VolumeId is empty")
+		return response, fmt.Errorf("MountVolumeRequest.VolumeID is empty")
 	}
 	targetPath := request.TargetPath
 	if targetPath == "" {
@@ -100,7 +100,7 @@ func (v *Volume) UnmountVolume(context context.Context, request *UnmountVolumeRe
 	klog.V(2).Infof("UnmountVolume: Request: %+v", request)
 	response := &UnmountVolumeResponse{}
 
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
@@ -122,7 +122,7 @@ func (v *Volume) IsVolumeFormatted(context context.Context, request *IsVolumeFor
 	klog.V(2).Infof("IsVolumeFormatted: Request: %+v", request)
 	response := &IsVolumeFormattedResponse{}
 
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
@@ -141,7 +141,7 @@ func (v *Volume) FormatVolume(context context.Context, request *FormatVolumeRequ
 	klog.V(2).Infof("FormatVolume: Request: %+v", request)
 	response := &FormatVolumeResponse{}
 
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
@@ -159,7 +159,7 @@ func (v *Volume) WriteVolumeCache(context context.Context, request *WriteVolumeC
 	klog.V(2).Infof("WriteVolumeCache: Request: %+v", request)
 	response := &WriteVolumeCacheResponse{}
 
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
@@ -177,7 +177,7 @@ func (v *Volume) ResizeVolume(context context.Context, request *ResizeVolumeRequ
 	klog.V(2).Infof("ResizeVolume: Request: %+v", request)
 	response := &ResizeVolumeResponse{}
 
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		klog.Errorf("volume id empty")
 		return response, fmt.Errorf("volume id empty")
@@ -195,7 +195,7 @@ func (v *Volume) ResizeVolume(context context.Context, request *ResizeVolumeRequ
 
 func (v *Volume) GetVolumeStats(context context.Context, request *GetVolumeStatsRequest) (*GetVolumeStatsResponse, error) {
 	klog.V(2).Infof("GetVolumeStats: Request: %+v", request)
-	volumeID := request.VolumeId
+	volumeID := request.VolumeID
 	if volumeID == "" {
 		return nil, fmt.Errorf("volume id empty")
 	}
@@ -219,12 +219,12 @@ func (v *Volume) GetVolumeStats(context context.Context, request *GetVolumeStats
 func (v *Volume) GetDiskNumberFromVolumeID(context context.Context, request *GetDiskNumberFromVolumeIDRequest) (*GetDiskNumberFromVolumeIDResponse, error) {
 	klog.V(2).Infof("GetDiskNumberFromVolumeID: Request: %+v", request)
 
-	volumeId := request.VolumeId
-	if volumeId == "" {
+	volumeID := request.VolumeID
+	if volumeID == "" {
 		return nil, fmt.Errorf("volume id empty")
 	}
 
-	diskNumber, err := v.hostAPI.GetDiskNumberFromVolumeID(volumeId)
+	diskNumber, err := v.hostAPI.GetDiskNumberFromVolumeID(volumeID)
 	if err != nil {
 		klog.Errorf("failed GetDiskNumberFromVolumeID %v", err)
 		return nil, err
@@ -252,7 +252,7 @@ func (v *Volume) GetVolumeIDFromTargetPath(context context.Context, request *Get
 	}
 
 	response := &GetVolumeIDFromTargetPathResponse{
-		VolumeId: volume,
+		VolumeID: volume,
 	}
 
 	return response, nil
@@ -273,7 +273,7 @@ func (v *Volume) GetClosestVolumeIDFromTargetPath(context context.Context, reque
 	}
 
 	response := &GetClosestVolumeIDFromTargetPathResponse{
-		VolumeId: volume,
+		VolumeID: volume,
 	}
 
 	return response, nil
