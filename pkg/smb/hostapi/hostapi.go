@@ -7,7 +7,7 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 )
 
-type API interface {
+type HostAPI interface {
 	IsSMBMapped(remotePath string) (bool, error)
 	NewSMBLink(remotePath, localPath string) error
 	NewSMBGlobalMapping(remotePath, username, password string) error
@@ -16,9 +16,9 @@ type API interface {
 
 type smbAPI struct{}
 
-var _ API = &smbAPI{}
+var _ HostAPI = &smbAPI{}
 
-func New() API {
+func New() HostAPI {
 	return smbAPI{}
 }
 

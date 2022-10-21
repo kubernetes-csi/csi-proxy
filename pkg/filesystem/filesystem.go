@@ -3,12 +3,12 @@ package filesystem
 import (
 	"context"
 
-	filesystemapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/api"
+	filesystemapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
 	"k8s.io/klog/v2"
 )
 
 type Filesystem struct {
-	hostAPI filesystemapi.API
+	hostAPI filesystemapi.HostAPI
 }
 
 type Interface interface {
@@ -41,7 +41,7 @@ type Interface interface {
 // check that Filesystem implements Interface
 var _ Interface = &Filesystem{}
 
-func New(hostAPI filesystemapi.API) (*Filesystem, error) {
+func New(hostAPI filesystemapi.HostAPI) (*Filesystem, error) {
 	return &Filesystem{
 		hostAPI: hostAPI,
 	}, nil

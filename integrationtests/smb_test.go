@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	fs "github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/api"
+	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
 	"github.com/kubernetes-csi/csi-proxy/pkg/smb"
-	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/api"
+	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/hostapi"
 )
 
 func TestSMB(t *testing.T) {

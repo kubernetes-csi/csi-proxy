@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	fs "github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/api"
-	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/api"
+	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
+	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/hostapi"
 )
 
 type fakeSMBAPI struct{}
 
-var _ smbapi.API = &fakeSMBAPI{}
+var _ smbapi.HostAPI = &fakeSMBAPI{}
 
 func (fakeSMBAPI) NewSMBGlobalMapping(remotePath, username, password string) error {
 	return nil
@@ -31,7 +31,7 @@ func (fakeSMBAPI) NewSMBLink(remotePath, localPath string) error {
 
 type fakeFileSystemAPI struct{}
 
-var _ fsapi.API = &fakeFileSystemAPI{}
+var _ fsapi.HostAPI = &fakeFileSystemAPI{}
 
 func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
 	return true, nil

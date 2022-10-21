@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/disk"
-	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/api"
+	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/hostapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

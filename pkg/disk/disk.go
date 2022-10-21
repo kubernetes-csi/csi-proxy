@@ -3,12 +3,12 @@ package disk
 import (
 	"context"
 
-	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/api"
+	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/hostapi"
 	"k8s.io/klog/v2"
 )
 
 type Disk struct {
-	hostAPI diskapi.API
+	hostAPI diskapi.HostAPI
 }
 
 type Interface interface {
@@ -39,7 +39,7 @@ type Interface interface {
 // check that Disk implements Interface
 var _ Interface = &Disk{}
 
-func New(hostAPI diskapi.API) (*Disk, error) {
+func New(hostAPI diskapi.HostAPI) (*Disk, error) {
 	return &Disk{
 		hostAPI: hostAPI,
 	}, nil

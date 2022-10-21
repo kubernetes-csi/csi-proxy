@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/api"
+	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
 )
 
 type fakeFileSystemAPI struct{}
 
-var _ fsapi.API = &fakeFileSystemAPI{}
+var _ fsapi.HostAPI = &fakeFileSystemAPI{}
 
 func (fakeFileSystemAPI) PathExists(path string) (bool, error) {
 	return true, nil

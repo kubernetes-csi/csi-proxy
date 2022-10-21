@@ -23,8 +23,8 @@ const (
 	IOCTL_STORAGE_QUERY_PROPERTY    = 0x002d1400
 )
 
-// API declares the interface exposed by the internal API
-type API interface {
+// HostAPI declares the interface exposed by the internal API
+type HostAPI interface {
 	// ListDiskLocations - constructs a map with the disk number as the key and the DiskLocation structure
 	// as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
 	ListDiskLocations() (map[uint32]DiskLocation, error)
@@ -55,7 +55,7 @@ type API interface {
 type DiskAPI struct{}
 
 // ensure that DiskAPI implements the exposed API
-var _ API = &DiskAPI{}
+var _ HostAPI = &DiskAPI{}
 
 func New() DiskAPI {
 	return DiskAPI{}

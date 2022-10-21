@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	disk "github.com/kubernetes-csi/csi-proxy/pkg/disk"
-	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/api"
+	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/hostapi"
 	volume "github.com/kubernetes-csi/csi-proxy/pkg/volume"
-	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/api"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/hostapi"
 
 	"github.com/stretchr/testify/require"
 )

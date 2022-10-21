@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	iscsiapi "github.com/kubernetes-csi/csi-proxy/pkg/iscsi/api"
+	iscsiapi "github.com/kubernetes-csi/csi-proxy/pkg/iscsi/hostapi"
 	"k8s.io/klog/v2"
 )
 
 const defaultISCSIPort = 3260
 
 type ISCSI struct {
-	hostAPI iscsiapi.API
+	hostAPI iscsiapi.HostAPI
 }
 
 type Interface interface {
@@ -53,7 +53,7 @@ type Interface interface {
 
 var _ Interface = &ISCSI{}
 
-func New(hostAPI iscsiapi.API) (*ISCSI, error) {
+func New(hostAPI iscsiapi.HostAPI) (*ISCSI, error) {
 	return &ISCSI{
 		hostAPI: hostAPI,
 	}, nil

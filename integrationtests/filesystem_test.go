@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	filesystemapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/api"
+	filesystemapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
 )
 
 func TestFilesystem(t *testing.T) {
