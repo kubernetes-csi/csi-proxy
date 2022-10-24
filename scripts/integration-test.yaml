@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: integration-test
+  labels:
+    app: integration-test
+spec:
+  nodeName: windows_node # to be replaced by sed
+  securityContext:
+    windowsOptions:
+      hostProcess: true
+      runAsUserName: "NT AUTHORITY\\SYSTEM"
+  hostNetwork: true
+  containers:
+  - name: agnhost
+    image: mcr.microsoft.com/windows/nanoserver:ltsc2019
+    command: ['powershell', '-command', 'Start-Sleep 100000']
+    volumeMounts:
+      - mountPath: /integration-test
+        name: integration-test-volume
+  nodeSelector:
+    kubernetes.io/os: windows
+  volumes:
+    - name: integration-test-volume
+      hostPath:
+        path: /
+        type: DirectoryOrCreate

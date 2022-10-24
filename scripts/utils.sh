@@ -16,7 +16,7 @@ if ! [ -z "${GCP_ZONE:-}" ]; then
 fi
 
 sync_file_to_vm() {
-  gcloud compute scp $@ $windows_node:"C:\\Users\\${current_account}"
+  gcloud compute scp $@ $windows_node:"C:\\"
 }
 
 compile_csi_proxy_integration_tests() {
@@ -25,6 +25,10 @@ compile_csi_proxy_integration_tests() {
 }
 
 sync_csi_proxy_integration_tests() {
+  # delete the pod that is potentially using the old file
+  # if there is a pod accessing the existing file, this command would hang
+  kubectl delete -f $pkgdir/scripts/integration-test.yaml --ignore-not-found=true
+
   echo "Sync the integrationtests.exe binary"
   local integration_bin_path="$pkgdir/bin/integrationtests.test.exe"
   sync_file_to_vm $integration_bin_path
@@ -33,12 +37,13 @@ sync_csi_proxy_integration_tests() {
 run_csi_proxy_integration_tests() {
   echo "Run integration tests"
   local ps1=$(cat << 'EOF'
-  "& {
-    $ErrorActionPreference = \"Stop\";
-    .\integrationtests.test.exe --test.v
-  }"
+    $ErrorActionPreference = "Stop";
+    .$Env:CONTAINER_SANDBOX_MOUNT_POINT\integration-test\integrationtests.test.exe --test.v
 EOF
 );
-
-  gcloud compute ssh $windows_node --command="powershell -c $(echo $ps1 | tr '\n' ' ')"
+  kubectl delete -f $pkgdir/scripts/integration-test.yaml --ignore-not-found=true
+  sed "s/windows_node/$windows_node/g" < <(cat $pkgdir/scripts/integration-test.yaml) | kubectl create -f -
+  kubectl wait --for=condition=ready pod -l app=integration-test --timeout=600s
+  kubectl exec pods/integration-test -- powershell -c $(echo $ps1 | tr '\n' ' ')
 }
+
