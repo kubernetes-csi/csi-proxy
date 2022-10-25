@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/hostapi"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume/hostapi"
 	"k8s.io/klog/v2"
 )
 

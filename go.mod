@@ -1,4 +1,4 @@
-module github.com/kubernetes-csi/csi-proxy
+module github.com/kubernetes-csi/csi-proxy/v2
 
 go 1.16
 

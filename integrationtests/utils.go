@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/volume"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/volume"
 )
 
 // getKubeletPathForTest returns the path to the current working directory

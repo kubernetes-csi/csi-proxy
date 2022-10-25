@@ -3,7 +3,7 @@ package disk
 import (
 	"context"
 
-	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/hostapi"
+	diskapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk/hostapi"
 	"k8s.io/klog/v2"
 )
 

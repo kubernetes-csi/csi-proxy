@@ -3,7 +3,7 @@ package system
 import (
 	"context"
 
-	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/hostapi"
+	systemapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/system/hostapi"
 	"k8s.io/klog/v2"
 )
 
