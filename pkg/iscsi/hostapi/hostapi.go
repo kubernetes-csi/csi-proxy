@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 // Implements the iSCSI OS API calls. All code here should be very simple

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	fs "github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
-	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/hostapi"
+	fs "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem"
+	fsapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem/hostapi"
+	smbapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/smb/hostapi"
 )
 
 type fakeSMBAPI struct{}

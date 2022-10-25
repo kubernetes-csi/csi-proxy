@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	disk "github.com/kubernetes-csi/csi-proxy/pkg/disk"
-	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/hostapi"
-	volume "github.com/kubernetes-csi/csi-proxy/pkg/volume"
-	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/hostapi"
+	disk "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk"
+	diskapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk/hostapi"
+	volume "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume/hostapi"
 
 	"github.com/stretchr/testify/require"
 )

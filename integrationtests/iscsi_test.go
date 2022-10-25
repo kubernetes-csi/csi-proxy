@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"testing"
 
-	disk "github.com/kubernetes-csi/csi-proxy/pkg/disk"
-	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/disk/hostapi"
-	iscsi "github.com/kubernetes-csi/csi-proxy/pkg/iscsi"
-	iscsiapi "github.com/kubernetes-csi/csi-proxy/pkg/iscsi/hostapi"
-	system "github.com/kubernetes-csi/csi-proxy/pkg/system"
-	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/hostapi"
+	disk "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk"
+	diskapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/disk/hostapi"
+	iscsi "github.com/kubernetes-csi/csi-proxy/v2/pkg/iscsi"
+	iscsiapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/iscsi/hostapi"
+	system "github.com/kubernetes-csi/csi-proxy/v2/pkg/system"
+	systemapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/system/hostapi"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

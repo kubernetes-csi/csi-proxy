@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
+	fsapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem/hostapi"
 )
 
 type fakeFileSystemAPI struct{}

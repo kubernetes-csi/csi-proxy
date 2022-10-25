@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	volumeapi "github.com/kubernetes-csi/csi-proxy/pkg/volume/hostapi"
+	volumeapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/volume/hostapi"
 )
 
 type fakeVolumeAPI struct {

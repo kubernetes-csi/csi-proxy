@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 var invalidPathCharsRegexWindows = regexp.MustCompile(`["/\:\?\*|]`)

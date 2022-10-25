@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	iscsiapi "github.com/kubernetes-csi/csi-proxy/pkg/iscsi/hostapi"
+	iscsiapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/iscsi/hostapi"
 	"k8s.io/klog/v2"
 )
 

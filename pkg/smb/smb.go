@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	fs "github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/hostapi"
+	fs "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem"
+	smbapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/smb/hostapi"
 	"k8s.io/klog/v2"
 )
 

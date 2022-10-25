@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	system "github.com/kubernetes-csi/csi-proxy/pkg/system"
-	systemapi "github.com/kubernetes-csi/csi-proxy/pkg/system/hostapi"
+	system "github.com/kubernetes-csi/csi-proxy/v2/pkg/system"
+	systemapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/system/hostapi"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

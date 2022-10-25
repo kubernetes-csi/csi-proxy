@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	fs "github.com/kubernetes-csi/csi-proxy/pkg/filesystem"
-	fsapi "github.com/kubernetes-csi/csi-proxy/pkg/filesystem/hostapi"
-	"github.com/kubernetes-csi/csi-proxy/pkg/smb"
-	smbapi "github.com/kubernetes-csi/csi-proxy/pkg/smb/hostapi"
+	fs "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem"
+	fsapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/filesystem/hostapi"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/smb"
+	smbapi "github.com/kubernetes-csi/csi-proxy/v2/pkg/smb/hostapi"
 )
 
 func TestSMB(t *testing.T) {

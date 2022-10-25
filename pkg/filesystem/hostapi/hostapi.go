@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
