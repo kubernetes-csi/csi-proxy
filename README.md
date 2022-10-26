@@ -1,5 +1,7 @@
 # CSI Proxy
 
+> There's a [KEP](https://github.com/kubernetes/enhancements/issues/3636) about moving CSI Drivers to HostProcess containers which involves making CSI Proxy a Go library, development for this work is happening in the `library-development` branch
+
 CSI Proxy (which might be more aptly named "csi-node-proxy") is a binary that exposes a set of gRPC APIs (over named pipes) around local storage operations for nodes in Windows. A container, such as CSI node plugins, can mount the named pipes depending on operations it wants to exercise on the host and
 invoke the APIs.  This allows a storage plugin to run as if were a CSI plugin on linux which have the ability to perform "privileged" actions on the windows host OS.
 
