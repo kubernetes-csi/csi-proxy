@@ -1,4 +1,4 @@
-all: test
+all: build test
 
 # include release tools for building binary and testing targets
 include release-tools/build.make
@@ -8,7 +8,7 @@ GOPATH ?= $(shell go env GOPATH)
 REPO_ROOT = $(CURDIR)
 BUILD_DIR = bin
 BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
-GO_ENV_VARS = GO111MODULE=on GOOS=windows
+GO_ENV_VARS = GO111MODULE=on GOOS=windows GOARCH=amd64
 
 # see https://github.com/golangci/golangci-lint/releases
 GOLANGCI_LINT_VERSION = v1.21.0
@@ -18,6 +18,10 @@ GOLANGCI_LINT = $(BUILD_TOOLS_DIR)/golangci-lint/$(GOLANGCI_LINT_VERSION)/golang
 lint: $(GOLANGCI_LINT)
 	$(GO_ENV_VARS) $(GOLANGCI_LINT) run
 	git --no-pager diff --exit-code
+
+.PHONY: build
+build:
+	${GO_ENV_VARS} go test -c ./integrationtests -o ./bin/integrationtests.test.exe
 
 .PHONY: test-go
 test: test-go
