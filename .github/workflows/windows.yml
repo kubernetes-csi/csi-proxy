@@ -1,3 +1,4 @@
+# Run integration and unit tests on a Windows machine
 name: Windows Tests
 on: [push, pull_request]
 jobs:
