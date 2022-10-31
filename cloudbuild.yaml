@@ -25,8 +25,4 @@ substitutions:
   # _PULL_BASE_REF will contain the ref that was pushed to trigger this build -
   # a branch like 'master' or 'release-0.2', or a tag like 'v0.2'.
   _PULL_BASE_REF: 'master'
-artifacts:
-  objects:
-    location: 'gs://k8s-staging-sig-storage/csi-proxy/${_PULL_BASE_REF}'
-    paths: 'bin/csi-proxy.exe'
 
