@@ -42,8 +42,8 @@ CSI Proxy is in a stable status ([GA Blogpost](https://kubernetes.io/blog/2021/0
 `csi-proxy.exe` binary has not published yet. You need to clone the repo and build it. The easiest way to build this binary is using the makefile in this repo.
 
 ```
-   git clone https://github.com/kubernetes-csi/csi-proxy
-   sudo make build
+git clone https://github.com/kubernetes-csi/csi-proxy
+sudo make build
 ```
 
 On successful execution of `make build`, the output binary `csi-proxy.exe` will be available under `/bin` directory.
@@ -52,10 +52,10 @@ On successful execution of `make build`, the output binary `csi-proxy.exe` will 
 
 csi-proxy.exe can be installed and run as binary or run as a Windows service on each Windows node. See the following as an example to run CSI Proxy as a web service.
 ```
-    $flags = "-windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
-    sc.exe create csiproxy start= "auto" binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
-    sc.exe failure csiproxy reset= 0 actions= restart/10000
-    sc.exe start csiproxy
+$flags = "-windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
+sc.exe create csiproxy start= "auto" binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
+sc.exe failure csiproxy reset= 0 actions= restart/10000
+sc.exe start csiproxy
 ```
 If you are using kube-up to start a Windows cluster, node startup script will automatically run csi-proxy as a service. For GKE 1.18+, csi-proxy will be installed automatically.
 
