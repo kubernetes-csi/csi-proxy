@@ -145,7 +145,7 @@ func (DiskAPI) InitializeDisk(diskNumber uint32) error {
 	cmd := fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle GPT", diskNumber)
 	out, err := utils.RunPowershellCmd(cmd)
 	if err != nil {
-		return fmt.Errorf("error initializing disk %d: %v, %v", diskNumber, out, err)
+		return fmt.Errorf("error initializing disk %d: %v, %v", diskNumber, string(out), err)
 	}
 	return nil
 }
