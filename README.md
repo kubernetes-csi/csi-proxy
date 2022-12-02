@@ -19,7 +19,7 @@ Recommended K8s Version: 1.23
 
 ## Usage
 
-See [usage.md](/docs/API.md) for detailed usage instructions, as well as some notes on migrating from v1.
+See [usage.md](/docs/API.md) for detailed usage instructions, as well as a migration guide from v1.
 
 ## Community, Discussion, Contribution, and Support
 
