@@ -343,7 +343,7 @@ func (imp DiskAPI) GetDiskStats(diskNumber uint32) (int64, error) {
 }
 
 func (imp DiskAPI) SetDiskState(diskNumber uint32, isOnline bool) error {
-	cmd := fmt.Sprintf("(Get-Disk -Number %d) | Set-Disk -IsOffline $%t", diskNumber, !isOnline)
+	cmd := fmt.Sprintf("Set-Disk -Number %d -IsOffline $%t; Set-Disk -Number %d -IsReadOnly $false", diskNumber, !isOnline, diskNumber)
 	out, err := utils.RunPowershellCmd(cmd)
 	if err != nil {
 		return fmt.Errorf("error setting disk attach state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
