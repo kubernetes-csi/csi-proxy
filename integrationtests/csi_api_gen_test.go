@@ -16,7 +16,7 @@ import (
 // On top of this, the regular build checks that all checked-in generated files
 // are up-to-date (i.e. consistent with the current generator).
 
-// TestNewAPIGroup tests that bootstraping a new group works as intended.
+// TestNewAPIGroup tests that bootstrapping a new group works as intended.
 func TestNewAPIGroup(t *testing.T) {
 	// TODO(mauriciopoppe): this test about the generator isn't working at all
 	// the generator looks like it's working but the steps to make the diffs between the actual and desired
