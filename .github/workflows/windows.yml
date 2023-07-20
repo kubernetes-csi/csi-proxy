@@ -4,7 +4,7 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.20']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -32,7 +32,7 @@ jobs:
   unit_tests:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.20']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -50,7 +50,7 @@ jobs:
   bump_version_test:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.20']
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
