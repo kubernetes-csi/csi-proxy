@@ -4,7 +4,7 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.20']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -32,7 +32,7 @@ jobs:
   unit_tests:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.20']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -50,7 +50,7 @@ jobs:
   bump_version_test:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.20']
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -75,7 +75,7 @@ jobs:
           GOPATH: /home/runner/work/csi-proxy/csi-proxy/go
           GOBIN: /home/runner/work/csi-proxy/csi-proxy/go/bin
         run: |
-          go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
+          go install github.com/golang/protobuf/protoc-gen-go@v1.5.3
           protoc --version
           cd /home/runner/work/csi-proxy/csi-proxy/go/src/github.com/kubernetes-csi/csi-proxy
           API_GROUP=filesystem OLD_API_VERSION=v1beta2 NEW_API_VERSION=v99 scripts/bump-version.sh
