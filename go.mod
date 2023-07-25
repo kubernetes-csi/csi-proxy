@@ -15,12 +15,12 @@ require (
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.25.0
 	k8s.io/gengo v0.0.0-00010101000000-000000000000
-	k8s.io/klog/v2 v2.9.0
+	k8s.io/klog/v2 v2.100.1
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-logr/logr v0.4.0 // indirect
+	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
