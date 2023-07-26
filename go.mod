@@ -3,7 +3,7 @@ module github.com/kubernetes-csi/csi-proxy
 go 1.20
 
 require (
-	github.com/Microsoft/go-winio v0.4.16
+	github.com/Microsoft/go-winio v0.6.1
 	github.com/google/go-cmp v0.5.0
 	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
 	github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000
@@ -23,10 +23,10 @@ require (
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
