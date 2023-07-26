@@ -28,11 +28,11 @@ var (
 // where the enum is the same type as the specified enum.
 //
 // The Go type of the last path step may be an:
-//	• Enum for singular fields, elements of a repeated field,
-//	values of a map field, or standalone Enums
-//	• []Enum for list fields
-//	• map[K]Enum for map fields
-//	• interface{} for a Message map entry value
+//   - Enum for singular fields, elements of a repeated field,
+//     values of a map field, or standalone Enums
+//   - []Enum for list fields
+//   - map[K]Enum for map fields
+//   - interface{} for a Message map entry value
 //
 // This must be used in conjunction with Transform.
 func FilterEnum(enum protoreflect.Enum, opt cmp.Option) cmp.Option {
@@ -44,11 +44,11 @@ func FilterEnum(enum protoreflect.Enum, opt cmp.Option) cmp.Option {
 // message values, where the message is the same type as the specified message.
 //
 // The Go type of the last path step may be an:
-//	• Message for singular fields, elements of a repeated field,
-//	values of a map field, or standalone Messages
-//	• []Message for list fields
-//	• map[K]Message for map fields
-//	• interface{} for a Message map entry value
+//   - Message for singular fields, elements of a repeated field,
+//     values of a map field, or standalone Messages
+//   - []Message for list fields
+//   - map[K]Message for map fields
+//   - interface{} for a Message map entry value
 //
 // This must be used in conjunction with Transform.
 func FilterMessage(message proto.Message, opt cmp.Option) cmp.Option {
@@ -59,10 +59,10 @@ func FilterMessage(message proto.Message, opt cmp.Option) cmp.Option {
 // in the message. It panics if a field of the given name does not exist.
 //
 // The Go type of the last path step may be an:
-//	• T for singular fields
-//	• []T for list fields
-//	• map[K]T for map fields
-//	• interface{} for a Message map entry value
+//   - T for singular fields
+//   - []T for list fields
+//   - map[K]T for map fields
+//   - interface{} for a Message map entry value
 //
 // This must be used in conjunction with Transform.
 func FilterField(message proto.Message, name protoreflect.Name, opt cmp.Option) cmp.Option {
@@ -75,10 +75,10 @@ func FilterField(message proto.Message, name protoreflect.Name, opt cmp.Option) 
 // does not exist.
 //
 // The Go type of the last path step may be an:
-//	• T for singular fields
-//	• []T for list fields
-//	• map[K]T for map fields
-//	• interface{} for a Message map entry value
+//   - T for singular fields
+//   - []T for list fields
+//   - map[K]T for map fields
+//   - interface{} for a Message map entry value
 //
 // This must be used in conjunction with Transform.
 func FilterOneof(message proto.Message, name protoreflect.Name, opt cmp.Option) cmp.Option {
@@ -89,10 +89,10 @@ func FilterOneof(message proto.Message, name protoreflect.Name, opt cmp.Option) 
 // FilterDescriptor ignores the specified descriptor.
 //
 // The following descriptor types may be specified:
-//	• protoreflect.EnumDescriptor
-//	• protoreflect.MessageDescriptor
-//	• protoreflect.FieldDescriptor
-//	• protoreflect.OneofDescriptor
+//   - protoreflect.EnumDescriptor
+//   - protoreflect.MessageDescriptor
+//   - protoreflect.FieldDescriptor
+//   - protoreflect.OneofDescriptor
 //
 // For the behavior of each, see the corresponding filter function.
 // Since this filter accepts a protoreflect.FieldDescriptor, it can be used
@@ -167,14 +167,14 @@ func IgnoreDescriptors(descs ...protoreflect.Descriptor) cmp.Option {
 
 func mustFindFieldDescriptor(md protoreflect.MessageDescriptor, s protoreflect.Name) protoreflect.FieldDescriptor {
 	d := findDescriptor(md, s)
-	if fd, ok := d.(protoreflect.FieldDescriptor); ok && fd.Name() == s {
+	if fd, ok := d.(protoreflect.FieldDescriptor); ok && fd.TextName() == string(s) {
 		return fd
 	}
 
 	var suggestion string
-	switch d.(type) {
+	switch d := d.(type) {
 	case protoreflect.FieldDescriptor:
-		suggestion = fmt.Sprintf("; consider specifying field %q instead", d.Name())
+		suggestion = fmt.Sprintf("; consider specifying field %q instead", d.TextName())
 	case protoreflect.OneofDescriptor:
 		suggestion = fmt.Sprintf("; consider specifying oneof %q with IgnoreOneofs instead", d.Name())
 	}
@@ -188,27 +188,27 @@ func mustFindOneofDescriptor(md protoreflect.MessageDescriptor, s protoreflect.N
 	}
 
 	var suggestion string
-	switch d.(type) {
+	switch d := d.(type) {
 	case protoreflect.OneofDescriptor:
 		suggestion = fmt.Sprintf("; consider specifying oneof %q instead", d.Name())
 	case protoreflect.FieldDescriptor:
-		suggestion = fmt.Sprintf("; consider specifying field %q with IgnoreFields instead", d.Name())
+		suggestion = fmt.Sprintf("; consider specifying field %q with IgnoreFields instead", d.TextName())
 	}
 	panic(fmt.Sprintf("message %q has no oneof %q%s", md.FullName(), s, suggestion))
 }
 
 func findDescriptor(md protoreflect.MessageDescriptor, s protoreflect.Name) protoreflect.Descriptor {
 	// Exact match.
-	if fd := md.Fields().ByName(s); fd != nil {
+	if fd := md.Fields().ByTextName(string(s)); fd != nil {
 		return fd
 	}
-	if od := md.Oneofs().ByName(s); od != nil {
+	if od := md.Oneofs().ByName(s); od != nil && !od.IsSynthetic() {
 		return od
 	}
 
 	// Best-effort match.
 	//
-	// It's a common user mistake to use the CameCased field name as it appears
+	// It's a common user mistake to use the CamelCased field name as it appears
 	// in the generated Go struct. Instead of complaining that it doesn't exist,
 	// suggest the real protobuf name that the user may have desired.
 	normalize := func(s protoreflect.Name) string {
@@ -293,13 +293,18 @@ func (f *nameFilters) filterFields(p cmp.Path) bool {
 }
 
 func (f *nameFilters) filterFieldName(m Message, k string) bool {
-	if md := m.Descriptor(); md != nil {
-		switch {
-		case protoreflect.Name(k).IsValid():
-			return f.names[md.Fields().ByName(protoreflect.Name(k)).FullName()]
-		case strings.HasPrefix(k, "[") && strings.HasSuffix(k, "]"):
-			return f.names[protoreflect.FullName(k[1:len(k)-1])]
-		}
+	if _, ok := m[k]; !ok {
+		return true // treat missing fields as already filtered
+	}
+	var fd protoreflect.FieldDescriptor
+	switch mm := m[messageTypeKey].(messageMeta); {
+	case protoreflect.Name(k).IsValid():
+		fd = mm.md.Fields().ByTextName(k)
+	default:
+		fd = mm.xds[k]
+	}
+	if fd != nil {
+		return f.names[fd.FullName()]
 	}
 	return false
 }
@@ -371,11 +376,11 @@ func isDefaultScalar(m Message, k string) bool {
 	}
 
 	var fd protoreflect.FieldDescriptor
-	switch mt := m[messageTypeKey].(messageType); {
+	switch mm := m[messageTypeKey].(messageMeta); {
 	case protoreflect.Name(k).IsValid():
-		fd = mt.md.Fields().ByName(protoreflect.Name(k))
-	case strings.HasPrefix(k, "[") && strings.HasSuffix(k, "]"):
-		fd = mt.xds[protoreflect.FullName(k[1:len(k)-1])]
+		fd = mm.md.Fields().ByTextName(k)
+	default:
+		fd = mm.xds[k]
 	}
 	if fd == nil || !fd.Default().IsValid() {
 		return false
@@ -508,10 +513,10 @@ func IgnoreUnknown() cmp.Option {
 // Go element type for the repeated field kind.
 //
 // The element type T can be one of the following:
-//	• Go type for a protobuf scalar kind except for an enum
-//	  (i.e., bool, int32, int64, uint32, uint64, float32, float64, string, and []byte)
-//	• E where E is a concrete enum type that implements protoreflect.Enum
-//	• M where M is a concrete message type that implement proto.Message
+//   - Go type for a protobuf scalar kind except for an enum
+//     (i.e., bool, int32, int64, uint32, uint64, float32, float64, string, and []byte)
+//   - E where E is a concrete enum type that implements protoreflect.Enum
+//   - M where M is a concrete message type that implement proto.Message
 //
 // This option only applies to repeated fields within a protobuf message.
 // It does not operate on higher-order Go types that seem like a repeated field.
@@ -603,14 +608,14 @@ func checkTTBFunc(lessFunc interface{}) (reflect.Type, bool) {
 // It panics if the field does not exist or is not a repeated field.
 //
 // The sort ordering is as follows:
-//	• Booleans are sorted where false is sorted before true.
-//	• Integers are sorted in ascending order.
-//	• Floating-point numbers are sorted in ascending order according to
-//	  the total ordering defined by IEEE-754 (section 5.10).
-//	• Strings and bytes are sorted lexicographically in ascending order.
-//	• Enums are sorted in ascending order based on its numeric value.
-//	• Messages are sorted according to some arbitrary ordering
-//	  which is undefined and may change in future implementations.
+//   - Booleans are sorted where false is sorted before true.
+//   - Integers are sorted in ascending order.
+//   - Floating-point numbers are sorted in ascending order according to
+//     the total ordering defined by IEEE-754 (section 5.10).
+//   - Strings and bytes are sorted lexicographically in ascending order.
+//   - Enums are sorted in ascending order based on its numeric value.
+//   - Messages are sorted according to some arbitrary ordering
+//     which is undefined and may change in future implementations.
 //
 // The ordering chosen for repeated messages is unlikely to be aesthetically
 // preferred by humans. Consider using a custom sort function:
