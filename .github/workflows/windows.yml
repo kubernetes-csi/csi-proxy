@@ -13,7 +13,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Build
         run: |
           go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
@@ -41,7 +41,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Windows Unit Tests
         run: |
           make all
@@ -66,7 +66,7 @@ jobs:
           curl -LO $PB_REL/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip
           unzip protoc-3.15.8-linux-x86_64.zip -d $HOME/.local
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
           path: go/src/github.com/kubernetes-csi/csi-proxy
