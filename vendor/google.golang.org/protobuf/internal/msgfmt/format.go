@@ -10,7 +10,6 @@ package msgfmt
 import (
 	"bytes"
 	"fmt"
-	"math"
 	"reflect"
 	"sort"
 	"strconv"
@@ -20,7 +19,7 @@ import (
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/internal/detrand"
 	"google.golang.org/protobuf/internal/genid"
-	"google.golang.org/protobuf/internal/mapsort"
+	"google.golang.org/protobuf/internal/order"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -31,8 +30,15 @@ func Format(m proto.Message) string {
 	return string(appendMessage(nil, m.ProtoReflect()))
 }
 
+// FormatValue returns a formatted string for an arbitrary value.
+func FormatValue(v protoreflect.Value, fd protoreflect.FieldDescriptor) string {
+	return string(appendValue(nil, v, fd))
+}
+
 func appendValue(b []byte, v protoreflect.Value, fd protoreflect.FieldDescriptor) []byte {
 	switch v := v.Interface().(type) {
+	case nil:
+		return append(b, "<invalid>"...)
 	case bool, int32, int64, uint32, uint64, float32, float64:
 		return append(b, fmt.Sprint(v)...)
 	case string:
@@ -40,7 +46,7 @@ func appendValue(b []byte, v protoreflect.Value, fd protoreflect.FieldDescriptor
 	case []byte:
 		return append(b, strconv.Quote(string(v))...)
 	case protoreflect.EnumNumber:
-		return appendEnum(b, v, fd.Enum())
+		return appendEnum(b, v, fd)
 	case protoreflect.Message:
 		return appendMessage(b, v)
 	case protoreflect.List:
@@ -52,9 +58,11 @@ func appendValue(b []byte, v protoreflect.Value, fd protoreflect.FieldDescriptor
 	}
 }
 
-func appendEnum(b []byte, v protoreflect.EnumNumber, ed protoreflect.EnumDescriptor) []byte {
-	if ev := ed.Values().ByNumber(v); ev != nil {
-		return append(b, ev.Name()...)
+func appendEnum(b []byte, v protoreflect.EnumNumber, fd protoreflect.FieldDescriptor) []byte {
+	if fd != nil {
+		if ev := fd.Enum().Values().ByNumber(v); ev != nil {
+			return append(b, ev.Name()...)
+		}
 	}
 	return strconv.AppendInt(b, int64(v), 10)
 }
@@ -64,35 +72,14 @@ func appendMessage(b []byte, m protoreflect.Message) []byte {
 		return b2
 	}
 
-	var fds []protoreflect.FieldDescriptor
-	m.Range(func(fd protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
-		fds = append(fds, fd)
+	b = append(b, '{')
+	order.RangeFields(m, order.IndexNameFieldOrder, func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		b = append(b, fd.TextName()...)
+		b = append(b, ':')
+		b = appendValue(b, v, fd)
+		b = append(b, delim()...)
 		return true
 	})
-	sort.Slice(fds, func(i, j int) bool {
-		fdi, fdj := fds[i], fds[j]
-		switch {
-		case !fdi.IsExtension() && !fdj.IsExtension():
-			return fdi.Index() < fdj.Index()
-		case fdi.IsExtension() && fdj.IsExtension():
-			return fdi.FullName() < fdj.FullName()
-		default:
-			return !fdi.IsExtension() && fdj.IsExtension()
-		}
-	})
-
-	b = append(b, '{')
-	for _, fd := range fds {
-		k := string(fd.Name())
-		if fd.IsExtension() {
-			k = string("[" + fd.FullName() + "]")
-		}
-
-		b = append(b, k...)
-		b = append(b, ':')
-		b = appendValue(b, m.Get(fd), fd)
-		b = append(b, delim()...)
-	}
 	b = appendUnknown(b, m.GetUnknown())
 	b = bytes.TrimRight(b, delim())
 	b = append(b, '}')
@@ -151,12 +138,16 @@ func appendKnownMessage(b []byte, m protoreflect.Message) []byte {
 		return append(b, x+"Z"...)
 
 	case genid.Duration_message_fullname:
+		sign := ""
 		secs := m.Get(fds.ByNumber(genid.Duration_Seconds_field_number)).Int()
 		nanos := m.Get(fds.ByNumber(genid.Duration_Nanos_field_number)).Int()
 		if nanos <= -1e9 || nanos >= 1e9 || (secs > 0 && nanos < 0) || (secs < 0 && nanos > 0) {
 			return nil
 		}
-		x := fmt.Sprintf("%d.%09d", secs, int64(math.Abs(float64(nanos))))
+		if secs < 0 || nanos < 0 {
+			sign, secs, nanos = "-", -1*secs, -1*nanos
+		}
+		x := fmt.Sprintf("%s%d.%09d", sign, secs, nanos)
 		x = strings.TrimSuffix(x, "000")
 		x = strings.TrimSuffix(x, "000")
 		x = strings.TrimSuffix(x, ".000")
@@ -247,19 +238,14 @@ func appendList(b []byte, v protoreflect.List, fd protoreflect.FieldDescriptor) 
 }
 
 func appendMap(b []byte, v protoreflect.Map, fd protoreflect.FieldDescriptor) []byte {
-	var ks []protoreflect.MapKey
-	mapsort.Range(v, fd.MapKey().Kind(), func(k protoreflect.MapKey, _ protoreflect.Value) bool {
-		ks = append(ks, k)
-		return true
-	})
-
 	b = append(b, '{')
-	for _, k := range ks {
+	order.RangeEntries(v, order.GenericKeyOrder, func(k protoreflect.MapKey, v protoreflect.Value) bool {
 		b = appendValue(b, k.Value(), fd.MapKey())
 		b = append(b, ':')
-		b = appendValue(b, v.Get(k), fd.MapValue())
+		b = appendValue(b, v, fd.MapValue())
 		b = append(b, delim()...)
-	}
+		return true
+	})
 	b = bytes.TrimRight(b, delim())
 	b = append(b, '}')
 	return b
