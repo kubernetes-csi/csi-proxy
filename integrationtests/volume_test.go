@@ -148,32 +148,26 @@ func TestVolumeAPIs(t *testing.T) {
 		negativeVolumeTests(t)
 	})
 
-	// TODO: These tests will fail on Github Actions because Hyper-V is disabled
-	// see https://github.com/actions/virtual-environments/pull/2525
+	// Github Actions WS 2022 supports hyper-v
+	// must install management tools manually
 
 	// these tests should be considered frozen from the API point of view
 	t.Run("v1alpha1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		v1alpha1VolumeTests(t)
 	})
 	t.Run("v1beta1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		v1beta1VolumeTests(t)
 	})
 	t.Run("v1beta2Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		v1beta2VolumeTests(t)
 	})
 	t.Run("v1beta3Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		v1beta3VolumeTests(t)
 	})
 	t.Run("v1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		v1VolumeTests(t)
 	})
 	t.Run("v2alpha1Tests", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		v2alpha1VolumeTests(t)
 	})
 }
