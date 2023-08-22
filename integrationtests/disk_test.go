@@ -78,7 +78,6 @@ func TestDisk(t *testing.T) {
 	})
 
 	t.Run("Get/SetDiskState", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 
 		client, err := disk.New(diskapi.New())
 		require.Nil(t, err)
@@ -143,7 +142,6 @@ func TestDisk(t *testing.T) {
 	})
 
 	t.Run("PartitionDisk", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 
 		var err error
 		client, err := disk.New(diskapi.New())

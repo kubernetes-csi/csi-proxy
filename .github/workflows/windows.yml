@@ -17,8 +17,11 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Windows Integration Tests
         run: |
+          # required for running Volume and Disk tests
+          Install-WindowsFeature -name Hyper-V-PowerShell
+
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
-          go test -v -race ./integrationtests/...
+          go test --timeout 20m -v -race ./integrationtests/...
   unit_tests:
     strategy:
       matrix:
