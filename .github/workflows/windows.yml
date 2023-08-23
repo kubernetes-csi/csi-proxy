@@ -20,6 +20,9 @@ jobs:
           go build -v -a -o ./bin/csi-proxy-api-gen.exe ./cmd/csi-proxy-api-gen
       - name: Run Windows Integration Tests
         run: |
+          # required for running Volume and Disk tests
+          Install-WindowsFeature -name Hyper-V-PowerShell
+          
           # start the CSI Proxy before running tests on windows
           Start-Job -Name CSIProxy -ScriptBlock {
             .\bin\csi-proxy.exe
@@ -28,7 +31,7 @@ jobs:
           Write-Output "getting named pipes"
           [System.IO.Directory]::GetFiles("\\.\\pipe\\")
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
-          go test -v -race ./integrationtests/...
+          go test -timeout 20m -v -race ./integrationtests/...
   unit_tests:
     strategy:
       matrix:

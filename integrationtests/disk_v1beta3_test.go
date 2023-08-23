@@ -77,8 +77,6 @@ func v1beta3DiskTests(t *testing.T) {
 	})
 
 	t.Run("Get/SetDiskState", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-
 		client, err := diskv1beta3client.NewClient()
 		require.NoError(t, err)
 
@@ -144,8 +142,6 @@ func v1beta3DiskTests(t *testing.T) {
 	})
 
 	t.Run("PartitionDisk", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
-
 		var err error
 		client, err := diskv1beta3client.NewClient()
 		require.NoError(t, err)
