@@ -21,9 +21,6 @@ func TestVolume(t *testing.T) {
 		negativeVolumeTests(t)
 	})
 
-	// TODO: These tests will fail on Github Actions because Hyper-V is disabled
-	// see https://github.com/actions/virtual-environments/pull/2525
-
 	// these tests should be considered frozen from the API point of view
 	volumeClient, err := volume.New(volumeapi.New())
 	require.Nil(t, err)
@@ -32,12 +29,10 @@ func TestVolume(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("MountVolume", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		mountVolumeTests(diskClient, volumeClient, t)
 	})
 
 	t.Run("GetClosestVolumeFromTargetPath", func(t *testing.T) {
-		skipTestOnCondition(t, isRunningOnGhActions())
 		getClosestVolumeFromTargetPathTests(diskClient, volumeClient, t)
 	})
 }
