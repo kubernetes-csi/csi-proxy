@@ -34,10 +34,11 @@ func (i *workingDirFlags) Set(value string) error {
 }
 
 var (
-	kubeletPath = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
-	windowsSvc  = flag.Bool("windows-service", false, "Configure as a Windows Service")
-	service     *handler
-	workingDirs workingDirFlags
+	kubeletPath    = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
+	windowsSvc     = flag.Bool("windows-service", false, "Configure as a Windows Service")
+	requirePrivacy = flag.Bool("require-privacy", true, "If true, New-SmbGlobalMapping will be called with -RequirePrivacy $true")
+	service        *handler
+	workingDirs    workingDirFlags
 )
 
 type handler struct {
@@ -81,7 +82,8 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}
-	klog.Info("Working directories: %v", fssrv.GetWorkingDirs())
+	klog.Infof("Working directories: %v", fssrv.GetWorkingDirs())
+	klog.Infof("Require privacy: %t", *requirePrivacy)
 
 	volumesrv, err := volumesrv.NewServer(volumeapi.New())
 	if err != nil {
@@ -93,7 +95,7 @@ func apiGroups() ([]srvtypes.APIGroup, error) {
 		return []srvtypes.APIGroup{}, err
 	}
 
-	smbsrv, err := smbsrv.NewServer(smbapi.New(), fssrv)
+	smbsrv, err := smbsrv.NewServer(smbapi.New(*requirePrivacy), fssrv)
 	if err != nil {
 		return []srvtypes.APIGroup{}, err
 	}

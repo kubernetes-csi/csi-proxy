@@ -14,15 +14,19 @@ type API interface {
 	RemoveSmbGlobalMapping(remotePath string) error
 }
 
-type SmbAPI struct{}
+type SmbAPI struct {
+	RequirePrivacy bool
+}
 
 var _ API = &SmbAPI{}
 
-func New() SmbAPI {
-	return SmbAPI{}
+func New(requirePrivacy bool) *SmbAPI {
+	return &SmbAPI{
+		RequirePrivacy: requirePrivacy,
+	}
 }
 
-func (SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
+func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 	cmdLine := `$(Get-SmbGlobalMapping -RemotePath $Env:smbremotepath -ErrorAction Stop).Status `
 	cmdEnv := fmt.Sprintf("smbremotepath=%s", remotePath)
 	out, err := utils.RunPowershellCmd(cmdLine, cmdEnv)
@@ -43,7 +47,7 @@ func (SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 // Since os.Symlink is currently being used in working code paths, no attempt is made in
 // alpha to merge the paths.
 // TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
-func (SmbAPI) NewSmbLink(remotePath, localPath string) error {
+func (*SmbAPI) NewSmbLink(remotePath, localPath string) error {
 
 	if !strings.HasSuffix(remotePath, "\\") {
 		// Golang has issues resolving paths mapped to file shares if they do not end in a trailing \
@@ -60,14 +64,15 @@ func (SmbAPI) NewSmbLink(remotePath, localPath string) error {
 	return nil
 }
 
-func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
+func (api *SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	// use PowerShell Environment Variables to store user input string to prevent command line injection
 	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1
-	cmdLine := fmt.Sprintf(`$PWord = ConvertTo-SecureString -String $Env:smbpassword -AsPlainText -Force` +
-		`;$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Env:smbuser, $PWord` +
-		`;New-SmbGlobalMapping -RemotePath $Env:smbremotepath -Credential $Credential -RequirePrivacy $true`)
+	cmdLine := fmt.Sprintf(`$PWord = ConvertTo-SecureString -String $Env:smbpassword -AsPlainText -Force`+
+		`;$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Env:smbuser, $PWord`+
+		`;New-SmbGlobalMapping -RemotePath $Env:smbremotepath -Credential $Credential -RequirePrivacy $%t`, api.RequirePrivacy)
 
-	if output, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("smbuser=%s", username),
+	if output, err := utils.RunPowershellCmd(cmdLine,
+		fmt.Sprintf("smbuser=%s", username),
 		fmt.Sprintf("smbpassword=%s", password),
 		fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
 		return fmt.Errorf("NewSmbGlobalMapping failed. output: %q, err: %v", string(output), err)
@@ -75,7 +80,7 @@ func (SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
 	return nil
 }
 
-func (SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
+func (*SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
 	cmd := `Remove-SmbGlobalMapping -RemotePath $Env:smbremotepath -Force`
 	if output, err := utils.RunPowershellCmd(cmd, fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
 		return fmt.Errorf("UnmountSmbShare failed. output: %q, err: %v", string(output), err)
