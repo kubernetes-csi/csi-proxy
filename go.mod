@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Microsoft/go-winio v0.6.1
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
