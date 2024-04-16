@@ -268,7 +268,7 @@ func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
 
 // GetVolumeIDFromTargetPath - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out
 func (VolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
-	volumeString, err := getTarget(mount)
+	volumeString, err := getTarget(mount, 0)
 
 	if err != nil {
 		return "", fmt.Errorf("error getting the volume for the mount %s, internal error %v", mount, err)
@@ -277,22 +277,28 @@ func (VolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
 	return volumeString, nil
 }
 
-func getTarget(mount string) (string, error) {
+func getTarget(mount string, retry int) (string, error) {
 	cmd := `(Get-Item -Path $Env:mountpath).Target`
 	cmdEnv := fmt.Sprintf("mountpath=%s", mount)
 	out, err := utils.RunPowershellCmd(cmd, cmdEnv)
 	if err != nil || len(out) == 0 {
 		return "", fmt.Errorf("error getting volume from mount. cmd: %s, output: %s, error: %v", cmd, string(out), err)
 	}
+	if retry >= 256 {
+		return "", fmt.Errorf("maximum recursion reached, cmd: %s, output: %s, :retry %d", cmd, string(out), retry)
+	}
+
 	volumeString := strings.TrimSpace(string(out))
+	klog.V(8).Infof("retry: %d, volumeString: %s", retry, volumeString)
+
 	if !strings.HasPrefix(volumeString, "Volume") {
-		return getTarget(volumeString)
+		return getTarget(volumeString, retry+1)
 	}
 
 	return ensureVolumePrefix(volumeString), nil
 }
 
-// GetVolumeIDFromTargetPath returns the volume id of a given target path.
+// GetClosestVolumeIDFromTargetPath returns the volume id of a given target path.
 func (VolumeAPI) GetClosestVolumeIDFromTargetPath(targetPath string) (string, error) {
 	volumeString, err := findClosestVolume(targetPath)
 
