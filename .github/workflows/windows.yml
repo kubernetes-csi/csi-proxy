@@ -4,7 +4,7 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ['1.22']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -15,27 +15,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Build
+        shell: powershell
         run: |
           go build -v -a -o ./bin/csi-proxy.exe ./cmd/csi-proxy
           go build -v -a -o ./bin/csi-proxy-api-gen.exe ./cmd/csi-proxy-api-gen
       - name: Run Windows Integration Tests
+        shell: powershell
         run: |
-          # required for running Volume and Disk tests
+          # This scripts reimplements scripts/run-integration.sh in powershell.
+
+          # Nested virtualization is required for running Volume and Disk tests
           Install-WindowsFeature -name Hyper-V-PowerShell
-          
-          # start the CSI Proxy before running tests on windows
-          Start-Job -Name CSIProxy -ScriptBlock {
-            .\bin\csi-proxy.exe
-          };
-          Start-Sleep -Seconds 30;
-          Write-Output "getting named pipes"
+
+          # copy the binary from the user directory
+          New-Item -ItemType Directory -Path C:\etc\kubernetes\node\bin -Force
+          New-Item -ItemType Directory -Path C:\etc\kubernetes\logs -Force
+          Copy-Item -Path .\bin\csi-proxy.exe -Destination "C:\etc\kubernetes\node\bin\csi-proxy.exe"
+
+          # restart the csiproxy service
+          $flags = "-v=5 -windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
+          sc.exe create csiproxy start= "auto" binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
+          sc.exe failure csiproxy reset= 0 actions= restart/10000
+          sc.exe start csiproxy
+
+          Start-Sleep -Seconds 5;
+
+          Write-Output "Checking the status of csi-proxy"
+          sc.exe query csiproxy
           [System.IO.Directory]::GetFiles("\\.\\pipe\\")
+          Write-Output "Get CSI Proxy logs"
+          Get-Content C:\etc\kubernetes\logs\csi-proxy.log -Tail 20
+
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
           go test -timeout 20m -v -race ./integrationtests/...
   unit_tests:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ['1.22']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -53,7 +69,7 @@ jobs:
   bump_version_test:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ['1.22']
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
