@@ -4,7 +4,7 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ['1.22']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -22,7 +22,7 @@ jobs:
         run: |
           # required for running Volume and Disk tests
           Install-WindowsFeature -name Hyper-V-PowerShell
-          
+
           # start the CSI Proxy before running tests on windows
           Start-Job -Name CSIProxy -ScriptBlock {
             .\bin\csi-proxy.exe
@@ -35,7 +35,7 @@ jobs:
   unit_tests:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ['1.22']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -53,7 +53,7 @@ jobs:
   bump_version_test:
     strategy:
       matrix:
-        go: ['1.20']
+        go: ['1.22']
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:

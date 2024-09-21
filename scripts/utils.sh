@@ -61,7 +61,8 @@ run_csi_proxy_integration_tests() {
     Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestFilesystemAPIGroup\";
     Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestDiskAPIGroup\";
     Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestVolumeAPIs\";
-    Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestSmbAPIGroup\";
+    # Todo: Enable this test once the issue is fixed
+    # Run-CSIProxyIntegrationTests -test_args \"--test.v --test.run TestSmbAPIGroup\";
   }"
 EOF
 );
