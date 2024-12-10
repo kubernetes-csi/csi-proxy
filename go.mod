@@ -1,12 +1,16 @@
 module github.com/kubernetes-csi/csi-proxy
 
-go 1.20
+go 1.22
+
+toolchain go1.23.2
 
 require (
 	github.com/Microsoft/go-winio v0.6.1
+	github.com/go-ole/go-ole v1.3.0
 	github.com/google/go-cmp v0.6.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kubernetes-csi/csi-proxy/client v0.0.0-00010101000000-000000000000
+	github.com/microsoft/wmi v0.23.0
 	github.com/pkg/errors v0.9.1
 	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/pflag v1.0.5

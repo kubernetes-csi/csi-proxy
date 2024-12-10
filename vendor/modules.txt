@@ -11,6 +11,10 @@ github.com/davecgh/go-spew/spew
 # github.com/go-logr/logr v1.2.0
 ## explicit; go 1.16
 github.com/go-logr/logr
+# github.com/go-ole/go-ole v1.3.0
+## explicit; go 1.12
+github.com/go-ole/go-ole
+github.com/go-ole/go-ole/oleutil
 # github.com/golang/protobuf v1.5.3
 ## explicit; go 1.9
 github.com/golang/protobuf/jsonpb
@@ -79,6 +83,18 @@ github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1
+# github.com/microsoft/wmi v0.23.0
+## explicit; go 1.22
+github.com/microsoft/wmi/go/wmi
+github.com/microsoft/wmi/pkg/base/credential
+github.com/microsoft/wmi/pkg/base/host
+github.com/microsoft/wmi/pkg/base/instance
+github.com/microsoft/wmi/pkg/base/query
+github.com/microsoft/wmi/pkg/base/session
+github.com/microsoft/wmi/pkg/errors
+github.com/microsoft/wmi/pkg/wmiinstance
+github.com/microsoft/wmi/server2019/root/cimv2
+github.com/microsoft/wmi/server2019/root/microsoft/windows/storage
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
