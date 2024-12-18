@@ -197,9 +197,9 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 		return fmt.Errorf("error getting the current size of volume (%s) with error (%v)", volumeID, err)
 	}
 
-	//if the partition's size is already the size we want this is a noop, just return
-	if currentSize >= finalSize {
-		klog.V(2).Infof("Attempted to resize volume %s to a lower size, from currentBytes=%d wantedBytes=%d", volumeID, currentSize, finalSize)
+	// only resize if finalSize - currentSize is greater than 100MB
+	if finalSize-currentSize < 100*1024*1024 {
+		klog.V(2).Infof("minimum resize difference(1GB) not met, skipping resize. volumeID=%s currentSize=%d finalSize=%d", volumeID, currentSize, finalSize)
 		return nil
 	}
 
