@@ -136,7 +136,7 @@ func (s *Server) ListDiskIDs(context context.Context, request *internal.ListDisk
 }
 
 func (s *Server) DiskStats(context context.Context, request *internal.DiskStatsRequest, version apiversion.Version) (*internal.DiskStatsResponse, error) {
-	klog.V(2).Infof("Request: DiskStats: diskNumber=%d", request.DiskID)
+	klog.V(2).Infof("Request: DiskStats: diskID=%s", request.DiskID)
 	minimumVersion := apiversion.NewVersionOrPanic("v1beta1")
 	if version.Compare(minimumVersion) < 0 {
 		return nil, fmt.Errorf("DiskStats requires CSI-Proxy API version v1beta1 or greater")
