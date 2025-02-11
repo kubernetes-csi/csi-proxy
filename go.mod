@@ -1,8 +1,6 @@
 module github.com/kubernetes-csi/csi-proxy
 
-go 1.23
-
-godebug winsymlink=0
+go 1.22.0
 
 require (
 	github.com/Microsoft/go-winio v0.6.2
