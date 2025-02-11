@@ -1,8 +1,11 @@
 module github.com/kubernetes-csi/csi-proxy
 
-go 1.23
+// NOTE: This project must be built with go < 1.23
+// `make build` will error if go1.23 or higher is used.
 
-godebug winsymlink=0
+go 1.22.0
+
+toolchain go1.22.3
 
 require (
 	github.com/Microsoft/go-winio v0.6.2
