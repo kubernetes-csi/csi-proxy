@@ -13,6 +13,7 @@ import (
 	disksrv "github.com/kubernetes-csi/csi-proxy/pkg/server/disk"
 	filesystemsrv "github.com/kubernetes-csi/csi-proxy/pkg/server/filesystem"
 	iscsisrv "github.com/kubernetes-csi/csi-proxy/pkg/server/iscsi"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/metrics"
 	smbsrv "github.com/kubernetes-csi/csi-proxy/pkg/server/smb"
 	syssrv "github.com/kubernetes-csi/csi-proxy/pkg/server/system"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
@@ -34,11 +35,12 @@ func (i *workingDirFlags) Set(value string) error {
 }
 
 var (
-	kubeletPath    = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
-	windowsSvc     = flag.Bool("windows-service", false, "Configure as a Windows Service")
-	requirePrivacy = flag.Bool("require-privacy", true, "If true, New-SmbGlobalMapping will be called with -RequirePrivacy $true")
-	service        *handler
-	workingDirs    workingDirFlags
+	kubeletPath     = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
+	windowsSvc      = flag.Bool("windows-service", false, "Configure as a Windows Service")
+	requirePrivacy  = flag.Bool("require-privacy", true, "If true, New-SmbGlobalMapping will be called with -RequirePrivacy $true")
+	metricsBindAddr = flag.String("metrics-bind-address", "", "The address the metric endpoint binds to. Defaults to empty in which case metrics are disabled")
+	service         *handler
+	workingDirs     workingDirFlags
 )
 
 type handler struct {
@@ -68,7 +70,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s := server.NewServer(apiGroups...)
+
+	enableMetrics := *metricsBindAddr != ""
+	if enableMetrics {
+		err := metrics.SetupMetricsServer(*metricsBindAddr)
+		if err != nil {
+			panic(err)
+		}
+	}
+	s := server.NewServer(enableMetrics, apiGroups...)
 
 	if err := s.Start(nil); err != nil {
 		panic(err)

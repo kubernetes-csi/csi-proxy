@@ -7,6 +7,7 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/kubernetes-csi/csi-proxy/client"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/metrics"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -19,18 +20,24 @@ type Server struct {
 	started       bool
 	mutex         *sync.Mutex
 	grpcServers   []*grpc.Server
+	exposeMetrics bool
 }
 
 // NewServer creates a new Server for the given API groups.
-func NewServer(apiGroups ...srvtypes.APIGroup) *Server {
+func NewServer(enableMetrics bool, apiGroups ...srvtypes.APIGroup) *Server {
 	versionedAPIs := make([]*srvtypes.VersionedAPI, 0, len(apiGroups))
 	for _, apiGroup := range apiGroups {
 		versionedAPIs = append(versionedAPIs, apiGroup.VersionedAPIs()...)
 	}
 
+	if enableMetrics {
+		metrics.Register()
+	}
+
 	return &Server{
 		versionedAPIs: versionedAPIs,
 		mutex:         &sync.Mutex{},
+		exposeMetrics: enableMetrics,
 	}
 }
 
@@ -108,7 +115,11 @@ func (s *Server) createAndStartGRPCServers(listeners []net.Listener) chan *versi
 	s.grpcServers = make([]*grpc.Server, len(s.versionedAPIs))
 
 	for i, versionedAPI := range s.versionedAPIs {
-		grpcServer := grpc.NewServer()
+		var opts []grpc.ServerOption
+		if s.exposeMetrics {
+			opts = append(opts, metrics.GRPCServerMetricsOptions()...)
+		}
+		grpcServer := grpc.NewServer(opts...)
 		s.grpcServers[i] = grpcServer
 
 		versionedAPI.Registrant(grpcServer)
