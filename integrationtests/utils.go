@@ -27,7 +27,7 @@ import (
 
 // startServer starts the proxy's GRPC servers, and returns a function to shut them down when done with testing
 func startServer(t *testing.T, apiGroups ...srvtypes.APIGroup) func() {
-	s := server.NewServer(apiGroups...)
+	s := server.NewServer(true, apiGroups...)
 
 	listeningChan := make(chan interface{})
 	go func() {

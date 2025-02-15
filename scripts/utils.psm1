@@ -10,7 +10,7 @@ function Restart-CSIProxy {
   Copy-Item -Path "C:\Users\$env:UserName\csi-proxy.exe" -Destination "C:\etc\kubernetes\node\bin\csi-proxy.exe"
 
   # restart the csiproxy service
-  $flags = "-v=5 -windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false"
+  $flags = "-v=5 -windows-service -log_file=C:\etc\kubernetes\logs\csi-proxy.log -logtostderr=false -metrics-bind-address=localhost:8888"
   sc.exe create csiproxy start= "auto" binPath= "C:\etc\kubernetes\node\bin\csi-proxy.exe $flags"
   sc.exe failure csiproxy reset= 0 actions= restart/10000
   sc.exe start csiproxy
