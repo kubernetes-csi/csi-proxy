@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net/http"
 
 	diskapi "github.com/kubernetes-csi/csi-proxy/pkg/os/disk"
 	filesystemapi "github.com/kubernetes-csi/csi-proxy/pkg/os/filesystem"
@@ -17,6 +18,8 @@ import (
 	syssrv "github.com/kubernetes-csi/csi-proxy/pkg/server/system"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
 	volumesrv "github.com/kubernetes-csi/csi-proxy/pkg/server/volume"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 	"k8s.io/klog/v2"
@@ -34,11 +37,12 @@ func (i *workingDirFlags) Set(value string) error {
 }
 
 var (
-	kubeletPath    = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
-	windowsSvc     = flag.Bool("windows-service", false, "Configure as a Windows Service")
-	requirePrivacy = flag.Bool("require-privacy", true, "If true, New-SmbGlobalMapping will be called with -RequirePrivacy $true")
-	service        *handler
-	workingDirs    workingDirFlags
+	kubeletPath     = flag.String("kubelet-path", `C:\var\lib\kubelet`, "Prefix path of the kubelet directory in the host file system")
+	windowsSvc      = flag.Bool("windows-service", false, "Configure as a Windows Service")
+	requirePrivacy  = flag.Bool("require-privacy", true, "If true, New-SmbGlobalMapping will be called with -RequirePrivacy $true")
+	metricsBindAddr = flag.String("metrics-bind-addr", "localhost:10010", "The address the metric endpoint binds to.")
+	service         *handler
+	workingDirs     workingDirFlags
 )
 
 type handler struct {
@@ -68,7 +72,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s := server.NewServer(apiGroups...)
+
+	reg := prometheus.NewRegistry()
+	go func() error {
+		m := http.NewServeMux()
+		// Create HTTP handler for Prometheus metrics.
+		m.Handle("/metrics", promhttp.HandlerFor(
+			reg,
+			promhttp.HandlerOpts{
+				// Opt into OpenMetrics e.g. to support exemplars.
+				EnableOpenMetrics: true,
+			},
+		))
+
+		return http.ListenAndServe(*metricsBindAddr, m)
+	}()
+	s := server.NewServer(reg, apiGroups...)
 
 	if err := s.Start(nil); err != nil {
 		panic(err)
