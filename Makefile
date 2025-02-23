@@ -12,6 +12,28 @@ BUILD_TOOLS_DIR = $(BUILD_DIR)/tools
 GO_ENV_VARS = GO111MODULE=on GOOS=windows
 CSI_PROXY_API_GEN = $(BUILD_DIR)/csi-proxy-api-gen
 
+# overrides the $(CMDS:%=build-%) rule in release-tools/build.make because this project is not compatible with go >1.23
+# TODO: remove this override as part of https://github.com/kubernetes-csi/csi-proxy/issues/361
+build-csi-proxy: check-go-version-go
+	# Checks that the go version is 1.22 or lower
+	if (( "$$(go version | awk '{print $3}' | sed 's/go//' | cut -d'.' -f2)" > 22 )); then echo "This project requires go 1.22 or lower"; exit 1; fi;
+	mkdir -p bin
+	# os_arch_seen captures all of the $$os-$$arch-$$buildx_platform seen for the current binary
+	# that we want to build, if we've seen an $$os-$$arch-$$buildx_platform before it means that
+	# we don't need to build it again, this is done to avoid building
+	# the windows binary multiple times (see the default value of $$BUILD_PLATFORMS)
+	export os_arch_seen="" && echo '$(BUILD_PLATFORMS)' | tr ';' '\n' | while read -r os arch buildx_platform suffix base_image addon_image; do \
+		os_arch_seen_pre=$${os_arch_seen%%$$os-$$arch-$$buildx_platform*}; \
+		if ! [ $${#os_arch_seen_pre} = $${#os_arch_seen} ]; then \
+			continue; \
+		fi; \
+		if ! (set -x; cd ./$(CMDS_DIR)/$* && CGO_ENABLED=0 GOOS="$$os" GOARCH="$$arch" go build $(GOFLAGS_VENDOR) -a -ldflags '$(FULL_LDFLAGS)' -o "$(abspath ./bin)/$*$$suffix" .); then \
+			echo "Building $* for GOOS=$$os GOARCH=$$arch failed, see error(s) above."; \
+			exit 1; \
+		fi; \
+		os_arch_seen+=";$$os-$$arch-$$buildx_platform"; \
+	done
+
 .PHONY: compile-csi-proxy-api-gen
 compile-csi-proxy-api-gen:
 	GO111MODULE=on go build -o $(CSI_PROXY_API_GEN) ./cmd/csi-proxy-api-gen
