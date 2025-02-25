@@ -1,8 +1,9 @@
 package volume
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetTarget(t *testing.T) {
@@ -10,17 +11,15 @@ func TestGetTarget(t *testing.T) {
 		mountpath      string
 		expectedResult string
 		expectError    bool
-		counter        int
 	}{
 		{
 			"c:\\",
 			"",
 			true,
-			1,
 		},
 	}
 	for _, test := range tests {
-		target, err := getTarget(test.mountpath, test.counter)
+		target, err := getTarget(test.mountpath)
 		if test.expectError {
 			assert.NotNil(t, err, "Expect error during getTarget(%s)", test.mountpath)
 		} else {
