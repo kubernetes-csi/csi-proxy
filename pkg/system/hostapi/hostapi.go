@@ -1,12 +1,12 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"os/exec"
-	"strings"
 
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
+	"github.com/microsoft/wmi/pkg/base/query"
+	"github.com/microsoft/wmi/server2019/root/cimv2"
 )
 
 // Implements the System OS API calls. All code here should be very simple
@@ -23,53 +23,66 @@ type HostAPI interface {
 
 type systemAPI struct{}
 
-// check that systemAPI implements HostAPI
-var _ HostAPI = &systemAPI{}
-
 func New() HostAPI {
 	return systemAPI{}
 }
 
 func (systemAPI) GetBIOSSerialNumber() (string, error) {
-	// Taken from Kubernetes vSphere cloud provider
-	// https://github.com/kubernetes/kubernetes/blob/103e926604de6f79161b78af3e792d0ed282bc06/staging/src/k8s.io/legacy-cloud-providers/vsphere/vsphere_util_windows.go#L28
-	result, err := exec.Command("wmic", "bios", "get", "serialnumber").Output()
+	biosQuery := query.NewWmiQueryWithSelectList("CIM_BIOSElement", []string{"SerialNumber"})
+	instances, err := cim.QueryInstances("", biosQuery)
 	if err != nil {
 		return "", err
 	}
-	lines := strings.FieldsFunc(string(result), func(r rune) bool {
-		switch r {
-		case '\n', '\r':
-			return true
-		default:
-			return false
-		}
-	})
-	if len(lines) != 2 {
-		return "", fmt.Errorf("received unexpected value retrieving host uuid: %q", string(result))
+
+	bios, err := cimv2.NewCIM_BIOSElementEx1(instances[0])
+	if err != nil {
+		return "", fmt.Errorf("failed to get BIOS element: %w", err)
 	}
-	return lines[1], nil
+
+	sn, err := bios.GetPropertySerialNumber()
+	if err != nil {
+		return "", fmt.Errorf("failed to get BIOS serial number property: %w", err)
+	}
+
+	return sn, nil
 }
 
 func (systemAPI) GetService(name string) (*ServiceInfo, error) {
-	script := `Get-Service -Name $env:ServiceName | Select-Object DisplayName, Status, StartType | ` +
-		`ConvertTo-JSON`
-	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
-	out, err := utils.RunPowershellCmd(script, cmdEnv)
-	if err != nil {
-		return nil, fmt.Errorf("error querying service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
-	}
-
-	var serviceInfo ServiceInfo
-	err = json.Unmarshal(out, &serviceInfo)
+	serviceQuery := query.NewWmiQueryWithSelectList("Win32_Service", []string{"DisplayName", "State", "StartMode"}, "Name", name)
+	instances, err := cim.QueryInstances("", serviceQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	return &serviceInfo, nil
+	service, err := cimv2.NewWin32_ServiceEx1(instances[0])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get service %s: %w", name, err)
+	}
+
+	displayName, err := service.GetPropertyDisplayName()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get displayName property of service %s: %w", name, err)
+	}
+
+	state, err := service.GetPropertyState()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get state property of service %s: %w", name, err)
+	}
+
+	startMode, err := service.GetPropertyStartMode()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get startMode property of service %s: %w", name, err)
+	}
+
+	return &ServiceInfo{
+		DisplayName: displayName,
+		StartType:   startMode,
+		Status:      state,
+	}, nil
 }
 
 func (systemAPI) StartService(name string) error {
+	// Note: both StartService and StopService are not implemented by WMI
 	script := `Start-Service -Name $env:ServiceName`
 	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
 	out, err := utils.RunPowershellCmd(script, cmdEnv)

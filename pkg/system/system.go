@@ -29,6 +29,35 @@ type Interface interface {
 	StopService(context.Context, *StopServiceRequest) (*StopServiceResponse, error)
 }
 
+var (
+	startModeMappings = map[string]Startype{
+		"Boot":     START_TYPE_BOOT,
+		"System":   START_TYPE_SYSTEM,
+		"Auto":     START_TYPE_AUTOMATIC,
+		"Manual":   START_TYPE_MANUAL,
+		"Disabled": START_TYPE_DISABLED,
+	}
+
+	statusMappings = map[string]ServiceStatus{
+		"Unknown":          SERVICE_STATUS_UNKNOWN,
+		"Stopped":          SERVICE_STATUS_STOPPED,
+		"Start Pending":    SERVICE_STATUS_START_PENDING,
+		"Stop Pending":     SERVICE_STATUS_STOP_PENDING,
+		"Running":          SERVICE_STATUS_RUNNING,
+		"Continue Pending": SERVICE_STATUS_CONTINUE_PENDING,
+		"Pause Pending":    SERVICE_STATUS_PAUSE_PENDING,
+		"Paused":           SERVICE_STATUS_PAUSED,
+	}
+)
+
+func serviceStartModeToStartType(startMode string) Startype {
+	return startModeMappings[startMode]
+}
+
+func serviceState(status string) ServiceStatus {
+	return statusMappings[status]
+}
+
 // check that System implements Interface
 var _ Interface = &System{}
 
@@ -61,8 +90,8 @@ func (s *System) GetService(context context.Context, request *GetServiceRequest)
 	}
 
 	response.DisplayName = info.DisplayName
-	response.StartType = Startype(info.StartType)
-	response.Status = ServiceStatus(info.Status)
+	response.StartType = serviceStartModeToStartType(info.StartType)
+	response.Status = serviceState(info.Status)
 	return response, nil
 }
 
