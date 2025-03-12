@@ -20,6 +20,10 @@ github.com/davecgh/go-spew/spew
 # github.com/go-logr/logr v1.4.2
 ## explicit; go 1.18
 github.com/go-logr/logr
+# github.com/go-ole/go-ole v1.3.0
+## explicit; go 1.12
+github.com/go-ole/go-ole
+github.com/go-ole/go-ole/oleutil
 # github.com/golang/protobuf v1.5.4
 ## explicit; go 1.17
 github.com/golang/protobuf/proto
@@ -98,6 +102,17 @@ github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1
+# github.com/microsoft/wmi v0.25.1
+## explicit; go 1.22
+github.com/microsoft/wmi/go/wmi
+github.com/microsoft/wmi/pkg/base/credential
+github.com/microsoft/wmi/pkg/base/host
+github.com/microsoft/wmi/pkg/base/instance
+github.com/microsoft/wmi/pkg/base/query
+github.com/microsoft/wmi/pkg/base/session
+github.com/microsoft/wmi/pkg/errors
+github.com/microsoft/wmi/pkg/wmiinstance
+github.com/microsoft/wmi/server2019/root/microsoft/windows/storage
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
