@@ -112,6 +112,7 @@ github.com/microsoft/wmi/pkg/base/query
 github.com/microsoft/wmi/pkg/base/session
 github.com/microsoft/wmi/pkg/errors
 github.com/microsoft/wmi/pkg/wmiinstance
+github.com/microsoft/wmi/server2019/root/cimv2
 github.com/microsoft/wmi/server2019/root/microsoft/windows/storage
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
