@@ -15,8 +15,6 @@ CSI_PROXY_API_GEN = $(BUILD_DIR)/csi-proxy-api-gen
 # overrides the $(CMDS:%=build-%) rule in release-tools/build.make because this project is not compatible with go >1.23
 # TODO: remove this override as part of https://github.com/kubernetes-csi/csi-proxy/issues/361
 build-csi-proxy: check-go-version-go
-	# Checks that the go version is 1.22 or lower
-	if (( "$$(go version | awk '{print $3}' | sed 's/go//' | cut -d'.' -f2)" > 22 )); then echo "This project requires go 1.22 or lower"; exit 1; fi;
 	mkdir -p bin
 	# os_arch_seen captures all of the $$os-$$arch-$$buildx_platform seen for the current binary
 	# that we want to build, if we've seen an $$os-$$arch-$$buildx_platform before it means that

@@ -42,14 +42,14 @@ $ProgressPreference = "SilentlyContinue"
 $targetName = "%s"
 
 # Get local IPv4 (e.g. 10.30.1.15, not 127.0.0.1)
-$address = $(Get-NetIPAddress | Where-Object { $_.InterfaceAlias -eq "Ethernet" -and $_.AddressFamily -eq "IPv4" }).IPAddress
+$address = $(Get-NetIPAddress | Where-Object { $_.InterfaceAlias -eq "%s" -and $_.AddressFamily -eq "IPv4" }).IPAddress
 
 # Create virtual disk in RAM
-New-IscsiVirtualDisk -Path "ramdisk:scratch-${targetName}.vhdx" -Size 100MB | Out-Null
+New-IscsiVirtualDisk -Path "ramdisk:scratch-${targetName}.vhdx" -Size 100MB -ComputerName $env:computername | Out-Null
 
 # Create a target that allows all initiator IQNs and map a disk to the new target
-$target = New-IscsiServerTarget -TargetName $targetName -InitiatorIds @("Iqn:*")
-Add-IscsiVirtualDiskTargetMapping -TargetName $targetName -DevicePath "ramdisk:scratch-${targetName}.vhdx" | Out-Null
+$target = New-IscsiServerTarget -TargetName $targetName -InitiatorIds @("Iqn:*") -ComputerName $env:computername
+Add-IscsiVirtualDiskTargetMapping -TargetName $targetName -DevicePath "ramdisk:scratch-${targetName}.vhdx" -ComputerName $env:computername | Out-Null
 
 $output = @{
   "iqn" = "$($target.TargetIqn)"
@@ -68,7 +68,7 @@ $username = "%s"
 $password = "%s"
 $securestring = ConvertTo-SecureString -String $password -AsPlainText -Force
 $chap = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($username, $securestring)
-Set-IscsiServerTarget -TargetName $targetName -EnableChap $true -Chap $chap
+Set-IscsiServerTarget -TargetName $targetName -EnableChap $true -Chap $chap -ComputerName $env:computername
 `
 
 func setChap(targetName string, username string, password string) error {
@@ -92,7 +92,7 @@ $securestring = ConvertTo-SecureString -String $password -AsPlainText -Force
 
 # Windows initiator does not uses the username for mutual authentication
 $chap = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($username, $securestring)
-Set-IscsiServerTarget -TargetName $targetName -EnableReverseChap $true -ReverseChap $chap
+Set-IscsiServerTarget -TargetName $targetName -EnableReverseChap $true -ReverseChap $chap -ComputerName $env:computername
 `
 
 func setReverseChap(targetName string, password string) error {
@@ -131,8 +131,8 @@ Get-IscsiTarget | Disconnect-IscsiTarget -Confirm:$false
 Get-IscsiTargetPortal | Remove-IscsiTargetPortal -confirm:$false
 
 # Clean target
-Get-IscsiServerTarget | Remove-IscsiServerTarget
-Get-IscsiVirtualDisk | Remove-IscsiVirtualDisk
+Get-IscsiServerTarget -ComputerName $env:computername | Remove-IscsiServerTarget
+Get-IscsiVirtualDisk -ComputerName $env:computername | Remove-IscsiVirtualDisk
 
 # Stop iSCSI initiator
 Get-Service "MsiSCSI" | Stop-Service
@@ -173,7 +173,12 @@ func runPowershellScript(script string) (string, error) {
 }
 
 func setupEnv(targetName string) (*IscsiSetupConfig, error) {
-	script := fmt.Sprintf(IscsiEnvironmentSetupScript, targetName)
+	ethernetName := "Ethernet"
+	if val, ok := os.LookupEnv("ETHERNET_NAME"); ok {
+		ethernetName = val
+	}
+
+	script := fmt.Sprintf(IscsiEnvironmentSetupScript, targetName, ethernetName)
 	out, err := runPowershellScript(script)
 	if err != nil {
 		return nil, fmt.Errorf("failed setting up environment. err=%v", err)
