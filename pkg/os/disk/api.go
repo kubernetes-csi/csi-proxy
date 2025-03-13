@@ -2,16 +2,15 @@ package disk
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
 	"unsafe"
 
+	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	shared "github.com/kubernetes-csi/csi-proxy/pkg/shared/disk"
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/microsoft/wmi/pkg/base/query"
 	"k8s.io/klog/v2"
 )
 
@@ -66,31 +65,27 @@ func New() DiskAPI {
 
 // ListDiskLocations - constructs a map with the disk number as the key and the DiskLocation structure
 // as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
-func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
-	// sample response
-	// [{
-	//    "number":  0,
-	//    "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
-	// }, ...]
-	cmd := fmt.Sprintf("ConvertTo-Json @(Get-Disk | select Number, Location)")
-	out, err := utils.RunPowershellCmd(cmd)
+func (imp DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
+	// "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
+	disks, err := cim.ListDisks([]string{"Number", "Location"})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list disk location. cmd: %q, output: %q, err %v", cmd, string(out), err)
-	}
-
-	var getDisk []map[string]interface{}
-	err = json.Unmarshal(out, &getDisk)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not query disk locations")
 	}
 
 	m := make(map[uint32]shared.DiskLocation)
-	for _, v := range getDisk {
-		str := v["Location"].(string)
-		num := v["Number"].(float64)
+	for _, disk := range disks {
+		num, err := disk.GetProperty("Number")
+		if err != nil {
+			return m, fmt.Errorf("failed to query disk number: %v, %w", disk, err)
+		}
+
+		location, err := disk.GetPropertyLocation()
+		if err != nil {
+			return m, fmt.Errorf("failed to query disk location: %v, %w", disk, err)
+		}
 
 		found := false
-		s := strings.Split(str, ":")
+		s := strings.Split(location, ":")
 		if len(s) >= 5 {
 			var d shared.DiskLocation
 			for _, item := range s {
@@ -112,64 +107,112 @@ func (DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 			}
 
 			if found {
-				m[uint32(num)] = d
+				m[uint32(num.(int32))] = d
 			}
 		}
 	}
+
 	return m, nil
 }
 
-func (DiskAPI) Rescan() error {
-	cmd := "Update-HostStorageCache"
-	out, err := utils.RunPowershellCmd(cmd)
+func (imp DiskAPI) Rescan() error {
+	result, _, err := cim.InvokeCimMethod(cim.WMINamespaceStorage, "MSFT_StorageSetting", "UpdateHostStorageCache", nil)
 	if err != nil {
-		return fmt.Errorf("error updating host storage cache output: %q, err: %v", string(out), err)
+		return fmt.Errorf("error updating host storage cache output. result: %d, err: %v", result, err)
 	}
 	return nil
 }
 
-func (DiskAPI) IsDiskInitialized(diskNumber uint32) (bool, error) {
-	cmd := fmt.Sprintf("Get-Disk -Number %d | Where partitionstyle -eq 'raw'", diskNumber)
-	out, err := utils.RunPowershellCmd(cmd)
+func (imp DiskAPI) IsDiskInitialized(diskNumber uint32) (bool, error) {
+	var partitionStyle int32
+	disk, err := cim.QueryDiskByNumber(diskNumber, []string{"PartitionStyle"})
 	if err != nil {
-		return false, fmt.Errorf("error checking initialized status of disk %d: %v, %v", diskNumber, out, err)
+		return false, fmt.Errorf("error checking initialized status of disk %d. %v", diskNumber, err)
 	}
-	if len(out) == 0 {
-		// disks with raw initialization not detected
-		return true, nil
+
+	retValue, err := disk.GetProperty("PartitionStyle")
+	if err != nil {
+		return false, fmt.Errorf("failed to query partition style of disk %d: %w", diskNumber, err)
 	}
-	return false, nil
+
+	partitionStyle = retValue.(int32)
+	return partitionStyle != cim.PartitionStyleUnknown, nil
 }
 
-func (DiskAPI) InitializeDisk(diskNumber uint32) error {
-	cmd := fmt.Sprintf("Initialize-Disk -Number %d -PartitionStyle GPT", diskNumber)
-	out, err := utils.RunPowershellCmd(cmd)
+func (imp DiskAPI) InitializeDisk(diskNumber uint32) error {
+	disk, err := cim.QueryDiskByNumber(diskNumber, nil)
 	if err != nil {
-		return fmt.Errorf("error initializing disk %d: %v, %v", diskNumber, string(out), err)
+		return fmt.Errorf("failed to initializing disk %d. error: %w", diskNumber, err)
 	}
+
+	result, err := disk.InvokeMethodWithReturn("Initialize", int32(cim.PartitionStyleGPT))
+	if result != 0 || err != nil {
+		return fmt.Errorf("failed to initializing disk %d: result %d, error: %w", diskNumber, result, err)
+	}
+
 	return nil
 }
 
-func (DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
-	cmd := fmt.Sprintf("Get-Partition | Where DiskNumber -eq %d | Where Type -ne Reserved", diskNumber)
-	out, err := utils.RunPowershellCmd(cmd)
-	if err != nil {
-		return false, fmt.Errorf("error checking presence of partitions on disk %d: %v, %v", diskNumber, out, err)
+func (imp DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
+	partitions, err := cim.ListPartitionsWithFilters(nil,
+		query.NewWmiQueryFilter("DiskNumber", strconv.Itoa(int(diskNumber)), query.Equals),
+		query.NewWmiQueryFilter("GptType", cim.GPTPartitionTypeMicrosoftReserved, query.NotEquals))
+	if cim.IgnoreNotFound(err) != nil {
+		return false, fmt.Errorf("error checking presence of partitions on disk %d:, %v", diskNumber, err)
 	}
-	if len(out) > 0 {
-		// disk has partitions in it
-		return true, nil
-	}
-	return false, nil
+
+	return len(partitions) > 0, nil
 }
 
-func (DiskAPI) CreateBasicPartition(diskNumber uint32) error {
-	cmd := fmt.Sprintf("New-Partition -DiskNumber %d -UseMaximumSize", diskNumber)
-	out, err := utils.RunPowershellCmd(cmd)
+func (imp DiskAPI) CreateBasicPartition(diskNumber uint32) error {
+	disk, err := cim.QueryDiskByNumber(diskNumber, nil)
 	if err != nil {
-		return fmt.Errorf("error creating partition on disk %d: %v, %v", diskNumber, out, err)
+		return err
 	}
-	return nil
+
+	result, err := disk.InvokeMethodWithReturn(
+		"CreatePartition",
+		nil,                           // Size
+		true,                          // UseMaximumSize
+		nil,                           // Offset
+		nil,                           // Alignment
+		nil,                           // DriveLetter
+		false,                         // AssignDriveLetter
+		nil,                           // MbrType,
+		cim.GPTPartitionTypeBasicData, // GPT Type
+		false,                         // IsHidden
+		false,                         // IsActive,
+	)
+	// 42002 is returned by driver letter failed to assign after partition
+	if (result != 0 && result != 42002) || err != nil {
+		return fmt.Errorf("error creating partition on disk %d. result: %d, err: %v", diskNumber, result, err)
+	}
+
+	var status string
+	result, err = disk.InvokeMethodWithReturn("Refresh", &status)
+	if result != 0 || err != nil {
+		return fmt.Errorf("error rescan disk (%d). result %d, error: %v", diskNumber, result, err)
+	}
+
+	partitions, err := cim.ListPartitionsWithFilters(nil,
+		query.NewWmiQueryFilter("DiskNumber", strconv.Itoa(int(diskNumber)), query.Equals),
+		query.NewWmiQueryFilter("GptType", cim.GPTPartitionTypeMicrosoftReserved, query.NotEquals))
+	if err != nil {
+		return fmt.Errorf("error query basic partition on disk %d:, %v", diskNumber, err)
+	}
+
+	if len(partitions) == 0 {
+		return fmt.Errorf("failed to create basic partition on disk %d:, %v", diskNumber, err)
+	}
+
+	partition := partitions[0]
+	result, err = partition.InvokeMethodWithReturn("Online", status)
+	if result != 0 || err != nil {
+		return fmt.Errorf("error bring partition %v on disk %d online. result: %d, status %s, err: %v", partition, diskNumber, result, status, err)
+	}
+
+	err = partition.Refresh()
+	return err
 }
 
 func (imp DiskAPI) GetDiskNumberByName(page83ID string) (uint32, error) {
@@ -177,7 +220,7 @@ func (imp DiskAPI) GetDiskNumberByName(page83ID string) (uint32, error) {
 	return diskNumber, err
 }
 
-func (DiskAPI) GetDiskNumber(disk syscall.Handle) (uint32, error) {
+func (imp DiskAPI) GetDiskNumber(disk syscall.Handle) (uint32, error) {
 	var bytes uint32
 	devNum := StorageDeviceNumber{}
 	buflen := uint32(unsafe.Sizeof(devNum.DeviceType)) + uint32(unsafe.Sizeof(devNum.DeviceNumber)) + uint32(unsafe.Sizeof(devNum.PartitionNumber))
@@ -187,7 +230,7 @@ func (DiskAPI) GetDiskNumber(disk syscall.Handle) (uint32, error) {
 	return devNum.DeviceNumber, err
 }
 
-func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
+func (imp DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	query := StoragePropertyQuery{}
 
 	bufferSize := uint32(4 * 1024)
@@ -199,8 +242,7 @@ func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	query.QueryType = PropertyStandardQuery
 	query.PropertyID = StorageDeviceIDProperty
 
-	querySize := uint32(unsafe.Sizeof(query.PropertyID)) + uint32(unsafe.Sizeof(query.QueryType)) + uint32(unsafe.Sizeof(query.Byte))
-	querySize = uint32(unsafe.Sizeof(query))
+	querySize := uint32(unsafe.Sizeof(query))
 	err := syscall.DeviceIoControl(disk, IOCTL_STORAGE_QUERY_PROPERTY, (*byte)(unsafe.Pointer(&query)), querySize, (*byte)(unsafe.Pointer(&buffer[0])), bufferSize, &size, nil)
 	if err != nil {
 		return "", fmt.Errorf("IOCTL_STORAGE_QUERY_PROPERTY failed: %v", err)
@@ -230,21 +272,18 @@ func (DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 }
 
 func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
-	cmd := "ConvertTo-Json @(Get-Disk | Select Path)"
-	out, err := utils.RunPowershellCmd(cmd)
-	if err != nil {
-		return 0, fmt.Errorf("Could not query disk paths")
-	}
-
-	outString := string(out)
-	disks := []Disk{}
-	err = json.Unmarshal([]byte(outString), &disks)
+	disks, err := cim.ListDisks([]string{"Path", "SerialNumber"})
 	if err != nil {
 		return 0, err
 	}
 
-	for i := range disks {
-		diskNumber, diskPage83ID, err := imp.GetDiskNumberAndPage83ID(disks[i].Path)
+	for _, disk := range disks {
+		path, err := disk.GetPropertyPath()
+		if err != nil {
+			return 0, fmt.Errorf("failed to query disk path: %v, %w", disk, err)
+		}
+
+		diskNumber, diskPage83ID, err := imp.GetDiskNumberAndPage83ID(path)
 		if err != nil {
 			return 0, err
 		}
@@ -254,7 +293,7 @@ func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
 		}
 	}
 
-	return 0, fmt.Errorf("Could not find disk with Page83 ID %s", page83ID)
+	return 0, fmt.Errorf("could not find disk with Page83 ID %s", page83ID)
 }
 
 func (imp DiskAPI) GetDiskNumberAndPage83ID(path string) (uint32, string, error) {
@@ -280,89 +319,90 @@ func (imp DiskAPI) GetDiskNumberAndPage83ID(path string) (uint32, string, error)
 // ListDiskIDs - constructs a map with the disk number as the key and the DiskID structure
 // as the value. The DiskID struct has a field for the page83 ID.
 func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
-	// sample response
-	// [
-	// {
-	//     "Path":  "\\\\?\\scsi#disk\u0026ven_google\u0026prod_persistentdisk#4\u002621cb0360\u00260\u0026000100#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
-	//     "SerialNumber":  "                    "
-	// },
-	// {
-	//     "Path":  "\\\\?\\scsi#disk\u0026ven_msft\u0026prod_virtual_disk#2\u00261f4adffe\u00260\u0026000001#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}",
-	//     "SerialNumber":  null
-	// }, ]
-	cmd := "ConvertTo-Json @(Get-Disk | Select Path, SerialNumber)"
-	out, err := utils.RunPowershellCmd(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("Could not query disk paths")
-	}
-
-	outString := string(out)
-	disks := []Disk{}
-	err = json.Unmarshal([]byte(outString), &disks)
+	disks, err := cim.ListDisks([]string{"Path", "SerialNumber"})
 	if err != nil {
 		return nil, err
 	}
 
 	m := make(map[uint32]shared.DiskIDs)
-
-	for i := range disks {
-		diskNumber, page83, err := imp.GetDiskNumberAndPage83ID(disks[i].Path)
+	for _, disk := range disks {
+		path, err := disk.GetPropertyPath()
 		if err != nil {
-			return nil, err
+			return m, fmt.Errorf("failed to query disk path: %v, %w", disk, err)
+		}
+
+		sn, err := disk.GetPropertySerialNumber()
+		if err != nil {
+			return m, fmt.Errorf("failed to query disk serial number: %v, %w", disk, err)
+		}
+
+		diskNumber, page83, err := imp.GetDiskNumberAndPage83ID(path)
+		if err != nil {
+			return m, err
 		}
 
 		m[diskNumber] = shared.DiskIDs{
 			Page83:       page83,
-			SerialNumber: disks[i].SerialNumber,
+			SerialNumber: sn,
 		}
 	}
-
 	return m, nil
 }
 
 func (imp DiskAPI) GetDiskStats(diskNumber uint32) (int64, error) {
-	cmd := fmt.Sprintf("(Get-Disk -Number %d).Size", diskNumber)
-	out, err := utils.RunPowershellCmd(cmd)
-	if err != nil || len(out) == 0 {
-		return -1, fmt.Errorf("error getting size of disk. cmd: %s, output: %s, error: %v", cmd, string(out), err)
-	}
-
-	reg, err := regexp.Compile("[^0-9]+")
+	// TODO: change to uint64 as it does not make sense to use int64 for size
+	var size int64
+	disk, err := cim.QueryDiskByNumber(diskNumber, []string{"Size"})
 	if err != nil {
-		return -1, fmt.Errorf("error compiling regex. err: %v", err)
+		return -1, err
 	}
-	diskSizeOutput := reg.ReplaceAllString(string(out), "")
 
-	diskSize, err := strconv.ParseInt(diskSizeOutput, 10, 64)
-
+	sz, err := disk.GetProperty("Size")
 	if err != nil {
-		return -1, fmt.Errorf("error parsing size of disk. cmd: %s, output: %s, error: %v", cmd, diskSizeOutput, err)
+		return -1, fmt.Errorf("failed to query size of disk %d. %v", diskNumber, err)
 	}
 
-	return diskSize, nil
+	size, err = strconv.ParseInt(sz.(string), 10, 64)
+	return size, err
 }
 
 func (imp DiskAPI) SetDiskState(diskNumber uint32, isOnline bool) error {
-	cmd := fmt.Sprintf("(Get-Disk -Number %d) | Set-Disk -IsOffline $%t", diskNumber, !isOnline)
-	out, err := utils.RunPowershellCmd(cmd)
+	disk, err := cim.QueryDiskByNumber(diskNumber, []string{"IsOffline"})
 	if err != nil {
-		return fmt.Errorf("error setting disk attach state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+		return err
+	}
+
+	offline, err := disk.GetPropertyIsOffline()
+	if err != nil {
+		return fmt.Errorf("error setting disk %d attach state. error: %v", diskNumber, err)
+	}
+
+	if isOnline == !offline {
+		return nil
+	}
+
+	method := "Offline"
+	if isOnline {
+		method = "Online"
+	}
+
+	result, err := disk.InvokeMethodWithReturn(method)
+	if result != 0 || err != nil {
+		return fmt.Errorf("setting disk %d attach state %s: result %d, error: %w", diskNumber, method, result, err)
 	}
 
 	return nil
 }
 
 func (imp DiskAPI) GetDiskState(diskNumber uint32) (bool, error) {
-	cmd := fmt.Sprintf("(Get-Disk -Number %d) | Select-Object -ExpandProperty IsOffline", diskNumber)
-	out, err := utils.RunPowershellCmd(cmd)
+	disk, err := cim.QueryDiskByNumber(diskNumber, []string{"IsOffline"})
 	if err != nil {
-		return false, fmt.Errorf("error getting disk state. cmd: %s, output: %s, error: %v", cmd, string(out), err)
+		return false, err
 	}
 
-	sout := strings.TrimSpace(string(out))
-	isOffline, err := strconv.ParseBool(sout)
+	isOffline, err := disk.GetPropertyIsOffline()
 	if err != nil {
-		return false, fmt.Errorf("error parsing disk state. output: %s, error: %v", sout, err)
+		return false, fmt.Errorf("error parsing disk %d state. error: %v", diskNumber, err)
 	}
 
 	return !isOffline, nil
