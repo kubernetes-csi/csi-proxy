@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/sys/windows"
 	"k8s.io/klog/v2"
 )
@@ -75,4 +75,39 @@ func IsPathSymlink(path string) (bool, error) {
 	// for windows NTFS, check if the path is symlink instead of directory.
 	isSymlink := fi.Mode()&os.ModeSymlink != 0 || fi.Mode()&os.ModeIrregular != 0
 	return isSymlink, nil
+}
+
+func CreateSymlink(link, target string, isDir bool) error {
+	linkPtr, err := windows.UTF16PtrFromString(link)
+	if err != nil {
+		return err
+	}
+	targetPtr, err := windows.UTF16PtrFromString(target)
+	if err != nil {
+		return err
+	}
+
+	var flags uint32
+	if isDir {
+		flags = windows.SYMBOLIC_LINK_FLAG_DIRECTORY
+	}
+
+	err = windows.CreateSymbolicLink(
+		linkPtr,
+		targetPtr,
+		flags,
+	)
+	return err
+}
+
+// PathExists checks whether the given `path` exists.
+func PathExists(path string) (bool, error) {
+	_, err := os.Lstat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
