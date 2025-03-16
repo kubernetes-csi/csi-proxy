@@ -22,7 +22,11 @@ jobs:
           Install-WindowsFeature -name Hyper-V-PowerShell
 
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
-          go test --timeout 20m -v ./integrationtests/...
+          # Note: checkptr is enabled by default with `-race` specified.
+          # Since Windows COM interop is called in integration tests and
+          # dereferencing pointer allocated by COM is not safe for Go,
+          # checkptr needs to be disabled for these tests to pass.
+          go test --timeout 20m -v -race -gcflags=all=-d=checkptr=0 ./integrationtests/...
   unit_tests:
     strategy:
       matrix:
