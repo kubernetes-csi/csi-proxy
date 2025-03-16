@@ -44,11 +44,11 @@ const (
 	SERVICE_STATUS_PAUSED
 )
 
-type Startype uint32
+type StartType uint32
 
 // https://docs.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-changeserviceconfiga
 const (
-	START_TYPE_BOOT Startype = iota
+	START_TYPE_BOOT StartType = iota
 	START_TYPE_SYSTEM
 	START_TYPE_AUTOMATIC
 	START_TYPE_MANUAL
@@ -67,7 +67,7 @@ type GetServiceResponse struct {
 	// Service start type
 	// Used to control whether a service will start on boot, and if so on which
 	// boot phase
-	StartType Startype
+	StartType StartType
 
 	// Service status, e.g. stopped, running, paused
 	Status ServiceStatus

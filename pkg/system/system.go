@@ -7,6 +7,40 @@ import (
 	"k8s.io/klog/v2"
 )
 
+const (
+	serviceStateRunning = "Running"
+	serviceStateStopped = "Stopped"
+)
+
+var (
+	startModeMappings = map[string]StartType{
+		"Boot":     START_TYPE_BOOT,
+		"System":   START_TYPE_SYSTEM,
+		"Auto":     START_TYPE_AUTOMATIC,
+		"Manual":   START_TYPE_MANUAL,
+		"Disabled": START_TYPE_DISABLED,
+	}
+
+	stateMappings = map[string]ServiceStatus{
+		"Unknown":           SERVICE_STATUS_UNKNOWN,
+		serviceStateStopped: SERVICE_STATUS_STOPPED,
+		"Start Pending":     SERVICE_STATUS_START_PENDING,
+		"Stop Pending":      SERVICE_STATUS_STOP_PENDING,
+		serviceStateRunning: SERVICE_STATUS_RUNNING,
+		"Continue Pending":  SERVICE_STATUS_CONTINUE_PENDING,
+		"Pause Pending":     SERVICE_STATUS_PAUSE_PENDING,
+		"Paused":            SERVICE_STATUS_PAUSED,
+	}
+)
+
+func serviceStartModeToStartType(startMode string) StartType {
+	return StartType(startModeMappings[startMode])
+}
+
+func serviceState(status string) ServiceStatus {
+	return ServiceStatus(stateMappings[status])
+}
+
 type System struct {
 	hostAPI systemapi.HostAPI
 }
@@ -61,8 +95,8 @@ func (s *System) GetService(context context.Context, request *GetServiceRequest)
 	}
 
 	response.DisplayName = info.DisplayName
-	response.StartType = Startype(info.StartType)
-	response.Status = ServiceStatus(info.Status)
+	response.StartType = serviceStartModeToStartType(info.StartType)
+	response.Status = serviceState(info.Status)
 	return response, nil
 }
 
