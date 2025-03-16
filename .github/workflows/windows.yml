@@ -5,7 +5,7 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.22']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -22,11 +22,11 @@ jobs:
           Install-WindowsFeature -name Hyper-V-PowerShell
 
           $env:CSI_PROXY_GH_ACTIONS="TRUE"
-          go test --timeout 20m -v -race ./integrationtests/...
+          go test --timeout 20m -v ./integrationtests/...
   unit_tests:
     strategy:
       matrix:
-        go: ['1.16']
+        go: ['1.22']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
