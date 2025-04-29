@@ -204,8 +204,9 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 		var status string
 		result, err := part.InvokeMethodWithReturn("GetSupportedSize", &sizeMin, &sizeMax, &status)
 		if result != 0 || err != nil {
-			return fmt.Errorf("error getting sizemin, sizemax from volume (%s). result: %d, error: %v", volumeID, result, err)
+			return fmt.Errorf("error getting sizeMin, sizeMax from volume(%s). result: %d, status: %s, error: %v", volumeID, result, status, err)
 		}
+		klog.V(5).Infof("got sizeMin(%v) sizeMax(%v) from volume(%s), status: %s", sizeMin, sizeMax, volumeID, status)
 
 		finalSizeStr := sizeMax.ToString()
 		finalSize, err = strconv.ParseInt(finalSizeStr, 10, 64)
