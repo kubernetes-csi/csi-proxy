@@ -16,12 +16,12 @@ Refer to [WMI start page](https://learn.microsoft.com/en-us/windows/win32/wmisdk
 
 The purpose of WMI is to define a proprietary set of environment-independent specifications that enable sharing management information between management apps.
 
-CSI-proxy makes WMI queries using `microsoft/wmi` library. Refer to for the call graph.
+CSI-proxy makes WMI queries using `microsoft/wmi` library. Refer to for the call graph below.
 
 <a name="microsoft-wmi-library"></a>
 ## microsoft/wmi library
 
-[WMI based implementation](./WMI.png)
+![WMI based implementation](./WMI.png)
 
 `microsoft/wmi` library leverages the traditional COM interfaces (`IDispatch`) to call the WMI.
 
