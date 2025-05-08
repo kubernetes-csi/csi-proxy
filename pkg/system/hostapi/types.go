@@ -5,8 +5,8 @@ type ServiceInfo struct {
 	DisplayName string `json:"DisplayName"`
 
 	// Service start type
-	StartType uint32 `json:"StartType"`
+	StartType string `json:"StartType"`
 
 	// Service status
-	Status uint32 `json:"Status"`
+	Status string `json:"Status"`
 }
