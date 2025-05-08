@@ -1,11 +1,10 @@
 package system
 
 import (
-	"encoding/json"
 	"fmt"
-	"os/exec"
-	"strings"
 
+	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
+	"github.com/kubernetes-csi/csi-proxy/pkg/server/system/impl"
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 )
 
@@ -25,6 +24,35 @@ type ServiceInfo struct {
 	Status uint32 `json:"Status"`
 }
 
+var (
+	startModeMappings = map[string]uint32{
+		"Boot":     impl.START_TYPE_BOOT,
+		"System":   impl.START_TYPE_SYSTEM,
+		"Auto":     impl.START_TYPE_AUTOMATIC,
+		"Manual":   impl.START_TYPE_MANUAL,
+		"Disabled": impl.START_TYPE_DISABLED,
+	}
+
+	statusMappings = map[string]uint32{
+		"Unknown":          impl.SERVICE_STATUS_UNKNOWN,
+		"Stopped":          impl.SERVICE_STATUS_STOPPED,
+		"Start Pending":    impl.SERVICE_STATUS_START_PENDING,
+		"Stop Pending":     impl.SERVICE_STATUS_STOP_PENDING,
+		"Running":          impl.SERVICE_STATUS_RUNNING,
+		"Continue Pending": impl.SERVICE_STATUS_CONTINUE_PENDING,
+		"Pause Pending":    impl.SERVICE_STATUS_PAUSE_PENDING,
+		"Paused":           impl.SERVICE_STATUS_PAUSED,
+	}
+)
+
+func serviceStartModeToStartType(startMode string) uint32 {
+	return startModeMappings[startMode]
+}
+
+func serviceState(status string) uint32 {
+	return statusMappings[status]
+}
+
 type APIImplementor struct{}
 
 func New() APIImplementor {
@@ -32,45 +60,49 @@ func New() APIImplementor {
 }
 
 func (APIImplementor) GetBIOSSerialNumber() (string, error) {
-	// Taken from Kubernetes vSphere cloud provider
-	// https://github.com/kubernetes/kubernetes/blob/103e926604de6f79161b78af3e792d0ed282bc06/staging/src/k8s.io/legacy-cloud-providers/vsphere/vsphere_util_windows.go#L28
-	result, err := exec.Command("wmic", "bios", "get", "serialnumber").Output()
+	bios, err := cim.QueryBIOSElement([]string{"SerialNumber"})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get BIOS element: %w", err)
 	}
-	lines := strings.FieldsFunc(string(result), func(r rune) bool {
-		switch r {
-		case '\n', '\r':
-			return true
-		default:
-			return false
-		}
-	})
-	if len(lines) != 2 {
-		return "", fmt.Errorf("received unexpected value retrieving host uuid: %q", string(result))
+
+	sn, err := bios.GetPropertySerialNumber()
+	if err != nil {
+		return "", fmt.Errorf("failed to get BIOS serial number property: %w", err)
 	}
-	return lines[1], nil
+
+	return sn, nil
 }
 
 func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
-	script := `Get-Service -Name $env:ServiceName | Select-Object DisplayName, Status, StartType | ` +
-		`ConvertTo-JSON`
-	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
-	out, err := utils.RunPowershellCmd(script, cmdEnv)
+	service, err := cim.QueryServiceByName(name, []string{"DisplayName", "State", "StartMode"})
 	if err != nil {
-		return nil, fmt.Errorf("error querying service name=%s. cmd: %s, output: %s, error: %v", name, script, string(out), err)
+		return nil, fmt.Errorf("failed to get service %s: %w", name, err)
 	}
 
-	var serviceInfo ServiceInfo
-	err = json.Unmarshal(out, &serviceInfo)
+	displayName, err := service.GetPropertyDisplayName()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get displayName property of service %s: %w", name, err)
 	}
 
-	return &serviceInfo, nil
+	state, err := service.GetPropertyState()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get state property of service %s: %w", name, err)
+	}
+
+	startMode, err := service.GetPropertyStartMode()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get startMode property of service %s: %w", name, err)
+	}
+
+	return &ServiceInfo{
+		DisplayName: displayName,
+		StartType:   serviceStartModeToStartType(startMode),
+		Status:      serviceState(state),
+	}, nil
 }
 
 func (APIImplementor) StartService(name string) error {
+	// Note: both StartService and StopService are not implemented by WMI
 	script := `Start-Service -Name $env:ServiceName`
 	cmdEnv := fmt.Sprintf("ServiceName=%s", name)
 	out, err := utils.RunPowershellCmd(script, cmdEnv)
