@@ -2,15 +2,39 @@
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/go-logr/logr v0.4.0
+## explicit; go 1.14
 github.com/go-logr/logr
-# github.com/pmezard/go-difflib v1.0.0
-github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.5.1
+# github.com/go-ole/go-ole v1.3.0
+## explicit; go 1.12
+github.com/go-ole/go-ole
+github.com/go-ole/go-ole/oleutil
+# github.com/microsoft/wmi v0.25.1
+## explicit; go 1.22
+github.com/microsoft/wmi/go/wmi
+github.com/microsoft/wmi/pkg/base/credential
+github.com/microsoft/wmi/pkg/base/host
+github.com/microsoft/wmi/pkg/base/instance
+github.com/microsoft/wmi/pkg/base/query
+github.com/microsoft/wmi/pkg/base/session
+github.com/microsoft/wmi/pkg/errors
+github.com/microsoft/wmi/pkg/wmiinstance
+github.com/microsoft/wmi/server2019/root/microsoft/windows/storage
+# github.com/pkg/errors v0.9.1
 ## explicit
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/stretchr/testify v1.7.0
+## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# gopkg.in/yaml.v2 v2.2.2
-gopkg.in/yaml.v2
-# k8s.io/klog/v2 v2.9.0
+# golang.org/x/sys v0.25.0
+## explicit; go 1.18
+golang.org/x/sys/windows
+# gopkg.in/yaml.v3 v3.0.0
 ## explicit
+gopkg.in/yaml.v3
+# k8s.io/klog/v2 v2.9.0
+## explicit; go 1.13
 k8s.io/klog/v2
