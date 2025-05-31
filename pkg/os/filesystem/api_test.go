@@ -3,6 +3,7 @@ package filesystem
 import (
 	"testing"
 
+	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +26,7 @@ func TestPathValid(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, err := pathValid(test.remotepath)
+		result, err := utils.IsPathValid(test.remotepath)
 		assert.Equal(t, result, test.expectedResult, "Expect result not equal with pathValid(%s) return: %q, expected: %q, error: %v",
 			test.remotepath, result, test.expectedResult, err)
 		if test.expectError {
