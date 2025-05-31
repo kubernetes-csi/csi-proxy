@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/microsoft/wmi/pkg/base/query"
-	cim "github.com/microsoft/wmi/pkg/wmiinstance"
 	"github.com/microsoft/wmi/server2019/root/microsoft/windows/storage"
 )
 
@@ -103,242 +102,136 @@ func NewISCSITargetPortal(targetPortalAddress string,
 	return QueryISCSITargetPortal(targetPortalAddress, targetPortalPortNumber, nil)
 }
 
-var (
-	// Indexes iSCSI targets by their Object ID specified in node address
-	mappingISCSITargetIndexer = mappingObjectRefIndexer("iSCSITarget", "MSFT_iSCSITarget", "NodeAddress")
-	// Indexes iSCSI target portals by their Object ID specified in portal address
-	mappingISCSITargetPortalIndexer = mappingObjectRefIndexer("iSCSITargetPortal", "MSFT_iSCSITargetPortal", "TargetPortalAddress")
-	// Indexes iSCSI connections by their Object ID specified in connection identifier
-	mappingISCSIConnectionIndexer = mappingObjectRefIndexer("iSCSIConnection", "MSFT_iSCSIConnection", "ConnectionIdentifier")
-	// Indexes iSCSI sessions by their Object ID specified in session identifier
-	mappingISCSISessionIndexer = mappingObjectRefIndexer("iSCSISession", "MSFT_iSCSISession", "SessionIdentifier")
-
-	// Indexes iSCSI targets by their node address
-	iscsiTargetIndexer = stringPropertyIndexer("NodeAddress")
-	// Indexes iSCSI targets by their target portal address
-	iscsiTargetPortalIndexer = stringPropertyIndexer("TargetPortalAddress")
-	// Indexes iSCSI connections by their connection identifier
-	iscsiConnectionIndexer = stringPropertyIndexer("ConnectionIdentifier")
-	// Indexes iSCSI sessions by their session identifier
-	iscsiSessionIndexer = stringPropertyIndexer("SessionIdentifier")
-)
-
-// ListISCSITargetToISCSITargetPortalMapping builds a mapping between iSCSI target and iSCSI target portal with iSCSI target as the key.
+// ListISCSITargetsByTargetPortal retrieves all iSCSI targets from the specified iSCSI target portal
+// using MSFT_iSCSITargetToiSCSITargetPortal association.
 //
-// The equivalent WMI query is:
+// WMI association MSFT_iSCSITargetToiSCSITargetPortal:
 //
-//		SELECT [selectors] FROM MSFT_iSCSITargetToiSCSITargetPortal
-//
-//	  iSCSITarget                                                                  | iSCSITargetPortal
-//	  -----------                                                                  | -----------------
-//	  MSFT_iSCSITarget (NodeAddress = "iqn.1991-05.com.microsoft:win-8e2evaq9q...) | MSFT_iSCSITargetPortal (TargetPortalAdd...
-//
-// Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargettoiscsitargetportal
-// for the WMI class definition.
-func ListISCSITargetToISCSITargetPortalMapping() (map[string]string, error) {
-	return ListWMIInstanceMappings(WMINamespaceStorage, "MSFT_iSCSITargetToiSCSITargetPortal", nil, mappingISCSITargetIndexer, mappingISCSITargetPortalIndexer)
-}
-
-// ListISCSIConnectionToISCSITargetMapping builds a mapping between iSCSI connection and iSCSI target with iSCSI connection as the key.
-//
-// The equivalent WMI query is:
-//
-//			SELECT [selectors] FROM MSFT_iSCSITargetToiSCSIConnection
-//
-//	   iSCSIConnection                                                     | iSCSITarget
-//	   ---------------                                                     | -----------
-//	   MSFT_iSCSIConnection (ConnectionIdentifier = "ffffac0cacbff010-15") | MSFT_iSCSITarget (NodeAddress = "iqn.1991-05.com...
-//
-// Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargettoiscsitargetportal
-// for the WMI class definition.
-func ListISCSIConnectionToISCSITargetMapping() (map[string]string, error) {
-	return ListWMIInstanceMappings(WMINamespaceStorage, "MSFT_iSCSITargetToiSCSIConnection", nil, mappingISCSIConnectionIndexer, mappingISCSITargetIndexer)
-}
-
-// ListISCSISessionToISCSITargetMapping builds a mapping between iSCSI session and iSCSI target with iSCSI session as the key.
-//
-// The equivalent WMI query is:
-//
-//			SELECT [selectors] FROM MSFT_iSCSITargetToiSCSISession
-//
-//	   iSCSISession                                                                | iSCSITarget
-//	   ------------                                                                | -----------
-//	   MSFT_iSCSISession (SessionIdentifier = "ffffac0cacbff010-4000013700000016") | MSFT_iSCSITarget (NodeAddress = "iqn.199...
-//
-// Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargettoiscsisession
-// for the WMI class definition.
-func ListISCSISessionToISCSITargetMapping() (map[string]string, error) {
-	return ListWMIInstanceMappings(WMINamespaceStorage, "MSFT_iSCSITargetToiSCSISession", nil, mappingISCSISessionIndexer, mappingISCSITargetIndexer)
-}
-
-// ListDiskToISCSIConnectionMapping builds a mapping between disk and iSCSI connection with disk Object ID as the key.
-//
-// The equivalent WMI query is:
-//
-//			SELECT [selectors] FROM MSFT_iSCSIConnectionToDisk
-//
-//	   Disk                                                               | iSCSIConnection
-//	   ----                                                               | ---------------
-//	   MSFT_Disk (ObjectId = "{1}\\WIN-8E2EVAQ9QSB\root/Microsoft/Win...) | MSFT_iSCSIConnection (ConnectionIdentifier = "fff...
-//
-// Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsiconnectiontodisk
-// for the WMI class definition.
-func ListDiskToISCSIConnectionMapping() (map[string]string, error) {
-	return ListWMIInstanceMappings(WMINamespaceStorage, "MSFT_iSCSIConnectionToDisk", nil, mappingObjectRefIndexer("Disk", "MSFT_Disk", "ObjectId"), mappingISCSIConnectionIndexer)
-}
-
-// ListISCSITargetsByTargetPortalWithFilters retrieves all iSCSI targets from the specified iSCSI target portal and conditions by query filters.
-//
-// It lists all the iSCSI targets via the following WMI query
-//
-//	SELECT [selectors] FROM MSFT_iSCSITarget
-//
-// Then find all iSCSITarget objects from MSFT_iSCSITargetToiSCSITargetPortal mapping.
+//	iSCSITarget                                                                  | iSCSITargetPortal
+//	-----------                                                                  | -----------------
+//	MSFT_iSCSITarget (NodeAddress = "iqn.1991-05.com.microsoft:win-8e2evaq9q...) | MSFT_iSCSITargetPortal (TargetPortalAdd...
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitarget
 // for the WMI class definition.
-func ListISCSITargetsByTargetPortalWithFilters(targetSelectorList []string, portals []*storage.MSFT_iSCSITargetPortal, filters ...*query.WmiQueryFilter) ([]*storage.MSFT_iSCSITarget, error) {
-	targetQuery := query.NewWmiQueryWithSelectList("MSFT_iSCSITarget", targetSelectorList)
-	targetQuery.Filters = append(targetQuery.Filters, filters...)
-	instances, err := QueryInstances(WMINamespaceStorage, targetQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	var portalInstances []*cim.WmiInstance
-	for _, portal := range portals {
-		portalInstances = append(portalInstances, portal.WmiInstance)
-	}
-
-	targetToTargetPortalMapping, err := ListISCSITargetToISCSITargetPortalMapping()
-	if err != nil {
-		return nil, err
-	}
-
-	targetInstances, err := FindInstancesByMapping(instances, iscsiTargetIndexer, portalInstances, iscsiTargetPortalIndexer, targetToTargetPortalMapping)
-	if err != nil {
-		return nil, err
-	}
-
+func ListISCSITargetsByTargetPortal(portals []*storage.MSFT_iSCSITargetPortal) ([]*storage.MSFT_iSCSITarget, error) {
 	var targets []*storage.MSFT_iSCSITarget
-	for _, instance := range targetInstances {
-		target, err := storage.NewMSFT_iSCSITargetEx1(instance)
+	for _, portal := range portals {
+		collection, err := portal.GetAssociated("MSFT_iSCSITargetToiSCSITargetPortal", "MSFT_iSCSITarget", "iSCSITarget", "iSCSITargetPortal")
 		if err != nil {
-			return nil, fmt.Errorf("failed to query iSCSI target %v. %v", instance, err)
+			return nil, fmt.Errorf("failed to query associated iSCSITarget for %v. error: %v", portal, err)
 		}
 
-		targets = append(targets, target)
+		for _, instance := range collection {
+			target, err := storage.NewMSFT_iSCSITargetEx1(instance)
+			if err != nil {
+				return nil, fmt.Errorf("failed to query iSCSI target %v. error: %v", instance, err)
+			}
+
+			targets = append(targets, target)
+		}
 	}
 
 	return targets, nil
 }
 
 // QueryISCSITarget retrieves the iSCSI target from the specified portal address, portal and node address.
-func QueryISCSITarget(address string, port uint32, nodeAddress string, selectorList []string) (*storage.MSFT_iSCSITarget, error) {
+func QueryISCSITarget(address string, port uint32, nodeAddress string) (*storage.MSFT_iSCSITarget, error) {
 	portal, err := QueryISCSITargetPortal(address, port, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	targets, err := ListISCSITargetsByTargetPortalWithFilters(selectorList, []*storage.MSFT_iSCSITargetPortal{portal},
-		query.NewWmiQueryFilter("NodeAddress", nodeAddress, query.Equals))
+	targets, err := ListISCSITargetsByTargetPortal([]*storage.MSFT_iSCSITargetPortal{portal})
 	if err != nil {
 		return nil, err
 	}
 
-	return targets[0], nil
+	for _, target := range targets {
+		targetNodeAddress, err := target.GetProperty("NodeAddress")
+		if err != nil {
+			return nil, fmt.Errorf("failed to query iSCSI target %v. error: %v", target, err)
+		}
+
+		if targetNodeAddress == nodeAddress {
+			return target, nil
+		}
+	}
+
+	return nil, nil
 }
 
-// QueryISCSISessionByTarget retrieves the iSCSI session from the specified iSCSI target.
+// QueryISCSISessionByTarget retrieves the iSCSI session from the specified iSCSI target
+// using MSFT_iSCSITargetToiSCSISession association.
 //
-// It lists all the iSCSI sessions via the following WMI query
+// WMI association MSFT_iSCSITargetToiSCSISession:
 //
-//	SELECT [selectors] FROM MSFT_iSCSISession
-//
-// Then find all MSFT_iSCSISession objects from MSFT_iSCSITargetToiSCSISession mapping.
+//	iSCSISession                                                                | iSCSITarget
+//	------------                                                                | -----------
+//	MSFT_iSCSISession (SessionIdentifier = "ffffac0cacbff010-4000013700000016") | MSFT_iSCSITarget (NodeAddress = "iqn.199...
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsisession
 // for the WMI class definition.
-func QueryISCSISessionByTarget(target *storage.MSFT_iSCSITarget, selectorList []string) (*storage.MSFT_iSCSISession, error) {
-	sessionQuery := query.NewWmiQueryWithSelectList("MSFT_iSCSISession", selectorList)
-	sessionInstances, err := QueryInstances(WMINamespaceStorage, sessionQuery)
+func QueryISCSISessionByTarget(target *storage.MSFT_iSCSITarget) (*storage.MSFT_iSCSISession, error) {
+	collection, err := target.GetAssociated("MSFT_iSCSITargetToiSCSISession", "MSFT_iSCSISession", "iSCSISession", "iSCSITarget")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query associated iSCSISession for %v. error: %v", target, err)
 	}
 
-	targetToTargetSessionMapping, err := ListISCSISessionToISCSITargetMapping()
-	if err != nil {
-		return nil, err
+	if len(collection) == 0 {
+		return nil, nil
 	}
 
-	filtered, err := FindInstancesByMapping(sessionInstances, iscsiSessionIndexer, []*cim.WmiInstance{target.WmiInstance}, iscsiTargetIndexer, targetToTargetSessionMapping)
-	if err != nil {
-		return nil, err
-	}
-
-	session, err := storage.NewMSFT_iSCSISessionEx1(filtered[0])
+	session, err := storage.NewMSFT_iSCSISessionEx1(collection[0])
 	return session, err
 }
 
-// ListDisksByTarget lists all the disks on the specified iSCSI target.
+// ListDisksByTarget find all disks associated with an iSCSITarget.
+// It finds out the iSCSIConnections from MSFT_iSCSITargetToiSCSIConnection association,
+// then locate MSFT_Disk objects from MSFT_iSCSIConnectionToDisk association.
 //
-// It lists all the iSCSI connections via the following WMI query
+// WMI association MSFT_iSCSITargetToiSCSIConnection:
 //
-//	SELECT [selectors] FROM MSFT_iSCSIConnection
+//	iSCSIConnection                                                     | iSCSITarget
+//	---------------                                                     | -----------
+//	MSFT_iSCSIConnection (ConnectionIdentifier = "ffffac0cacbff010-15") | MSFT_iSCSITarget (NodeAddress = "iqn.1991-05.com...
 //
-// Then find all MSFT_iSCSIConnection objects from MSFT_iSCSITargetToiSCSIConnection mapping,
-// locate the MSFT_Disk objects using MSFT_iSCSIConnectionToDisk mapping.
+// WMI association MSFT_iSCSIConnectionToDisk:
+//
+//	Disk                                                               | iSCSIConnection
+//	----                                                               | ---------------
+//	MSFT_Disk (ObjectId = "{1}\\WIN-8E2EVAQ9QSB\root/Microsoft/Win...) | MSFT_iSCSIConnection (ConnectionIdentifier = "fff...
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsiconnection
 // for the WMI class definition.
-func ListDisksByTarget(target *storage.MSFT_iSCSITarget, selectorList []string) ([]*storage.MSFT_Disk, error) {
+func ListDisksByTarget(target *storage.MSFT_iSCSITarget) ([]*storage.MSFT_Disk, error) {
 	// list connections to the given iSCSI target
-	connectionQuery := query.NewWmiQueryWithSelectList("MSFT_iSCSIConnection", selectorList)
-	connectionInstances, err := QueryInstances(WMINamespaceStorage, connectionQuery)
+	collection, err := target.GetAssociated("MSFT_iSCSITargetToiSCSIConnection", "MSFT_iSCSIConnection", "iSCSIConnection", "iSCSITarget")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query associated iSCSISession for %v. error: %v", target, err)
 	}
 
-	connectionToTargetMapping, err := ListISCSIConnectionToISCSITargetMapping()
-	if err != nil {
-		return nil, err
+	if len(collection) == 0 {
+		return nil, nil
 	}
 
-	connectionsToTarget, err := FindInstancesByMapping(connectionInstances, iscsiConnectionIndexer, []*cim.WmiInstance{target.WmiInstance}, iscsiTargetIndexer, connectionToTargetMapping)
-	if err != nil {
-		return nil, err
-	}
-
-	disks, err := ListDisks(selectorList)
-	if err != nil {
-		return nil, err
-	}
-
-	var diskInstances []*cim.WmiInstance
-	for _, disk := range disks {
-		diskInstances = append(diskInstances, disk.WmiInstance)
-	}
-
-	diskToConnectionMapping, err := ListDiskToISCSIConnectionMapping()
-	if err != nil {
-		return nil, err
-	}
-
-	filtered, err := FindInstancesByMapping(diskInstances, objectIDPropertyIndexer, connectionsToTarget, iscsiConnectionIndexer, diskToConnectionMapping)
-	if err != nil {
-		return nil, err
-	}
-
-	var filteredDisks []*storage.MSFT_Disk
-	for _, instance := range filtered {
-		disk, err := storage.NewMSFT_DiskEx1(instance)
+	var result []*storage.MSFT_Disk
+	for _, conn := range collection {
+		instances, err := conn.GetAssociated("MSFT_iSCSIConnectionToDisk", "MSFT_Disk", "Disk", "iSCSIConnection")
 		if err != nil {
-			return nil, fmt.Errorf("failed to query disk %v. error: %v", disk, err)
+			return nil, fmt.Errorf("failed to query associated disk for %v. error: %v", target, err)
 		}
 
-		filteredDisks = append(filteredDisks, disk)
+		for _, instance := range instances {
+			disk, err := storage.NewMSFT_DiskEx1(instance)
+			if err != nil {
+				return nil, fmt.Errorf("failed to query associated disk %v. error: %v", instance, err)
+			}
+
+			result = append(result, disk)
+		}
 	}
-	return filteredDisks, err
+
+	return result, err
 }
 
 // ConnectISCSITarget establishes a connection to an iSCSI target with optional CHAP authentication credential.
