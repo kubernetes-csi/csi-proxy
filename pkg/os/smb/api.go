@@ -6,12 +6,12 @@ import (
 	"syscall"
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
+	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 	"golang.org/x/sys/windows"
 )
 
 const (
 	credentialDelimiter = ":"
-	longPathPrefix      = `\\?\`
 )
 
 type API interface {
@@ -88,14 +88,8 @@ func (*SmbAPI) NewSmbLink(remotePath, localPath string) error {
 		// so add one if needed.
 		remotePath = remotePath + "\\"
 	}
-	longRemotePath := remotePath
-	if !strings.HasPrefix(longRemotePath, longPathPrefix) {
-		longRemotePath = longPathPrefix + longRemotePath
-	}
-	longLocalPath := localPath
-	if !strings.HasPrefix(longLocalPath, longPathPrefix) {
-		longLocalPath = longPathPrefix + longLocalPath
-	}
+	longRemotePath := utils.EnsureLongPath(remotePath)
+	longLocalPath := utils.EnsureLongPath(localPath)
 
 	err := createSymlink(longLocalPath, longRemotePath, true)
 	if err != nil {

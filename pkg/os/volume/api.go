@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-ole/go-ole"
 	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
+	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 	wmierrors "github.com/microsoft/wmi/pkg/errors"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/windows"
@@ -57,8 +58,6 @@ var (
 	// PS C:\disks> (Get-Disk -Number 1 | Get-Partition | Get-Volume).UniqueId
 	// \\?\Volume{452e318a-5cde-421e-9831-b9853c521012}\
 	VolumeRegexp = regexp.MustCompile(`Volume\{[\w-]*\}`)
-	// longPathPrefix is the prefix of Windows long path
-	longPathPrefix = "\\\\?\\"
 
 	notMountedFolder = errors.New("not a mounted folder")
 )
@@ -337,7 +336,7 @@ func getTarget(mount string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	targetPath := longPathPrefix + windows.UTF16PtrToString(&outPathBuffer[0])
+	targetPath := utils.EnsureLongPath(windows.UTF16PtrToString(&outPathBuffer[0]))
 	if !strings.HasSuffix(targetPath, "\\") {
 		targetPath += "\\"
 	}
