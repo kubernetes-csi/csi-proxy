@@ -1,12 +1,12 @@
 package filesystem
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"golang.org/x/sys/windows"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
@@ -50,14 +50,22 @@ func (filesystemAPI) PathExists(path string) (bool, error) {
 }
 
 func pathValid(path string) (bool, error) {
-	cmd := `Test-Path $Env:remotepath`
-	cmdEnv := fmt.Sprintf("remotepath=%s", path)
-	output, err := utils.RunPowershellCmd(cmd, cmdEnv)
+	pathString, err := windows.UTF16PtrFromString(path)
 	if err != nil {
-		return false, fmt.Errorf("returned output: %s, error: %v", string(output), err)
+		return false, fmt.Errorf("invalid path: %w", err)
 	}
 
-	return strings.HasPrefix(strings.ToLower(string(output)), "true"), nil
+	attrs, err := windows.GetFileAttributes(pathString)
+	if err != nil {
+		if errors.Is(err, windows.ERROR_PATH_NOT_FOUND) || errors.Is(err, windows.ERROR_FILE_NOT_FOUND) || errors.Is(err, windows.ERROR_INVALID_NAME) {
+			return false, nil
+		}
+
+		// GetFileAttribute returns user or password incorrect for a disconnected SMB connection after the password is changed
+		return false, fmt.Errorf("failed to get path %s attribute: %w", path, err)
+	}
+
+	return attrs != windows.INVALID_FILE_ATTRIBUTES, nil
 }
 
 // PathValid determines whether all elements of a path exist
