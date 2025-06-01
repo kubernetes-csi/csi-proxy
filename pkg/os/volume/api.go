@@ -2,7 +2,6 @@ package volume
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -291,7 +290,7 @@ func (VolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
 }
 
 func getTarget(mount string) (string, error) {
-	mountedFolder, err := isMountedFolder(mount)
+	mountedFolder, err := utils.IsMountedFolder(mount)
 	if err != nil {
 		return "", err
 	}
@@ -347,15 +346,13 @@ func findClosestVolume(path string) (string, error) {
 	// The number of iterations is 256, which is similar to the number of iterations in filepath-securejoin
 	// https://github.com/cyphar/filepath-securejoin/blob/64536a8a66ae59588c981e2199f1dcf410508e07/join.go#L51
 	for i := 0; i < 256; i += 1 {
-		fi, err := os.Lstat(candidatePath)
+		isSymlink, err := utils.IsPathSymlink(candidatePath)
 		if err != nil {
 			return "", err
 		}
-		// for windows NTFS, check if the path is symlink instead of directory.
-		isSymlink := fi.Mode()&os.ModeSymlink != 0 || fi.Mode()&os.ModeIrregular != 0
 
 		// mounted folder created by SetVolumeMountPoint may still report ModeSymlink == 0
-		mountedFolder, err := isMountedFolder(candidatePath)
+		mountedFolder, err := utils.IsMountedFolder(candidatePath)
 		if err != nil {
 			return "", err
 		}
@@ -390,39 +387,6 @@ func findClosestVolume(path string) (string, error) {
 	}
 
 	return "", fmt.Errorf("failed to find the closest volume for path=%s", path)
-}
-
-// isMountedFolder checks whether the `path` is a mounted folder.
-func isMountedFolder(path string) (bool, error) {
-	// https://learn.microsoft.com/en-us/windows/win32/fileio/determining-whether-a-directory-is-a-volume-mount-point
-	utf16Path, _ := windows.UTF16PtrFromString(path)
-	attrs, err := windows.GetFileAttributes(utf16Path)
-	if err != nil {
-		return false, err
-	}
-
-	if (attrs & windows.FILE_ATTRIBUTE_REPARSE_POINT) == 0 {
-		return false, nil
-	}
-
-	var findData windows.Win32finddata
-	findHandle, err := windows.FindFirstFile(utf16Path, &findData)
-	if err != nil && !errors.Is(err, windows.ERROR_NO_MORE_FILES) {
-		return false, err
-	}
-
-	for err == nil {
-		if findData.Reserved0&windows.IO_REPARSE_TAG_MOUNT_POINT != 0 {
-			return true, nil
-		}
-
-		err = windows.FindNextFile(findHandle, &findData)
-		if err != nil && !errors.Is(err, windows.ERROR_NO_MORE_FILES) {
-			return false, err
-		}
-	}
-
-	return false, nil
 }
 
 // getVolumeForDriveLetter gets a volume from a drive letter (e.g. C:/).

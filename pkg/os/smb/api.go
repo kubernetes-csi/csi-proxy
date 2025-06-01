@@ -3,11 +3,9 @@ package smb
 import (
 	"fmt"
 	"strings"
-	"syscall"
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
-	"golang.org/x/sys/windows"
 )
 
 type API interface {
@@ -27,29 +25,6 @@ func New(requirePrivacy bool) *SmbAPI {
 	return &SmbAPI{
 		RequirePrivacy: requirePrivacy,
 	}
-}
-
-func createSymlink(link, target string, isDir bool) error {
-	linkPtr, err := syscall.UTF16PtrFromString(link)
-	if err != nil {
-		return err
-	}
-	targetPtr, err := syscall.UTF16PtrFromString(target)
-	if err != nil {
-		return err
-	}
-
-	var flags uint32
-	if isDir {
-		flags = windows.SYMBOLIC_LINK_FLAG_DIRECTORY
-	}
-
-	err = windows.CreateSymbolicLink(
-		linkPtr,
-		targetPtr,
-		flags,
-	)
-	return err
 }
 
 func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
@@ -78,7 +53,7 @@ func (*SmbAPI) NewSmbLink(remotePath, localPath string) error {
 	longRemotePath := utils.EnsureLongPath(remotePath)
 	longLocalPath := utils.EnsureLongPath(localPath)
 
-	err := createSymlink(longLocalPath, longRemotePath, true)
+	err := utils.CreateSymlink(longLocalPath, longRemotePath, true)
 	if err != nil {
 		return fmt.Errorf("error linking %s to %s. err: %v", remotePath, localPath, err)
 	}
