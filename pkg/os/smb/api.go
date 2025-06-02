@@ -45,15 +45,21 @@ func escapeUserName(userName string) string {
 }
 
 func createSymlink(link, target string, isDir bool) error {
-	linkPtr, _ := syscall.UTF16PtrFromString(link)
-	targetPtr, _ := syscall.UTF16PtrFromString(target)
+	linkPtr, err := syscall.UTF16PtrFromString(link)
+	if err != nil {
+		return err
+	}
+	targetPtr, err := syscall.UTF16PtrFromString(target)
+	if err != nil {
+		return err
+	}
 
 	var flags uint32
 	if isDir {
 		flags = windows.SYMBOLIC_LINK_FLAG_DIRECTORY
 	}
 
-	err := windows.CreateSymbolicLink(
+	err = windows.CreateSymbolicLink(
 		linkPtr,
 		targetPtr,
 		flags,
