@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"golang.org/x/sys/windows"
@@ -23,14 +22,6 @@ func EnsureLongPath(path string) string {
 		path = LongPathPrefix + path
 	}
 	return path
-}
-
-func RunPowershellCmd(command string, envs ...string) ([]byte, error) {
-	cmd := exec.Command("powershell", "-Mta", "-NoProfile", "-Command", command)
-	cmd.Env = append(os.Environ(), envs...)
-	klog.V(8).Infof("Executing command: %q", cmd.String())
-	out, err := cmd.CombinedOutput()
-	return out, err
 }
 
 func IsPathValid(path string) (bool, error) {
