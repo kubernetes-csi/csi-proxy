@@ -3,8 +3,15 @@ package smb
 import (
 	"fmt"
 	"strings"
+	"syscall"
 
+	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"golang.org/x/sys/windows"
+)
+
+const (
+	credentialDelimiter = ":"
 )
 
 type API interface {
@@ -26,18 +33,52 @@ func New(requirePrivacy bool) *SmbAPI {
 	}
 }
 
-func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
-	cmdLine := `$(Get-SmbGlobalMapping -RemotePath $Env:smbremotepath -ErrorAction Stop).Status `
-	cmdEnv := fmt.Sprintf("smbremotepath=%s", remotePath)
-	out, err := utils.RunPowershellCmd(cmdLine, cmdEnv)
+func remotePathForQuery(remotePath string) string {
+	return strings.ReplaceAll(remotePath, "\\", "\\\\")
+}
+
+func escapeUserName(userName string) string {
+	// refer to https://github.com/PowerShell/PowerShell/blob/9303de597da55963a6e26a8fe164d0b256ca3d4d/src/Microsoft.PowerShell.Commands.Management/cimSupport/cmdletization/cim/cimConverter.cs#L169-L170
+	escaped := strings.ReplaceAll(userName, "\\", "\\\\")
+	escaped = strings.ReplaceAll(escaped, credentialDelimiter, "\\"+credentialDelimiter)
+	return escaped
+}
+
+func createSymlink(link, target string, isDir bool) error {
+	linkPtr, err := syscall.UTF16PtrFromString(link)
 	if err != nil {
-		return false, fmt.Errorf("error checking smb mapping. cmd %s, output: %s, err: %v", remotePath, string(out), err)
+		return err
+	}
+	targetPtr, err := syscall.UTF16PtrFromString(target)
+	if err != nil {
+		return err
 	}
 
-	if len(out) == 0 || !strings.EqualFold(strings.TrimSpace(string(out)), "OK") {
-		return false, nil
+	var flags uint32
+	if isDir {
+		flags = windows.SYMBOLIC_LINK_FLAG_DIRECTORY
 	}
-	return true, nil
+
+	err = windows.CreateSymbolicLink(
+		linkPtr,
+		targetPtr,
+		flags,
+	)
+	return err
+}
+
+func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
+	inst, err := cim.QuerySmbGlobalMappingByRemotePath(remotePathForQuery(remotePath))
+	if err != nil {
+		return false, cim.IgnoreNotFound(err)
+	}
+
+	status, err := inst.GetProperty("Status")
+	if err != nil {
+		return false, err
+	}
+
+	return status.(int32) == cim.SmbMappingStatusOK, nil
 }
 
 // NewSmbLink - creates a directory symbolic link to the remote share.
@@ -48,42 +89,46 @@ func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 // alpha to merge the paths.
 // TODO (for beta release): Merge the link paths - os.Symlink and Powershell link path.
 func (*SmbAPI) NewSmbLink(remotePath, localPath string) error {
-
 	if !strings.HasSuffix(remotePath, "\\") {
 		// Golang has issues resolving paths mapped to file shares if they do not end in a trailing \
 		// so add one if needed.
 		remotePath = remotePath + "\\"
 	}
+	longRemotePath := utils.EnsureLongPath(remotePath)
+	longLocalPath := utils.EnsureLongPath(localPath)
 
-	cmdLine := `New-Item -ItemType SymbolicLink $Env:smblocalPath -Target $Env:smbremotepath`
-	output, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("smbremotepath=%s", remotePath), fmt.Sprintf("smblocalpath=%s", localPath))
+	err := createSymlink(longLocalPath, longRemotePath, true)
 	if err != nil {
-		return fmt.Errorf("error linking %s to %s. output: %s, err: %v", remotePath, localPath, string(output), err)
+		return fmt.Errorf("error linking %s to %s. err: %v", remotePath, localPath, err)
 	}
 
 	return nil
 }
 
 func (api *SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
-	// use PowerShell Environment Variables to store user input string to prevent command line injection
-	// https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-5.1
-	cmdLine := fmt.Sprintf(`$PWord = ConvertTo-SecureString -String $Env:smbpassword -AsPlainText -Force`+
-		`;$Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Env:smbuser, $PWord`+
-		`;New-SmbGlobalMapping -RemotePath $Env:smbremotepath -Credential $Credential -RequirePrivacy $%t`, api.RequirePrivacy)
-
-	if output, err := utils.RunPowershellCmd(cmdLine,
-		fmt.Sprintf("smbuser=%s", username),
-		fmt.Sprintf("smbpassword=%s", password),
-		fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
-		return fmt.Errorf("NewSmbGlobalMapping failed. output: %q, err: %v", string(output), err)
+	params := map[string]interface{}{
+		"RemotePath":     remotePath,
+		"RequirePrivacy": api.RequirePrivacy,
 	}
+	if username != "" {
+		// refer to https://github.com/PowerShell/PowerShell/blob/9303de597da55963a6e26a8fe164d0b256ca3d4d/src/Microsoft.PowerShell.Commands.Management/cimSupport/cmdletization/cim/cimConverter.cs#L166-L178
+		// on how SMB credential is handled in PowerShell
+		params["Credential"] = escapeUserName(username) + credentialDelimiter + password
+	}
+
+	result, _, err := cim.InvokeCimMethod(cim.WMINamespaceSmb, "MSFT_SmbGlobalMapping", "Create", params)
+	if err != nil {
+		return fmt.Errorf("NewSmbGlobalMapping failed. result: %d, err: %v", result, err)
+	}
+
 	return nil
 }
 
 func (*SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
-	cmd := `Remove-SmbGlobalMapping -RemotePath $Env:smbremotepath -Force`
-	if output, err := utils.RunPowershellCmd(cmd, fmt.Sprintf("smbremotepath=%s", remotePath)); err != nil {
-		return fmt.Errorf("UnmountSmbShare failed. output: %q, err: %v", string(output), err)
+	err := cim.RemoveSmbGlobalMappingByRemotePath(remotePathForQuery(remotePath))
+	if err != nil {
+		return fmt.Errorf("error remove smb mapping '%s'. err: %v", remotePath, err)
 	}
+
 	return nil
 }
