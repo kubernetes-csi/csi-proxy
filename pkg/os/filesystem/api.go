@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"golang.org/x/sys/windows"
+	"k8s.io/klog/v2"
 )
 
 // Implements the Filesystem OS API calls. All code here should be very simple
@@ -65,6 +66,7 @@ func pathValid(path string) (bool, error) {
 		return false, fmt.Errorf("failed to get path %s attribute: %w", path, err)
 	}
 
+	klog.V(6).Infof("Path %s attribute: %d", path, attrs)
 	return attrs != windows.INVALID_FILE_ATTRIBUTES, nil
 }
 
