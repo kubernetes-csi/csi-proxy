@@ -6,9 +6,9 @@ import (
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/system/impl"
-	"github.com/microsoft/wmi/pkg/errors"
-	wmiinst "github.com/microsoft/wmi/pkg/wmiinstance"
 	"github.com/microsoft/wmi/server2019/root/cimv2"
+	"github.com/pkg/errors"
+	"k8s.io/klog/v2"
 )
 
 // Implements the System OS API calls. All code here should be very simple
@@ -27,7 +27,8 @@ type ServiceInfo struct {
 	Status uint32 `json:"Status"`
 }
 
-type periodicalCheckFunc func() (bool, error)
+type stateCheckFunc func(ServiceInterface, string) (bool, string, error)
+type stateTransitionFunc func(ServiceInterface) error
 
 const (
 	// startServiceErrorCodeAccepted indicates the request is accepted
@@ -69,8 +70,9 @@ var (
 		"Paused":            impl.SERVICE_STATUS_PAUSED,
 	}
 
-	serviceStateCheckInternal = 500 * time.Millisecond
-	serviceStateCheckTimeout  = 5 * time.Second
+	serviceStateCheckInternal = 200 * time.Millisecond
+	serviceStateCheckTimeout  = 30 * time.Second
+	errTimedOut               = errors.New("Timed out")
 )
 
 func serviceStartModeToStartType(startMode string) uint32 {
@@ -81,10 +83,39 @@ func serviceState(status string) uint32 {
 	return stateMappings[status]
 }
 
-type APIImplementor struct{}
+type ServiceInterface interface {
+	GetPropertyName() (string, error)
+	GetPropertyDisplayName() (string, error)
+	GetPropertyState() (string, error)
+	GetPropertyStartMode() (string, error)
+	GetDependents() ([]ServiceInterface, error)
+	StartService() (result uint32, err error)
+	StopService() (result uint32, err error)
+	Refresh() error
+}
+
+type ServiceManager interface {
+	WaitUntilServiceState(ServiceInterface, stateTransitionFunc, stateCheckFunc, time.Duration, time.Duration) (string, error)
+	GetDependentsForService(string) ([]string, error)
+}
+
+type ServiceFactory interface {
+	GetService(name string) (ServiceInterface, error)
+}
+
+type APIImplementor struct {
+	serviceFactory ServiceFactory
+	serviceManager ServiceManager
+}
 
 func New() APIImplementor {
-	return APIImplementor{}
+	serviceFactory := Win32ServiceFactory{}
+	return APIImplementor{
+		serviceFactory: serviceFactory,
+		serviceManager: ServiceManagerImpl{
+			serviceFactory: serviceFactory,
+		},
+	}
 }
 
 func (APIImplementor) GetBIOSSerialNumber() (string, error) {
@@ -129,181 +160,231 @@ func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 	}, nil
 }
 
-func waitForServiceState(serviceCheck periodicalCheckFunc, interval time.Duration, timeout time.Duration) error {
-	timeoutChan := time.After(timeout)
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-timeoutChan:
-			return errors.Timedout
-		case <-ticker.C:
-			done, err := serviceCheck()
-			if err != nil {
-				return err
-			}
-
-			if done {
-				return nil
-			}
+func (impl APIImplementor) StartService(name string) error {
+	startService := func(service ServiceInterface) error {
+		retVal, err := service.StartService()
+		if err != nil || (retVal != startServiceErrorCodeAccepted && retVal != startServiceErrorCodeAlreadyRunning) {
+			return fmt.Errorf("error starting service name %s. return value: %d, error: %v", name, retVal, err)
 		}
+		return nil
 	}
-}
+	serviceRunningCheck := func(service ServiceInterface, state string) (bool, string, error) {
+		err := service.Refresh()
+		if err != nil {
+			return false, "", err
+		}
 
-func getServiceState(name string) (string, *cimv2.Win32_Service, error) {
-	service, err := cim.QueryServiceByName(name, nil)
-	if err != nil {
-		return "", nil, err
+		newState, err := service.GetPropertyState()
+		if err != nil {
+			return false, state, err
+		}
+
+		klog.V(6).Infof("service (%v) state check: %s => %s", service, state, newState)
+		return state == serviceStateRunning, newState, err
 	}
 
-	state, err := service.GetPropertyState()
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to get state property of service %s: %w", name, err)
-	}
-
-	return state, service, nil
-}
-
-func (APIImplementor) StartService(name string) error {
-	state, service, err := getServiceState(name)
+	service, err := impl.serviceFactory.GetService(name)
 	if err != nil {
 		return err
 	}
 
-	if state != serviceStateRunning {
-		var retVal uint32
-		retVal, err = service.StartService()
-		if err != nil || (retVal != startServiceErrorCodeAccepted && retVal != startServiceErrorCodeAlreadyRunning) {
-			return fmt.Errorf("error starting service name %s. return value: %d, error: %v", name, retVal, err)
-		}
-
-		err = waitForServiceState(func() (bool, error) {
-			state, service, err = getServiceState(name)
-			if err != nil {
-				return false, err
-			}
-
-			return state == serviceStateRunning, nil
-
-		}, serviceStateCheckInternal, serviceStateCheckTimeout)
-		if err != nil {
-			return fmt.Errorf("error waiting service %s become running. error: %v", name, err)
-		}
+	state, err := impl.serviceManager.WaitUntilServiceState(service, startService, serviceRunningCheck, serviceStateCheckInternal, serviceStateCheckTimeout)
+	if err != nil && !errors.Is(err, errTimedOut) {
+		return err
 	}
 
 	if state != serviceStateRunning {
-		return fmt.Errorf("error starting service name %s. current state: %s", name, state)
+		return fmt.Errorf("timed out waiting for service %s to become running", name)
 	}
 
 	return nil
 }
 
-func (APIImplementor) StopService(name string, force bool) error {
-	state, service, err := getServiceState(name)
-	if err != nil {
-		return err
-	}
-
-	if state == serviceStateStopped {
-		return nil
-	}
-
-	stopSingleService := func(name string, service *wmiinst.WmiInstance) (bool, error) {
-		retVal, err := service.InvokeMethodWithReturn("StopService")
+func (impl APIImplementor) stopSingleService(name string) (bool, error) {
+	var dependentRunning bool
+	stopService := func(service ServiceInterface) error {
+		retVal, err := service.StopService()
 		if err != nil || (retVal != stopServiceErrorCodeAccepted && retVal != stopServiceErrorCodeStopPending) {
 			if retVal == stopServiceErrorCodeDependentRunning {
-				return true, fmt.Errorf("error stopping service %s as dependent services are not stopped", name)
+				dependentRunning = true
+				return fmt.Errorf("error stopping service %s as dependent services are not stopped", name)
 			}
-			return false, fmt.Errorf("error stopping service %s. return value: %d, error: %v", name, retVal, err)
+			return fmt.Errorf("error stopping service %s. return value: %d, error: %v", name, retVal, err)
 		}
-
-		var serviceState string
-		err = waitForServiceState(func() (bool, error) {
-			serviceState, _, err = getServiceState(name)
-			if err != nil {
-				return false, err
-			}
-
-			return serviceState == serviceStateStopped, nil
-
-		}, serviceStateCheckInternal, serviceStateCheckTimeout)
+		return nil
+	}
+	serviceStoppedCheck := func(service ServiceInterface, state string) (bool, string, error) {
+		err := service.Refresh()
 		if err != nil {
-			return false, fmt.Errorf("error waiting service %s become stopped. error: %v", name, err)
+			return false, "", err
 		}
 
-		if serviceState != serviceStateStopped {
-			return false, fmt.Errorf("error stopping service name %s. current state: %s", name, serviceState)
+		newState, err := service.GetPropertyState()
+		if err != nil {
+			return false, state, err
 		}
 
-		return false, nil
+		klog.V(6).Infof("service (%v) state check: %s => %s", service, state, newState)
+		return newState == serviceStateStopped, newState, err
 	}
 
-	dependentRunning, err := stopSingleService(name, service.WmiInstance)
-	if !force || err == nil || !dependentRunning {
+	service, err := impl.serviceFactory.GetService(name)
+	if err != nil {
+		return dependentRunning, err
+	}
+
+	state, err := impl.serviceManager.WaitUntilServiceState(service, stopService, serviceStoppedCheck, serviceStateCheckInternal, serviceStateCheckTimeout)
+	if err != nil && !errors.Is(err, errTimedOut) {
+		return dependentRunning, fmt.Errorf("error stopping service name %s. current state: %s", name, state)
+	}
+
+	if state != serviceStateStopped {
+		return dependentRunning, fmt.Errorf("timed out waiting for service %s to stop", name)
+	}
+
+	return dependentRunning, nil
+}
+
+func (impl APIImplementor) StopService(name string, force bool) error {
+	dependentRunning, err := impl.stopSingleService(name)
+	if err == nil || !dependentRunning || !force {
 		return err
 	}
 
-	var serviceNames []string
-	var servicesToCheck wmiinst.WmiInstanceCollection
-	servicesByName := map[string]*wmiinst.WmiInstance{}
+	serviceNames, err := impl.serviceManager.GetDependentsForService(name)
+	if err != nil {
+		return fmt.Errorf("error getting dependent services for service name %s", name)
+	}
 
-	servicesToCheck = append(servicesToCheck, service.WmiInstance)
+	for _, serviceName := range serviceNames {
+		_, err = impl.stopSingleService(serviceName)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type Win32Service struct {
+	*cimv2.Win32_Service
+}
+
+func (s *Win32Service) GetDependents() ([]ServiceInterface, error) {
+	collection, err := s.GetAssociated("Win32_DependentService", "Win32_Service", "Dependent", "Antecedent")
+	if err != nil {
+		return nil, err
+	}
+
+	var result []ServiceInterface
+	for _, coll := range collection {
+		service, err := cimv2.NewWin32_ServiceEx1(coll)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, &Win32Service{
+			service,
+		})
+	}
+	return result, nil
+}
+
+type Win32ServiceFactory struct {
+}
+
+func (impl Win32ServiceFactory) GetService(name string) (ServiceInterface, error) {
+	service, err := cim.QueryServiceByName(name, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Win32Service{Win32_Service: service}, nil
+}
+
+type ServiceManagerImpl struct {
+	serviceFactory ServiceFactory
+}
+
+func (impl ServiceManagerImpl) WaitUntilServiceState(service ServiceInterface, stateTransition stateTransitionFunc, stateCheck stateCheckFunc, interval time.Duration, timeout time.Duration) (string, error) {
+	done, state, err := stateCheck(service, "")
+	if err != nil {
+		return state, err
+	}
+	if done {
+		return state, err
+	}
+
+	// Perform transition if not already in desired state
+	if err := stateTransition(service); err != nil {
+		return state, err
+	}
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	timeoutChan := time.After(timeout)
+
+	for {
+		select {
+		case <-ticker.C:
+			klog.V(6).Infof("Checking service (%v) state...", service)
+			done, state, err = stateCheck(service, state)
+			if err != nil {
+				return state, fmt.Errorf("check failed: %w", err)
+			}
+			if done {
+				klog.V(6).Infof("service (%v) state is %s and transition done.", service, state)
+				return state, nil
+			}
+		case <-timeoutChan:
+			done, state, err = stateCheck(service, state)
+			return state, errTimedOut
+		}
+	}
+}
+
+func (impl ServiceManagerImpl) GetDependentsForService(name string) ([]string, error) {
+	var serviceNames []string
+	var servicesToCheck []ServiceInterface
+	servicesByName := map[string]string{}
+
+	service, err := impl.serviceFactory.GetService(name)
+	if err != nil {
+		return serviceNames, err
+	}
+
+	servicesToCheck = append(servicesToCheck, service)
 	i := 0
 	for i < len(servicesToCheck) {
-		current := servicesToCheck[i]
+		service = servicesToCheck[i]
 		i += 1
 
-		currentNameVal, err := current.GetProperty("Name")
+		serviceName, err := service.GetPropertyName()
 		if err != nil {
-			return err
+			return serviceNames, err
 		}
 
-		currentName := currentNameVal.(string)
-		if _, ok := servicesByName[currentName]; ok {
-			continue
-		}
-
-		currentStateVal, err := current.GetProperty("State")
+		currentState, err := service.GetPropertyState()
 		if err != nil {
-			return err
+			return serviceNames, err
 		}
 
-		currentState := currentStateVal
 		if currentState != serviceStateRunning {
 			continue
 		}
 
-		servicesByName[currentName] = current
-		serviceNames = append(serviceNames, currentName)
+		servicesByName[serviceName] = serviceName
+		// prepend the current service to the front
+		serviceNames = append([]string{serviceName}, serviceNames...)
 
-		dependents, err := current.GetAssociated("Win32_DependentService", "Win32_Service", "Dependent", "Antecedent")
+		dependents, err := service.GetDependents()
 		if err != nil {
-			return err
+			return serviceNames, err
 		}
 
 		servicesToCheck = append(servicesToCheck, dependents...)
 	}
 
-	i = len(serviceNames) - 1
-	for i >= 0 {
-		serviceName := serviceNames[i]
-		i -= 1
-
-		state, service, err := getServiceState(serviceName)
-		if err != nil {
-			return err
-		}
-
-		if state == serviceStateStopped {
-			continue
-		}
-
-		_, err = stopSingleService(serviceName, service.WmiInstance)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return serviceNames, nil
 }
