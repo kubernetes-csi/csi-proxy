@@ -28,17 +28,22 @@ func New(requirePrivacy bool) *SmbAPI {
 }
 
 func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
-	inst, err := cim.QuerySmbGlobalMappingByRemotePath(remotePath)
-	if err != nil {
-		return false, cim.IgnoreNotFound(err)
-	}
+	var isMapped bool
+	err := cim.WithCOMThread(func() error {
+		inst, err := cim.QuerySmbGlobalMappingByRemotePath(remotePath)
+		if err != nil {
+			return err
+		}
 
-	status, err := cim.GetSmbGlobalMappingStatus(inst)
-	if err != nil {
-		return false, err
-	}
+		status, err := cim.GetSmbGlobalMappingStatus(inst)
+		if err != nil {
+			return err
+		}
 
-	return status == cim.SmbMappingStatusOK, nil
+		isMapped = status == cim.SmbMappingStatusOK
+		return nil
+	})
+	return isMapped, cim.IgnoreNotFound(err)
 }
 
 // NewSmbLink - creates a directory symbolic link to the remote share.
@@ -62,19 +67,21 @@ func (*SmbAPI) NewSmbLink(remotePath, localPath string) error {
 }
 
 func (api *SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
-	result, err := cim.NewSmbGlobalMapping(remotePath, username, password, api.RequirePrivacy)
-	if err != nil {
-		return fmt.Errorf("NewSmbGlobalMapping failed. result: %d, err: %v", result, err)
-	}
-
-	return nil
+	return cim.WithCOMThread(func() error {
+		result, err := cim.NewSmbGlobalMapping(remotePath, username, password, api.RequirePrivacy)
+		if err != nil {
+			return fmt.Errorf("NewSmbGlobalMapping failed. result: %d, err: %v", result, err)
+		}
+		return nil
+	})
 }
 
 func (*SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
-	err := cim.RemoveSmbGlobalMappingByRemotePath(remotePath)
-	if err != nil {
-		return fmt.Errorf("error remove smb mapping '%s'. err: %v", remotePath, err)
-	}
-
-	return nil
+	return cim.WithCOMThread(func() error {
+		err := cim.RemoveSmbGlobalMappingByRemotePath(remotePath)
+		if err != nil {
+			return fmt.Errorf("error remove smb mapping '%s'. err: %v", remotePath, err)
+		}
+		return nil
+	})
 }

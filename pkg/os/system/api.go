@@ -107,45 +107,54 @@ func New() APIImplementor {
 }
 
 func (APIImplementor) GetBIOSSerialNumber() (string, error) {
-	bios, err := cim.QueryBIOSElement(cim.BIOSSelectorList)
-	if err != nil {
-		return "", fmt.Errorf("failed to get BIOS element: %w", err)
-	}
+	var sn string
+	err := cim.WithCOMThread(func() error {
+		bios, err := cim.QueryBIOSElement(cim.BIOSSelectorList)
+		if err != nil {
+			return fmt.Errorf("failed to get BIOS element: %w", err)
+		}
 
-	sn, err := cim.GetBIOSSerialNumber(bios)
-	if err != nil {
-		return "", fmt.Errorf("failed to get BIOS serial number property: %w", err)
-	}
+		sn, err = cim.GetBIOSSerialNumber(bios)
+		if err != nil {
+			return fmt.Errorf("failed to get BIOS serial number property: %w", err)
+		}
 
-	return sn, nil
+		return nil
+	})
+	return sn, err
 }
 
 func (impl APIImplementor) GetService(name string) (*ServiceInfo, error) {
-	service, err := impl.serviceFactory.GetService(name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get service %s. error: %w", name, err)
-	}
+	var serviceInfo *ServiceInfo
+	err := cim.WithCOMThread(func() error {
+		service, err := impl.serviceFactory.GetService(name)
+		if err != nil {
+			return fmt.Errorf("failed to get service %s. error: %w", name, err)
+		}
 
-	displayName, err := cim.GetServiceDisplayName(service)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get displayName property of service %s: %w", name, err)
-	}
+		displayName, err := cim.GetServiceDisplayName(service)
+		if err != nil {
+			return fmt.Errorf("failed to get displayName property of service %s: %w", name, err)
+		}
 
-	state, err := cim.GetServiceState(service)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get state property of service %s: %w", name, err)
-	}
+		state, err := cim.GetServiceState(service)
+		if err != nil {
+			return fmt.Errorf("failed to get state property of service %s: %w", name, err)
+		}
 
-	startMode, err := cim.GetServiceStartMode(service)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get startMode property of service %s: %w", name, err)
-	}
+		startMode, err := cim.GetServiceStartMode(service)
+		if err != nil {
+			return fmt.Errorf("failed to get startMode property of service %s: %w", name, err)
+		}
 
-	return &ServiceInfo{
-		DisplayName: displayName,
-		StartType:   serviceStartModeToStartType(startMode),
-		Status:      serviceState(state),
-	}, nil
+		serviceInfo = &ServiceInfo{
+			DisplayName: displayName,
+			StartType:   serviceStartModeToStartType(startMode),
+			Status:      serviceState(state),
+		}
+		return nil
+	})
+	return serviceInfo, err
 }
 
 func (impl APIImplementor) StartService(name string) error {
@@ -171,21 +180,23 @@ func (impl APIImplementor) StartService(name string) error {
 		return state == serviceStateRunning, newState, err
 	}
 
-	service, err := impl.serviceFactory.GetService(name)
-	if err != nil {
-		return fmt.Errorf("failed to get service %s. error: %w", name, err)
-	}
+	return cim.WithCOMThread(func() error {
+		service, err := impl.serviceFactory.GetService(name)
+		if err != nil {
+			return fmt.Errorf("failed to get service %s. error: %w", name, err)
+		}
 
-	state, err := impl.serviceManager.WaitUntilServiceState(service, startService, serviceRunningCheck, serviceStateCheckInternal, serviceStateCheckTimeout)
-	if err != nil && !errors.Is(err, errTimedOut) {
-		return fmt.Errorf("failed to wait for service %s state change. error: %w", name, err)
-	}
+		state, err := impl.serviceManager.WaitUntilServiceState(service, startService, serviceRunningCheck, serviceStateCheckInternal, serviceStateCheckTimeout)
+		if err != nil && !errors.Is(err, errTimedOut) {
+			return fmt.Errorf("failed to wait for service %s state change. error: %w", name, err)
+		}
 
-	if state != serviceStateRunning {
-		return fmt.Errorf("timed out waiting for service %s to become running", name)
-	}
+		if state != serviceStateRunning {
+			return fmt.Errorf("timed out waiting for service %s to become running", name)
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func (impl APIImplementor) stopSingleService(name string) (bool, error) {
@@ -234,27 +245,29 @@ func (impl APIImplementor) stopSingleService(name string) (bool, error) {
 }
 
 func (impl APIImplementor) StopService(name string, force bool) error {
-	dependentRunning, err := impl.stopSingleService(name)
-	if err == nil {
-		return nil
-	}
-	if !dependentRunning || !force {
-		return fmt.Errorf("failed to stop service %s. error: %w", name, err)
-	}
-
-	serviceNames, err := impl.serviceManager.GetDependentsForService(name)
-	if err != nil {
-		return fmt.Errorf("error getting dependent services for service name %s", name)
-	}
-
-	for _, serviceName := range serviceNames {
-		_, err = impl.stopSingleService(serviceName)
-		if err != nil {
+	return cim.WithCOMThread(func() error {
+		dependentRunning, err := impl.stopSingleService(name)
+		if err == nil {
+			return nil
+		}
+		if !dependentRunning || !force {
 			return fmt.Errorf("failed to stop service %s. error: %w", name, err)
 		}
-	}
 
-	return nil
+		serviceNames, err := impl.serviceManager.GetDependentsForService(name)
+		if err != nil {
+			return fmt.Errorf("error getting dependent services for service name %s", name)
+		}
+
+		for _, serviceName := range serviceNames {
+			_, err = impl.stopSingleService(serviceName)
+			if err != nil {
+				return fmt.Errorf("failed to stop service %s. error: %w", name, err)
+			}
+		}
+
+		return nil
+	})
 }
 
 type ServiceManagerImpl struct {
