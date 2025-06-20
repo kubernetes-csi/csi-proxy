@@ -9,7 +9,7 @@ import (
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"github.com/microsoft/wmi/pkg/base/query"
-	"github.com/microsoft/wmi/pkg/errors"
+	wmierrors "github.com/microsoft/wmi/pkg/errors"
 	cim "github.com/microsoft/wmi/pkg/wmiinstance"
 	"k8s.io/klog/v2"
 )
@@ -61,7 +61,7 @@ func QueryFromWMI(namespace string, query *query.WmiQuery, handler InstanceHandl
 	}
 
 	if len(instances) == 0 {
-		return errors.NotFound
+		return wmierrors.NotFound
 	}
 
 	var cont bool
@@ -95,7 +95,7 @@ func executeClassMethodParam(classInst *cim.WmiInstance, method *cim.WmiMethod, 
 
 	iDispatchInstance := classInst.GetIDispatch()
 	if iDispatchInstance == nil {
-		return nil, errors.Wrapf(errors.InvalidInput, "InvalidInstance")
+		return nil, wmierrors.Wrapf(wmierrors.InvalidInput, "InvalidInstance")
 	}
 	rawResult, err := iDispatchInstance.GetProperty("Methods_")
 	if err != nil {
@@ -235,10 +235,15 @@ func InvokeCimMethod(namespace, class, methodName string, inputParameters map[st
 	return int(result.ReturnValue), outputParameters, nil
 }
 
+// IsNotFound returns true if it's a "not found" error.
+func IsNotFound(err error) bool {
+	return wmierrors.IsNotFound(err)
+}
+
 // IgnoreNotFound returns nil if the error is nil or a "not found" error,
 // otherwise returns the original error.
 func IgnoreNotFound(err error) error {
-	if err == nil || errors.IsNotFound(err) {
+	if err == nil || IsNotFound(err) {
 		return nil
 	}
 	return err
