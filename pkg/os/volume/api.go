@@ -297,12 +297,12 @@ func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
 		return 0, err
 	}
 
-	diskNumber, err := part.GetProperty("DiskNumber")
+	diskNumber, err := cim.GetPartitionDiskNumber(part)
 	if err != nil {
 		return 0, fmt.Errorf("error query disk number of volume (%s). error: %v", volumeID, err)
 	}
 
-	return uint32(diskNumber.(int32)), nil
+	return diskNumber, nil
 }
 
 // GetVolumeIDFromTargetPath - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out

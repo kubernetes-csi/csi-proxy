@@ -245,3 +245,29 @@ func GetPartitionDiskNumber(part *storage.MSFT_Partition) (uint32, error) {
 
 	return uint32(diskNumber.(int32)), nil
 }
+
+// SetPartitionState takes a partition online or offline.
+//
+// Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition-online and
+// https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition-offline
+// for the WMI method definition.
+func SetPartitionState(part *storage.MSFT_Partition, online bool) (int, string, error) {
+	method := "Offline"
+	if online {
+		method = "Online"
+	}
+
+	var status string
+	result, err := part.InvokeMethodWithReturn(method, &status)
+	return int(result), status, err
+}
+
+// FilterForPartitionOnDisk creates a WMI query filter to query a disk by its number.
+func FilterForPartitionOnDisk(diskNumber uint32) *query.WmiQueryFilter {
+	return query.NewWmiQueryFilter("DiskNumber", strconv.Itoa(int(diskNumber)), query.Equals)
+}
+
+// FilterForPartitionsOfTypeNormal creates a WMI query filter for all non-reserved partitions.
+func FilterForPartitionsOfTypeNormal() *query.WmiQueryFilter {
+	return query.NewWmiQueryFilter("GptType", GPTPartitionTypeMicrosoftReserved, query.NotEquals)
+}
