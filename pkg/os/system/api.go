@@ -6,7 +6,6 @@ import (
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/system/impl"
-	"github.com/microsoft/wmi/server2019/root/cimv2"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 )
@@ -27,8 +26,8 @@ type ServiceInfo struct {
 	Status uint32 `json:"Status"`
 }
 
-type stateCheckFunc func(ServiceInterface, string) (bool, string, error)
-type stateTransitionFunc func(ServiceInterface) error
+type stateCheckFunc func(cim.ServiceInterface, string) (bool, string, error)
+type stateTransitionFunc func(cim.ServiceInterface) error
 
 const (
 	// startServiceErrorCodeAccepted indicates the request is accepted
@@ -83,24 +82,13 @@ func serviceState(status string) uint32 {
 	return stateMappings[status]
 }
 
-type ServiceInterface interface {
-	GetPropertyName() (string, error)
-	GetPropertyDisplayName() (string, error)
-	GetPropertyState() (string, error)
-	GetPropertyStartMode() (string, error)
-	GetDependents() ([]ServiceInterface, error)
-	StartService() (result uint32, err error)
-	StopService() (result uint32, err error)
-	Refresh() error
-}
-
 type ServiceManager interface {
-	WaitUntilServiceState(ServiceInterface, stateTransitionFunc, stateCheckFunc, time.Duration, time.Duration) (string, error)
+	WaitUntilServiceState(cim.ServiceInterface, stateTransitionFunc, stateCheckFunc, time.Duration, time.Duration) (string, error)
 	GetDependentsForService(string) ([]string, error)
 }
 
 type ServiceFactory interface {
-	GetService(name string) (ServiceInterface, error)
+	GetService(name string) (cim.ServiceInterface, error)
 }
 
 type APIImplementor struct {
@@ -109,7 +97,7 @@ type APIImplementor struct {
 }
 
 func New() APIImplementor {
-	serviceFactory := Win32ServiceFactory{}
+	serviceFactory := cim.Win32ServiceFactory{}
 	return APIImplementor{
 		serviceFactory: serviceFactory,
 		serviceManager: ServiceManagerImpl{
@@ -119,12 +107,12 @@ func New() APIImplementor {
 }
 
 func (APIImplementor) GetBIOSSerialNumber() (string, error) {
-	bios, err := cim.QueryBIOSElement([]string{"SerialNumber"})
+	bios, err := cim.QueryBIOSElement(cim.BIOSSelectorList)
 	if err != nil {
 		return "", fmt.Errorf("failed to get BIOS element: %w", err)
 	}
 
-	sn, err := bios.GetPropertySerialNumber()
+	sn, err := cim.GetBIOSSerialNumber(bios)
 	if err != nil {
 		return "", fmt.Errorf("failed to get BIOS serial number property: %w", err)
 	}
@@ -132,23 +120,23 @@ func (APIImplementor) GetBIOSSerialNumber() (string, error) {
 	return sn, nil
 }
 
-func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
-	service, err := cim.QueryServiceByName(name, []string{"DisplayName", "State", "StartMode"})
+func (impl APIImplementor) GetService(name string) (*ServiceInfo, error) {
+	service, err := impl.serviceFactory.GetService(name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service %s: %w", name, err)
 	}
 
-	displayName, err := service.GetPropertyDisplayName()
+	displayName, err := cim.GetServiceDisplayName(service)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get displayName property of service %s: %w", name, err)
 	}
 
-	state, err := service.GetPropertyState()
+	state, err := cim.GetServiceState(service)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state property of service %s: %w", name, err)
 	}
 
-	startMode, err := service.GetPropertyStartMode()
+	startMode, err := cim.GetServiceStartMode(service)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get startMode property of service %s: %w", name, err)
 	}
@@ -161,20 +149,20 @@ func (APIImplementor) GetService(name string) (*ServiceInfo, error) {
 }
 
 func (impl APIImplementor) StartService(name string) error {
-	startService := func(service ServiceInterface) error {
+	startService := func(service cim.ServiceInterface) error {
 		retVal, err := service.StartService()
 		if err != nil || (retVal != startServiceErrorCodeAccepted && retVal != startServiceErrorCodeAlreadyRunning) {
 			return fmt.Errorf("error starting service name %s. return value: %d, error: %v", name, retVal, err)
 		}
 		return nil
 	}
-	serviceRunningCheck := func(service ServiceInterface, state string) (bool, string, error) {
+	serviceRunningCheck := func(service cim.ServiceInterface, state string) (bool, string, error) {
 		err := service.Refresh()
 		if err != nil {
 			return false, "", err
 		}
 
-		newState, err := service.GetPropertyState()
+		newState, err := cim.GetServiceState(service)
 		if err != nil {
 			return false, state, err
 		}
@@ -202,7 +190,7 @@ func (impl APIImplementor) StartService(name string) error {
 
 func (impl APIImplementor) stopSingleService(name string) (bool, error) {
 	var dependentRunning bool
-	stopService := func(service ServiceInterface) error {
+	stopService := func(service cim.ServiceInterface) error {
 		retVal, err := service.StopService()
 		if err != nil || (retVal != stopServiceErrorCodeAccepted && retVal != stopServiceErrorCodeStopPending) {
 			if retVal == stopServiceErrorCodeDependentRunning {
@@ -213,13 +201,13 @@ func (impl APIImplementor) stopSingleService(name string) (bool, error) {
 		}
 		return nil
 	}
-	serviceStoppedCheck := func(service ServiceInterface, state string) (bool, string, error) {
+	serviceStoppedCheck := func(service cim.ServiceInterface, state string) (bool, string, error) {
 		err := service.Refresh()
 		if err != nil {
 			return false, "", err
 		}
 
-		newState, err := service.GetPropertyState()
+		newState, err := cim.GetServiceState(service)
 		if err != nil {
 			return false, state, err
 		}
@@ -266,47 +254,11 @@ func (impl APIImplementor) StopService(name string, force bool) error {
 	return nil
 }
 
-type Win32Service struct {
-	*cimv2.Win32_Service
-}
-
-func (s *Win32Service) GetDependents() ([]ServiceInterface, error) {
-	collection, err := s.GetAssociated("Win32_DependentService", "Win32_Service", "Dependent", "Antecedent")
-	if err != nil {
-		return nil, err
-	}
-
-	var result []ServiceInterface
-	for _, coll := range collection {
-		service, err := cimv2.NewWin32_ServiceEx1(coll)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, &Win32Service{
-			service,
-		})
-	}
-	return result, nil
-}
-
-type Win32ServiceFactory struct {
-}
-
-func (impl Win32ServiceFactory) GetService(name string) (ServiceInterface, error) {
-	service, err := cim.QueryServiceByName(name, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Win32Service{Win32_Service: service}, nil
-}
-
 type ServiceManagerImpl struct {
 	serviceFactory ServiceFactory
 }
 
-func (impl ServiceManagerImpl) WaitUntilServiceState(service ServiceInterface, stateTransition stateTransitionFunc, stateCheck stateCheckFunc, interval time.Duration, timeout time.Duration) (string, error) {
+func (impl ServiceManagerImpl) WaitUntilServiceState(service cim.ServiceInterface, stateTransition stateTransitionFunc, stateCheck stateCheckFunc, interval time.Duration, timeout time.Duration) (string, error) {
 	done, state, err := stateCheck(service, "")
 	if err != nil {
 		return state, err
@@ -346,7 +298,7 @@ func (impl ServiceManagerImpl) WaitUntilServiceState(service ServiceInterface, s
 
 func (impl ServiceManagerImpl) GetDependentsForService(name string) ([]string, error) {
 	var serviceNames []string
-	var servicesToCheck []ServiceInterface
+	var servicesToCheck []cim.ServiceInterface
 	servicesByName := map[string]string{}
 
 	service, err := impl.serviceFactory.GetService(name)
@@ -360,12 +312,12 @@ func (impl ServiceManagerImpl) GetDependentsForService(name string) ([]string, e
 		service = servicesToCheck[i]
 		i += 1
 
-		serviceName, err := service.GetPropertyName()
+		serviceName, err := cim.GetServiceName(service)
 		if err != nil {
 			return serviceNames, err
 		}
 
-		currentState, err := service.GetPropertyState()
+		currentState, err := cim.GetServiceState(service)
 		if err != nil {
 			return serviceNames, err
 		}
