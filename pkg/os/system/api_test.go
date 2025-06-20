@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +14,7 @@ type MockService struct {
 	DisplayName string
 	State       string
 	StartMode   string
-	Dependents  []ServiceInterface
+	Dependents  []cim.ServiceInterface
 
 	StartResult uint32
 	StopResult  uint32
@@ -37,7 +38,7 @@ func (m *MockService) GetPropertyStartMode() (string, error) {
 	return m.StartMode, m.Err
 }
 
-func (m *MockService) GetDependents() ([]ServiceInterface, error) {
+func (m *MockService) GetDependents() ([]cim.ServiceInterface, error) {
 	return m.Dependents, m.Err
 }
 
@@ -56,11 +57,11 @@ func (m *MockService) Refresh() error {
 }
 
 type MockServiceFactory struct {
-	Services map[string]ServiceInterface
+	Services map[string]cim.ServiceInterface
 	Err      error
 }
 
-func (f *MockServiceFactory) GetService(name string) (ServiceInterface, error) {
+func (f *MockServiceFactory) GetService(name string) (cim.ServiceInterface, error) {
 	svc, ok := f.Services[name]
 	if !ok {
 		return nil, fmt.Errorf("service not found: %s", name)
@@ -73,7 +74,7 @@ func TestWaitUntilServiceState_Success(t *testing.T) {
 
 	stateChanged := false
 
-	stateCheck := func(s ServiceInterface, state string) (bool, string, error) {
+	stateCheck := func(s cim.ServiceInterface, state string) (bool, string, error) {
 		if stateChanged {
 			svc.State = serviceStateRunning
 			return true, svc.State, nil
@@ -81,7 +82,7 @@ func TestWaitUntilServiceState_Success(t *testing.T) {
 		return false, svc.State, nil
 	}
 
-	stateTransition := func(s ServiceInterface) error {
+	stateTransition := func(s cim.ServiceInterface) error {
 		stateChanged = true
 		return nil
 	}
@@ -99,11 +100,11 @@ func TestWaitUntilServiceState_Success(t *testing.T) {
 func TestWaitUntilServiceState_Timeout(t *testing.T) {
 	svc := &MockService{Name: "svc", State: "Stopped"}
 
-	stateCheck := func(s ServiceInterface, state string) (bool, string, error) {
+	stateCheck := func(s cim.ServiceInterface, state string) (bool, string, error) {
 		return false, svc.State, nil
 	}
 
-	stateTransition := func(s ServiceInterface) error {
+	stateTransition := func(s cim.ServiceInterface) error {
 		return nil
 	}
 
@@ -120,11 +121,11 @@ func TestWaitUntilServiceState_Timeout(t *testing.T) {
 func TestWaitUntilServiceState_TransitionFails(t *testing.T) {
 	svc := &MockService{Name: "svc", State: "Stopped"}
 
-	stateCheck := func(s ServiceInterface, state string) (bool, string, error) {
+	stateCheck := func(s cim.ServiceInterface, state string) (bool, string, error) {
 		return false, svc.State, nil
 	}
 
-	stateTransition := func(s ServiceInterface) error {
+	stateTransition := func(s cim.ServiceInterface) error {
 		return fmt.Errorf("transition failed")
 	}
 
@@ -138,11 +139,11 @@ func TestWaitUntilServiceState_TransitionFails(t *testing.T) {
 func TestGetDependentsForService(t *testing.T) {
 	// Construct the dependency tree
 	svcC := &MockService{Name: "C", State: serviceStateRunning}
-	svcB := &MockService{Name: "B", State: serviceStateRunning, Dependents: []ServiceInterface{svcC}}
-	svcA := &MockService{Name: "A", State: serviceStateRunning, Dependents: []ServiceInterface{svcB}}
+	svcB := &MockService{Name: "B", State: serviceStateRunning, Dependents: []cim.ServiceInterface{svcC}}
+	svcA := &MockService{Name: "A", State: serviceStateRunning, Dependents: []cim.ServiceInterface{svcB}}
 
 	factory := &MockServiceFactory{
-		Services: map[string]ServiceInterface{
+		Services: map[string]cim.ServiceInterface{
 			"A": svcA,
 			"B": svcB,
 			"C": svcC,
@@ -171,10 +172,10 @@ func TestGetDependentsForService(t *testing.T) {
 
 func TestGetDependentsForService_SkipsNonRunning(t *testing.T) {
 	svcB := &MockService{Name: "B", State: "Stopped"}
-	svcA := &MockService{Name: "A", State: serviceStateRunning, Dependents: []ServiceInterface{svcB}}
+	svcA := &MockService{Name: "A", State: serviceStateRunning, Dependents: []cim.ServiceInterface{svcB}}
 
 	factory := &MockServiceFactory{
-		Services: map[string]ServiceInterface{
+		Services: map[string]cim.ServiceInterface{
 			"A": svcA,
 			"B": svcB,
 		},
@@ -197,7 +198,7 @@ func TestGetDependentsForService_SkipsNonRunning(t *testing.T) {
 
 func TestGetDependenciesForService_Winmgmt(t *testing.T) {
 	impl := ServiceManagerImpl{
-		serviceFactory: Win32ServiceFactory{},
+		serviceFactory: cim.Win32ServiceFactory{},
 	}
 
 	serviceName := "Winmgmt"
