@@ -74,17 +74,12 @@ func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (v
 		return nil, errors.Wrapf(err, "failed to list partition on disk %d", diskNumber)
 	}
 
-	volumes, err := cim.ListVolumes([]string{"ObjectId", "UniqueId"})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to list volumes")
-	}
-
-	filtered, err := cim.FindVolumesByPartition(volumes, partitions)
+	volumes, err := cim.FindVolumesByPartition(partitions)
 	if cim.IgnoreNotFound(err) != nil {
 		return nil, errors.Wrapf(err, "failed to list volumes on disk %d", diskNumber)
 	}
 
-	for _, volume := range filtered {
+	for _, volume := range volumes {
 		uniqueID, err := volume.GetPropertyUniqueId()
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to list volumes")
@@ -192,7 +187,7 @@ func (VolumeAPI) UnmountVolume(volumeID, path string) error {
 func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 	var err error
 	var finalSize int64
-	part, err := cim.GetPartitionByVolumeUniqueID(volumeID, nil)
+	part, err := cim.GetPartitionByVolumeUniqueID(volumeID)
 	if err != nil {
 		return err
 	}
@@ -297,7 +292,7 @@ func (VolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
 // GetDiskNumberFromVolumeID - gets the disk number where the volume is.
 func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
 	// get the size and sizeRemaining for the volume
-	part, err := cim.GetPartitionByVolumeUniqueID(volumeID, []string{"DiskNumber"})
+	part, err := cim.GetPartitionByVolumeUniqueID(volumeID)
 	if err != nil {
 		return 0, err
 	}
