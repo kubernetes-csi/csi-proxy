@@ -76,3 +76,12 @@ func ListDisks(selectorList []string) ([]*storage.MSFT_Disk, error) {
 
 	return disks, nil
 }
+
+// GetDiskNumber returns the number of a disk.
+func GetDiskNumber(disk *storage.MSFT_Disk) (uint32, error) {
+	number, err := disk.GetProperty("Number")
+	if err != nil {
+		return 0, err
+	}
+	return uint32(number.(int32)), err
+}
