@@ -123,7 +123,7 @@ func (APIImplementor) GetBIOSSerialNumber() (string, error) {
 func (impl APIImplementor) GetService(name string) (*ServiceInfo, error) {
 	service, err := impl.serviceFactory.GetService(name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get service %s: %w", name, err)
+		return nil, fmt.Errorf("failed to get service %s. error: %w", name, err)
 	}
 
 	displayName, err := cim.GetServiceDisplayName(service)
@@ -152,7 +152,7 @@ func (impl APIImplementor) StartService(name string) error {
 	startService := func(service cim.ServiceInterface) error {
 		retVal, err := service.StartService()
 		if err != nil || (retVal != startServiceErrorCodeAccepted && retVal != startServiceErrorCodeAlreadyRunning) {
-			return fmt.Errorf("error starting service name %s. return value: %d, error: %v", name, retVal, err)
+			return fmt.Errorf("error starting service name %s. return value: %d, error: %w", name, retVal, err)
 		}
 		return nil
 	}
@@ -173,12 +173,12 @@ func (impl APIImplementor) StartService(name string) error {
 
 	service, err := impl.serviceFactory.GetService(name)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get service %s. error: %w", name, err)
 	}
 
 	state, err := impl.serviceManager.WaitUntilServiceState(service, startService, serviceRunningCheck, serviceStateCheckInternal, serviceStateCheckTimeout)
 	if err != nil && !errors.Is(err, errTimedOut) {
-		return err
+		return fmt.Errorf("failed to wait for service %s state change. error: %w", name, err)
 	}
 
 	if state != serviceStateRunning {
@@ -197,28 +197,28 @@ func (impl APIImplementor) stopSingleService(name string) (bool, error) {
 				dependentRunning = true
 				return fmt.Errorf("error stopping service %s as dependent services are not stopped", name)
 			}
-			return fmt.Errorf("error stopping service %s. return value: %d, error: %v", name, retVal, err)
+			return fmt.Errorf("error stopping service %s. return value: %d, error: %w", name, retVal, err)
 		}
 		return nil
 	}
 	serviceStoppedCheck := func(service cim.ServiceInterface, state string) (bool, string, error) {
 		err := service.Refresh()
 		if err != nil {
-			return false, "", err
+			return false, "", fmt.Errorf("error refresh service %s instance. error: %w", name, err)
 		}
 
 		newState, err := cim.GetServiceState(service)
 		if err != nil {
-			return false, state, err
+			return false, state, fmt.Errorf("error getting service %s state. error: %w", name, err)
 		}
 
 		klog.V(6).Infof("service (%v) state check: %s => %s", service, state, newState)
-		return newState == serviceStateStopped, newState, err
+		return newState == serviceStateStopped, newState, nil
 	}
 
 	service, err := impl.serviceFactory.GetService(name)
 	if err != nil {
-		return dependentRunning, err
+		return dependentRunning, fmt.Errorf("failed to get service %s. error: %w", name, err)
 	}
 
 	state, err := impl.serviceManager.WaitUntilServiceState(service, stopService, serviceStoppedCheck, serviceStateCheckInternal, serviceStateCheckTimeout)
@@ -235,8 +235,11 @@ func (impl APIImplementor) stopSingleService(name string) (bool, error) {
 
 func (impl APIImplementor) StopService(name string, force bool) error {
 	dependentRunning, err := impl.stopSingleService(name)
-	if err == nil || !dependentRunning || !force {
-		return err
+	if err == nil {
+		return nil
+	}
+	if !dependentRunning || !force {
+		return fmt.Errorf("failed to stop service %s. error: %w", name, err)
 	}
 
 	serviceNames, err := impl.serviceManager.GetDependentsForService(name)
@@ -247,7 +250,7 @@ func (impl APIImplementor) StopService(name string, force bool) error {
 	for _, serviceName := range serviceNames {
 		_, err = impl.stopSingleService(serviceName)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to stop service %s. error: %w", name, err)
 		}
 	}
 
@@ -261,15 +264,15 @@ type ServiceManagerImpl struct {
 func (impl ServiceManagerImpl) WaitUntilServiceState(service cim.ServiceInterface, stateTransition stateTransitionFunc, stateCheck stateCheckFunc, interval time.Duration, timeout time.Duration) (string, error) {
 	done, state, err := stateCheck(service, "")
 	if err != nil {
-		return state, err
+		return state, fmt.Errorf("service %v state check failed: %w", service, err)
 	}
 	if done {
-		return state, err
+		return state, nil
 	}
 
 	// Perform transition if not already in desired state
 	if err := stateTransition(service); err != nil {
-		return state, err
+		return state, fmt.Errorf("service %v state transition failed: %w", service, err)
 	}
 
 	ticker := time.NewTicker(interval)
@@ -283,7 +286,7 @@ func (impl ServiceManagerImpl) WaitUntilServiceState(service cim.ServiceInterfac
 			klog.V(6).Infof("Checking service (%v) state...", service)
 			done, state, err = stateCheck(service, state)
 			if err != nil {
-				return state, fmt.Errorf("check failed: %w", err)
+				return state, fmt.Errorf("service %v state check failed: %w", service, err)
 			}
 			if done {
 				klog.V(6).Infof("service (%v) state is %s and transition done.", service, state)
@@ -303,7 +306,7 @@ func (impl ServiceManagerImpl) GetDependentsForService(name string) ([]string, e
 
 	service, err := impl.serviceFactory.GetService(name)
 	if err != nil {
-		return serviceNames, err
+		return serviceNames, fmt.Errorf("failed to get service %s. error: %w", name, err)
 	}
 
 	servicesToCheck = append(servicesToCheck, service)
@@ -314,12 +317,12 @@ func (impl ServiceManagerImpl) GetDependentsForService(name string) ([]string, e
 
 		serviceName, err := cim.GetServiceName(service)
 		if err != nil {
-			return serviceNames, err
+			return serviceNames, fmt.Errorf("error getting service name %v. error: %w", service, err)
 		}
 
 		currentState, err := cim.GetServiceState(service)
 		if err != nil {
-			return serviceNames, err
+			return serviceNames, fmt.Errorf("error getting service %s state. error: %w", serviceName, err)
 		}
 
 		if currentState != serviceStateRunning {
@@ -332,7 +335,7 @@ func (impl ServiceManagerImpl) GetDependentsForService(name string) ([]string, e
 
 		dependents, err := service.GetDependents()
 		if err != nil {
-			return serviceNames, err
+			return serviceNames, fmt.Errorf("error getting service %s dependents. error: %w", serviceName, err)
 		}
 
 		servicesToCheck = append(servicesToCheck, dependents...)

@@ -58,6 +58,8 @@ func (m *MockService) Refresh() error {
 	return nil
 }
 
+var _ cim.ServiceInterface = &MockService{}
+
 type MockServiceFactory struct {
 	Services map[string]cim.ServiceInterface
 	Err      error
@@ -71,12 +73,14 @@ func (f *MockServiceFactory) GetService(name string) (cim.ServiceInterface, erro
 	return svc, f.Err
 }
 
+var _ ServiceFactory = &MockServiceFactory{}
+
 func TestWaitUntilServiceState_Success(t *testing.T) {
 	svc := &MockService{Name: "svc", State: "Stopped"}
 
 	stateChanged := false
 
-	stateCheck := func(s cim.ServiceInterface, state string) (bool, string, error) {
+	stateCheck := func(_ cim.ServiceInterface, _ string) (bool, string, error) {
 		if stateChanged {
 			svc.State = serviceStateRunning
 			return true, svc.State, nil
@@ -84,7 +88,7 @@ func TestWaitUntilServiceState_Success(t *testing.T) {
 		return false, svc.State, nil
 	}
 
-	stateTransition := func(s cim.ServiceInterface) error {
+	stateTransition := func(_ cim.ServiceInterface) error {
 		stateChanged = true
 		return nil
 	}
@@ -102,11 +106,11 @@ func TestWaitUntilServiceState_Success(t *testing.T) {
 func TestWaitUntilServiceState_Timeout(t *testing.T) {
 	svc := &MockService{Name: "svc", State: "Stopped"}
 
-	stateCheck := func(s cim.ServiceInterface, state string) (bool, string, error) {
+	stateCheck := func(_ cim.ServiceInterface, _ string) (bool, string, error) {
 		return false, svc.State, nil
 	}
 
-	stateTransition := func(s cim.ServiceInterface) error {
+	stateTransition := func(_ cim.ServiceInterface) error {
 		return nil
 	}
 
@@ -123,17 +127,17 @@ func TestWaitUntilServiceState_Timeout(t *testing.T) {
 func TestWaitUntilServiceState_TransitionFails(t *testing.T) {
 	svc := &MockService{Name: "svc", State: "Stopped"}
 
-	stateCheck := func(s cim.ServiceInterface, state string) (bool, string, error) {
+	stateCheck := func(_ cim.ServiceInterface, _ string) (bool, string, error) {
 		return false, svc.State, nil
 	}
 
-	stateTransition := func(s cim.ServiceInterface) error {
+	stateTransition := func(_ cim.ServiceInterface) error {
 		return fmt.Errorf("transition failed")
 	}
 
 	impl := ServiceManagerImpl{}
 	_, err := impl.WaitUntilServiceState(svc, stateTransition, stateCheck, 10*time.Millisecond, 50*time.Millisecond)
-	if err == nil || err.Error() != "transition failed" {
+	if err == nil || !strings.Contains(err.Error(), "transition failed") {
 		t.Fatalf("expected transition error, got %v", err)
 	}
 }
