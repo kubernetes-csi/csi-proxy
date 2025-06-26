@@ -23,7 +23,7 @@ func New() APIImplementor {
 func (APIImplementor) AddTargetPortal(portal *TargetPortal) error {
 	existing, err := cim.QueryISCSITargetPortal(portal.Address, portal.Port, nil)
 	if cim.IgnoreNotFound(err) != nil {
-		return err
+		return fmt.Errorf("error query target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
 	}
 
 	if existing != nil {
@@ -42,7 +42,7 @@ func (APIImplementor) AddTargetPortal(portal *TargetPortal) error {
 func (APIImplementor) DiscoverTargetPortal(portal *TargetPortal) ([]string, error) {
 	targets, err := cim.ListISCSITargetsByTargetPortalAddressAndPort(portal.Address, portal.Port, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error list targets by target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
 	}
 
 	var iqns []string
@@ -61,7 +61,7 @@ func (APIImplementor) DiscoverTargetPortal(portal *TargetPortal) ([]string, erro
 func (APIImplementor) ListTargetPortals() ([]TargetPortal, error) {
 	instances, err := cim.ListISCSITargetPortals(cim.ISCSITargetPortalDefaultSelectorList)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error list target portals. err: %v", err)
 	}
 
 	var portals []TargetPortal
@@ -83,7 +83,7 @@ func (APIImplementor) ListTargetPortals() ([]TargetPortal, error) {
 func (APIImplementor) RemoveTargetPortal(portal *TargetPortal) error {
 	instance, err := cim.QueryISCSITargetPortal(portal.Address, portal.Port, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("error query target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
 	}
 
 	result, err := cim.RemoveISCSITargetPortal(instance)
@@ -97,12 +97,12 @@ func (APIImplementor) RemoveTargetPortal(portal *TargetPortal) error {
 func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string, authType string, chapUser string, chapSecret string) error {
 	target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
 	if err != nil {
-		return err
+		return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 	}
 
 	connected, err := cim.IsISCSITargetConnected(target)
 	if err != nil {
-		return err
+		return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 	}
 
 	if connected {
@@ -123,7 +123,7 @@ func (APIImplementor) ConnectTarget(portal *TargetPortal, iqn string, authType s
 func (APIImplementor) DisconnectTarget(portal *TargetPortal, iqn string) error {
 	target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
 	if err != nil {
-		return err
+		return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 	}
 
 	connected, err := cim.IsISCSITargetConnected(target)
@@ -139,7 +139,7 @@ func (APIImplementor) DisconnectTarget(portal *TargetPortal, iqn string) error {
 	// get session
 	session, err := cim.QueryISCSISessionByTarget(target)
 	if err != nil {
-		return fmt.Errorf("error query session of  target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		return fmt.Errorf("error query session of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 	}
 
 	sessionIdentifier, err := cim.GetISCSISessionIdentifier(session)
@@ -170,7 +170,7 @@ func (APIImplementor) DisconnectTarget(portal *TargetPortal, iqn string) error {
 func (APIImplementor) GetTargetDisks(portal *TargetPortal, iqn string) ([]string, error) {
 	target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 	}
 
 	connected, err := cim.IsISCSITargetConnected(target)
