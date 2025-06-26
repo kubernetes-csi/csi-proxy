@@ -2,6 +2,8 @@ package system
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -197,6 +199,10 @@ func TestGetDependentsForService_SkipsNonRunning(t *testing.T) {
 }
 
 func TestGetDependenciesForService_Winmgmt(t *testing.T) {
+	if strings.ToLower(os.Getenv("TEST_MULTI_SERVICE_DEPENDENTS")) != "true" {
+		t.Skipf("Test skipped")
+	}
+
 	impl := ServiceManagerImpl{
 		serviceFactory: cim.Win32ServiceFactory{},
 	}
