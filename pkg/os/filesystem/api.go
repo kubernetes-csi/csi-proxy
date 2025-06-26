@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 )
@@ -49,17 +48,6 @@ func (filesystemAPI) PathExists(path string) (bool, error) {
 	return pathExists(path)
 }
 
-func pathValid(path string) (bool, error) {
-	cmd := `Test-Path $Env:remotepath`
-	cmdEnv := fmt.Sprintf("remotepath=%s", path)
-	output, err := utils.RunPowershellCmd(cmd, cmdEnv)
-	if err != nil {
-		return false, fmt.Errorf("returned output: %s, error: %v", string(output), err)
-	}
-
-	return strings.HasPrefix(strings.ToLower(string(output)), "true"), nil
-}
-
 // PathValid determines whether all elements of a path exist
 //
 //	https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-path?view=powershell-7
@@ -68,7 +56,7 @@ func pathValid(path string) (bool, error) {
 //
 //	e.g. in a SMB server connection, if password is changed, connection will be lost, this func will return false
 func (filesystemAPI) PathValid(path string) (bool, error) {
-	return pathValid(path)
+	return utils.IsPathValid(path)
 }
 
 // Mkdir makes a dir with `os.MkdirAll`.
