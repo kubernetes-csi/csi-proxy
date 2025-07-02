@@ -121,6 +121,20 @@ func CallMethod(disp *ole.IDispatch, name string, params ...interface{}) (result
 }
 ```
 
+### Association
+
+Association can be used to retrieve all instances that are associated with
+a particular source instance.
+
+There are a few Association classes in WMI.
+
+For example, association class [MSFT_PartitionToVolume](https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partitiontovolume)
+can be used to retrieve a volume (`MSFT_Volume`) from a partition (`MSFT_Partition`), and vice versa.
+
+```go
+collection, err := part.GetAssociated("MSFT_PartitionToVolume", "MSFT_Volume", "Volume", "Partition")
+```
+
 <a name="debug-powershell"></a>
 ## Debug with PowerShell
 
@@ -179,6 +193,13 @@ Then you may use `obj.FileSystem` to get the file system of the volume.
 ```powershell
 PS C:\Users\Administrator> $vol.FileSystem
 NTFS
+```
+
+### Association
+
+```powershell
+PS C:\Users\Administrator> $partition = (Get-CimInstance -Namespace root\Microsoft\Windows\Storage -ClassName MSFT_Partition -Filter "DiskNumber = 0")[0]
+PS C:\Users\Administrator> Get-CimAssociatedInstance -InputObject $partition -Association MSFT_PartitionToVolume
 ```
 
 ### Call Class Method
