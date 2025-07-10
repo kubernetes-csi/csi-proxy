@@ -2,19 +2,19 @@ package volume
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/go-ole/go-ole"
 	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
-	wmierrors "github.com/microsoft/wmi/pkg/errors"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/windows"
 	"k8s.io/klog/v2"
+)
+
+const (
+	minimumResizeSize = 100 * 1024 * 1024
 )
 
 // API exposes the internal volume operations available in the server
@@ -69,52 +69,55 @@ func New() VolumeAPI {
 
 // ListVolumesOnDisk - returns back list of volumes(volumeIDs) in a disk and a partition.
 func (VolumeAPI) ListVolumesOnDisk(diskNumber uint32, partitionNumber uint32) (volumeIDs []string, err error) {
-	partitions, err := cim.ListPartitionsOnDisk(diskNumber, partitionNumber, []string{"ObjectId"})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to list partition on disk %d", diskNumber)
-	}
-
-	volumes, err := cim.FindVolumesByPartition(partitions)
-	if cim.IgnoreNotFound(err) != nil {
-		return nil, errors.Wrapf(err, "failed to list volumes on disk %d", diskNumber)
-	}
-
-	for _, volume := range volumes {
-		uniqueID, err := volume.GetPropertyUniqueId()
+	err = cim.WithCOMThread(func() error {
+		partitions, err := cim.ListPartitionsOnDisk(diskNumber, partitionNumber, cim.PartitionSelectorListObjectID)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to list volumes")
+			return errors.Wrapf(err, "failed to list partition on disk %d", diskNumber)
 		}
-		volumeIDs = append(volumeIDs, uniqueID)
-	}
 
-	return volumeIDs, nil
+		volumes, err := cim.FindVolumesByPartition(partitions)
+		if cim.IgnoreNotFound(err) != nil {
+			return errors.Wrapf(err, "failed to list volumes on disk %d", diskNumber)
+		}
+
+		for _, volume := range volumes {
+			uniqueID, err := cim.GetVolumeUniqueID(volume)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get unique ID for volume %v", volume)
+			}
+			volumeIDs = append(volumeIDs, uniqueID)
+		}
+
+		return nil
+	})
+	return
 }
 
 // FormatVolume - Formats a volume with the NTFS format.
 func (VolumeAPI) FormatVolume(volumeID string) (err error) {
-	volume, err := cim.QueryVolumeByUniqueID(volumeID, nil)
-	if err != nil {
-		return fmt.Errorf("error formatting volume (%s). error: %v", volumeID, err)
-	}
+	return cim.WithCOMThread(func() error {
+		volume, err := cim.QueryVolumeByUniqueID(volumeID, nil)
+		if err != nil {
+			return fmt.Errorf("error formatting volume (%s). error: %v", volumeID, err)
+		}
 
-	result, err := volume.InvokeMethodWithReturn(
-		"Format",
-		"NTFS", // Format,
-		"",     // FileSystemLabel,
-		nil,    // AllocationUnitSize,
-		false,  // Full,
-		true,   // Force
-		nil,    // Compress,
-		nil,    // ShortFileNameSupport,
-		nil,    // SetIntegrityStreams,
-		nil,    // UseLargeFRS,
-		nil,    // DisableHeatGathering,
-	)
-	if result != 0 || err != nil {
-		return fmt.Errorf("error formatting volume (%s). result: %d, error: %v", volumeID, result, err)
-	}
-	// TODO: Do we need to handle anything for len(out) == 0
-	return nil
+		result, err := cim.FormatVolume(volume,
+			"NTFS", // Format,
+			"",     // FileSystemLabel,
+			nil,    // AllocationUnitSize,
+			false,  // Full,
+			true,   // Force
+			nil,    // Compress,
+			nil,    // ShortFileNameSupport,
+			nil,    // SetIntegrityStreams,
+			nil,    // UseLargeFRS,
+			nil,    // DisableHeatGathering,
+		)
+		if result != 0 || err != nil {
+			return fmt.Errorf("error formatting volume (%s). result: %d, error: %v", volumeID, result, err)
+		}
+		return nil
+	})
 }
 
 // WriteVolumeCache - Writes the file system cache to disk with the given volume id
@@ -124,18 +127,22 @@ func (VolumeAPI) WriteVolumeCache(volumeID string) (err error) {
 
 // IsVolumeFormatted - Check if the volume is formatted with the pre specified filesystem(typically ntfs).
 func (VolumeAPI) IsVolumeFormatted(volumeID string) (bool, error) {
-	volume, err := cim.QueryVolumeByUniqueID(volumeID, []string{"FileSystemType"})
-	if err != nil {
-		return false, fmt.Errorf("error checking if volume (%s) is formatted. error: %v", volumeID, err)
-	}
+	var formatted bool
+	err := cim.WithCOMThread(func() error {
+		volume, err := cim.QueryVolumeByUniqueID(volumeID, cim.VolumeSelectorListForFileSystemType)
+		if err != nil {
+			return fmt.Errorf("error checking if volume (%s) is formatted. error: %v", volumeID, err)
+		}
 
-	fsType, err := volume.GetProperty("FileSystemType")
-	if err != nil {
-		return false, fmt.Errorf("failed to query volume file system type (%s): %w", volumeID, err)
-	}
+		fsType, err := cim.GetVolumeFileSystemType(volume)
+		if err != nil {
+			return fmt.Errorf("failed to query volume file system type (%s): %w", volumeID, err)
+		}
 
-	const FileSystemUnknown = 0
-	return fsType.(int32) != FileSystemUnknown, nil
+		formatted = fsType != cim.FileSystemUnknown
+		return nil
+	})
+	return formatted, err
 }
 
 // MountVolume - mounts a volume to a path. This is done using Win32 API SetVolumeMountPoint for presenting the volume via a path.
@@ -185,124 +192,112 @@ func (VolumeAPI) UnmountVolume(volumeID, path string) error {
 
 // ResizeVolume - resizes a volume with the given size, if size == 0 then max supported size is used
 func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
-	var err error
-	var finalSize int64
-	part, err := cim.GetPartitionByVolumeUniqueID(volumeID)
-	if err != nil {
-		return err
-	}
-
-	// If size is 0 then we will resize to the maximum size possible, otherwise just resize to size
-	if size == 0 {
-		var sizeMin, sizeMax ole.VARIANT
-		var status string
-		result, err := part.InvokeMethodWithReturn("GetSupportedSize", &sizeMin, &sizeMax, &status)
-		if result != 0 || err != nil {
-			return fmt.Errorf("error getting sizeMin, sizeMax from volume(%s). result: %d, status: %s, error: %v", volumeID, result, status, err)
-		}
-		klog.V(5).Infof("got sizeMin(%v) sizeMax(%v) from volume(%s), status: %s", sizeMin, sizeMax, volumeID, status)
-
-		finalSizeStr := sizeMax.ToString()
-		finalSize, err = strconv.ParseInt(finalSizeStr, 10, 64)
+	return cim.WithCOMThread(func() error {
+		var err error
+		var finalSize int64
+		part, err := cim.GetPartitionByVolumeUniqueID(volumeID)
 		if err != nil {
-			return fmt.Errorf("error parsing the sizeMax of volume (%s) with error (%v)", volumeID, err)
+			return err
 		}
-	} else {
-		finalSize = size
-	}
 
-	currentSizeVal, err := part.GetProperty("Size")
-	if err != nil {
-		return fmt.Errorf("error getting the current size of volume (%s) with error (%v)", volumeID, err)
-	}
+		// If size is 0 then we will resize to the maximum size possible, otherwise just resize to size
+		if size == 0 {
+			var result int
+			var status string
+			result, _, finalSize, status, err = cim.GetPartitionSupportedSize(part)
+			if result != 0 || err != nil {
+				return fmt.Errorf("error getting sizeMin, sizeMax from volume (%s). result: %d, status: %s, error: %v", volumeID, result, status, err)
+			}
 
-	currentSize, err := strconv.ParseInt(currentSizeVal.(string), 10, 64)
-	if err != nil {
-		return fmt.Errorf("error parsing the current size of volume (%s) with error (%v)", volumeID, err)
-	}
+		} else {
+			finalSize = size
+		}
 
-	// only resize if finalSize - currentSize is greater than 100MB
-	if finalSize-currentSize < 100*1024*1024 {
-		klog.V(2).Infof("minimum resize difference(1GB) not met, skipping resize. volumeID=%s currentSize=%d finalSize=%d", volumeID, currentSize, finalSize)
+		currentSize, err := cim.GetPartitionSize(part)
+		if err != nil {
+			return fmt.Errorf("error getting the current size of volume (%s) with error (%v)", volumeID, err)
+		}
+
+		// only resize if finalSize - currentSize is greater than 100MB
+		if finalSize-currentSize < minimumResizeSize {
+			klog.V(2).Infof("minimum resize difference (100MB) not met, skipping resize. volumeID=%s currentSize=%d finalSize=%d", volumeID, currentSize, finalSize)
+			return nil
+		}
+
+		//if the partition's size is already the size we want this is a noop, just return
+		if currentSize >= finalSize {
+			klog.V(2).Infof("Attempted to resize volume (%s) to a lower size, from currentBytes=%d wantedBytes=%d", volumeID, currentSize, finalSize)
+			return nil
+		}
+
+		result, _, err := cim.ResizePartition(part, finalSize)
+		if result != 0 || err != nil {
+			return fmt.Errorf("error resizing volume (%s). size:%v, finalSize %v, error: %v", volumeID, size, finalSize, err)
+		}
+
+		diskNumber, err := cim.GetPartitionDiskNumber(part)
+		if err != nil {
+			return fmt.Errorf("error parsing disk number of volume (%s). error: %v", volumeID, err)
+		}
+
+		disk, err := cim.QueryDiskByNumber(diskNumber, nil)
+		if err != nil {
+			return fmt.Errorf("error query disk of volume (%s). error: %v", volumeID, err)
+		}
+
+		result, _, err = cim.RefreshDisk(disk)
+		if result != 0 || err != nil {
+			return fmt.Errorf("error rescan disk (%d). result %d, error: %v", diskNumber, result, err)
+		}
+
 		return nil
-	}
-
-	//if the partition's size is already the size we want this is a noop, just return
-	if currentSize >= finalSize {
-		klog.V(2).Infof("Attempted to resize volume (%s) to a lower size, from currentBytes=%d wantedBytes=%d", volumeID, currentSize, finalSize)
-		return nil
-	}
-
-	var status string
-	result, err := part.InvokeMethodWithReturn("Resize", strconv.Itoa(int(finalSize)), &status)
-
-	if result != 0 || err != nil {
-		return fmt.Errorf("error resizing volume (%s). size:%v, finalSize %v, error: %v", volumeID, size, finalSize, err)
-	}
-
-	diskNumber, err := cim.GetPartitionDiskNumber(part)
-	if err != nil {
-		return fmt.Errorf("error parsing disk number of volume (%s). error: %v", volumeID, err)
-	}
-
-	disk, err := cim.QueryDiskByNumber(diskNumber, nil)
-	if err != nil {
-		return fmt.Errorf("error parsing disk number of volume (%s). error: %v", volumeID, err)
-	}
-
-	result, err = disk.InvokeMethodWithReturn("Refresh", &status)
-	if result != 0 || err != nil {
-		return fmt.Errorf("error rescan disk (%d). result %d, error: %v", diskNumber, result, err)
-	}
-
-	return nil
+	})
 }
 
 // GetVolumeStats - retrieves the volume stats for a given volume
-func (VolumeAPI) GetVolumeStats(volumeID string) (int64, int64, error) {
-	volume, err := cim.QueryVolumeByUniqueID(volumeID, []string{"UniqueId", "SizeRemaining", "Size"})
-	if err != nil {
-		return -1, -1, fmt.Errorf("error getting capacity and used size of volume (%s). error: %v", volumeID, err)
-	}
+func (VolumeAPI) GetVolumeStats(volumeID string) (volumeSize, volumeUsedSize int64, err error) {
+	volumeSize = -1
+	volumeUsedSize = -1
+	err = cim.WithCOMThread(func() error {
+		volume, err := cim.QueryVolumeByUniqueID(volumeID, cim.VolumeSelectorListForStats)
+		if err != nil {
+			return fmt.Errorf("error getting capacity and used size of volume (%s). error: %v", volumeID, err)
+		}
 
-	volumeSizeVal, err := volume.GetProperty("Size")
-	if err != nil {
-		return -1, -1, fmt.Errorf("failed to query volume size (%s): %w", volumeID, err)
-	}
+		volumeSize, err = cim.GetVolumeSize(volume)
+		if err != nil {
+			return fmt.Errorf("failed to query volume size (%s): %w", volumeID, err)
+		}
 
-	volumeSize, err := strconv.ParseInt(volumeSizeVal.(string), 10, 64)
-	if err != nil {
-		return -1, -1, fmt.Errorf("failed to parse volume size (%s): %w", volumeID, err)
-	}
+		volumeSizeRemaining, err := cim.GetVolumeSizeRemaining(volume)
+		if err != nil {
+			return fmt.Errorf("failed to query volume remaining size (%s): %w", volumeID, err)
+		}
 
-	volumeSizeRemainingVal, err := volume.GetProperty("SizeRemaining")
-	if err != nil {
-		return -1, -1, fmt.Errorf("failed to query volume remaining size (%s): %w", volumeID, err)
-	}
-
-	volumeSizeRemaining, err := strconv.ParseInt(volumeSizeRemainingVal.(string), 10, 64)
-	if err != nil {
-		return -1, -1, fmt.Errorf("failed to parse volume remaining size (%s): %w", volumeID, err)
-	}
-
-	volumeUsedSize := volumeSize - volumeSizeRemaining
-	return volumeSize, volumeUsedSize, nil
+		volumeUsedSize = volumeSize - volumeSizeRemaining
+		return nil
+	})
+	return
 }
 
 // GetDiskNumberFromVolumeID - gets the disk number where the volume is.
 func (VolumeAPI) GetDiskNumberFromVolumeID(volumeID string) (uint32, error) {
-	// get the size and sizeRemaining for the volume
-	part, err := cim.GetPartitionByVolumeUniqueID(volumeID)
-	if err != nil {
-		return 0, err
-	}
+	var diskNumber uint32
+	err := cim.WithCOMThread(func() error {
+		// get the size and sizeRemaining for the volume
+		part, err := cim.GetPartitionByVolumeUniqueID(volumeID)
+		if err != nil {
+			return err
+		}
 
-	diskNumber, err := part.GetProperty("DiskNumber")
-	if err != nil {
-		return 0, fmt.Errorf("error query disk number of volume (%s). error: %v", volumeID, err)
-	}
+		diskNumber, err = cim.GetPartitionDiskNumber(part)
+		if err != nil {
+			return fmt.Errorf("error query disk number of volume (%s). error: %v", volumeID, err)
+		}
 
-	return uint32(diskNumber.(int32)), nil
+		return nil
+	})
+	return diskNumber, err
 }
 
 // GetVolumeIDFromTargetPath - gets the volume ID given a mount point, the function is recursive until it find a volume or errors out
@@ -316,7 +311,7 @@ func (VolumeAPI) GetVolumeIDFromTargetPath(mount string) (string, error) {
 }
 
 func getTarget(mount string) (string, error) {
-	mountedFolder, err := isMountedFolder(mount)
+	mountedFolder, err := utils.IsMountedFolder(mount)
 	if err != nil {
 		return "", err
 	}
@@ -356,7 +351,7 @@ func (VolumeAPI) GetClosestVolumeIDFromTargetPath(targetPath string) (string, er
 }
 
 // findClosestVolume finds the closest volume id for a given target path
-// by following symlinks and moving up in the filesystem, if after moving up in the filesystem
+// by following symlinks and moving up in the filesystem. if after moving up in the filesystem
 // we get to a DriveLetter then the volume corresponding to this drive letter is returned instead.
 func findClosestVolume(path string) (string, error) {
 	candidatePath := path
@@ -365,22 +360,20 @@ func findClosestVolume(path string) (string, error) {
 	// while trying to follow symlinks
 	//
 	// The maximum path length in Windows is 260, it could be possible to end
-	// up in a sceneario where we do more than 256 iterations (e.g. by following symlinks from
+	// up in a scenario where we do more than 256 iterations (e.g. by following symlinks from
 	// a place high in the hierarchy to a nested sibling location many times)
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#:~:text=In%20editions%20of%20Windows%20before,required%20to%20remove%20the%20limit.
 	//
 	// The number of iterations is 256, which is similar to the number of iterations in filepath-securejoin
 	// https://github.com/cyphar/filepath-securejoin/blob/64536a8a66ae59588c981e2199f1dcf410508e07/join.go#L51
 	for i := 0; i < 256; i += 1 {
-		fi, err := os.Lstat(candidatePath)
+		isSymlink, err := utils.IsPathSymlink(candidatePath)
 		if err != nil {
 			return "", err
 		}
-		// for windows NTFS, check if the path is symlink instead of directory.
-		isSymlink := fi.Mode()&os.ModeSymlink != 0 || fi.Mode()&os.ModeIrregular != 0
 
 		// mounted folder created by SetVolumeMountPoint may still report ModeSymlink == 0
-		mountedFolder, err := isMountedFolder(candidatePath)
+		mountedFolder, err := utils.IsMountedFolder(candidatePath)
 		if err != nil {
 			return "", err
 		}
@@ -417,67 +410,40 @@ func findClosestVolume(path string) (string, error) {
 	return "", fmt.Errorf("failed to find the closest volume for path=%s", path)
 }
 
-// isMountedFolder checks whether the `path` is a mounted folder.
-func isMountedFolder(path string) (bool, error) {
-	// https://learn.microsoft.com/en-us/windows/win32/fileio/determining-whether-a-directory-is-a-volume-mount-point
-	utf16Path, _ := windows.UTF16PtrFromString(path)
-	attrs, err := windows.GetFileAttributes(utf16Path)
-	if err != nil {
-		return false, err
-	}
-
-	if (attrs & windows.FILE_ATTRIBUTE_REPARSE_POINT) == 0 {
-		return false, nil
-	}
-
-	var findData windows.Win32finddata
-	findHandle, err := windows.FindFirstFile(utf16Path, &findData)
-	if err != nil && !errors.Is(err, windows.ERROR_NO_MORE_FILES) {
-		return false, err
-	}
-
-	for err == nil {
-		if findData.Reserved0&windows.IO_REPARSE_TAG_MOUNT_POINT != 0 {
-			return true, nil
-		}
-
-		err = windows.FindNextFile(findHandle, &findData)
-		if err != nil && !errors.Is(err, windows.ERROR_NO_MORE_FILES) {
-			return false, err
-		}
-	}
-
-	return false, nil
-}
-
 // getVolumeForDriveLetter gets a volume from a drive letter (e.g. C:/).
 func getVolumeForDriveLetter(path string) (string, error) {
 	if len(path) != 1 {
 		return "", fmt.Errorf("the path %s is not a valid drive letter", path)
 	}
 
-	volume, err := cim.GetVolumeByDriveLetter(path, []string{"UniqueId"})
-	if err != nil {
-		return "", nil
-	}
+	var uniqueID string
+	err := cim.WithCOMThread(func() error {
+		volume, err := cim.GetVolumeByDriveLetter(path, cim.VolumeSelectorListUniqueID)
+		if err != nil {
+			return err
+		}
 
-	uniqueID, err := volume.GetPropertyUniqueId()
-	if err != nil {
-		return "", fmt.Errorf("error query unique ID of volume (%v). error: %v", volume, err)
-	}
+		uniqueID, err = cim.GetVolumeUniqueID(volume)
+		if err != nil {
+			return fmt.Errorf("error query unique ID of volume (%v). error: %v", volume, err)
+		}
 
-	return uniqueID, nil
+		return nil
+	})
+	return uniqueID, err
 }
 
 func writeCache(volumeID string) error {
-	volume, err := cim.QueryVolumeByUniqueID(volumeID, []string{})
-	if err != nil && !wmierrors.IsNotFound(err) {
-		return fmt.Errorf("error writing volume (%s) cache. error: %v", volumeID, err)
-	}
+	return cim.WithCOMThread(func() error {
+		volume, err := cim.QueryVolumeByUniqueID(volumeID, nil)
+		if err != nil {
+			return fmt.Errorf("error writing volume (%s) cache. error: %v", volumeID, err)
+		}
 
-	result, err := volume.Flush()
-	if result != 0 || err != nil {
-		return fmt.Errorf("error writing volume (%s) cache. result: %d, error: %v", volumeID, result, err)
-	}
-	return nil
+		result, err := cim.FlushVolume(volume)
+		if result != 0 || err != nil {
+			return fmt.Errorf("error writing volume (%s) cache. result: %d, error: %v", volumeID, result, err)
+		}
+		return nil
+	})
 }
