@@ -33,19 +33,8 @@ func New() API {
 	return filesystemAPI{}
 }
 
-func pathExists(path string) (bool, error) {
-	_, err := os.Lstat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
 func (filesystemAPI) PathExists(path string) (bool, error) {
-	return pathExists(path)
+	return utils.PathExists(path)
 }
 
 // PathValid determines whether all elements of a path exist
@@ -112,18 +101,23 @@ func (filesystemAPI) IsSymlink(tgt string) (bool, error) {
 	// This code is similar to k8s.io/kubernetes/pkg/util/mount except the pathExists usage.
 	// Also in a remote call environment the os error cannot be passed directly back, hence the callers
 	// are expected to perform the isExists check before calling this call in CSI proxy.
-	stat, err := os.Lstat(tgt)
+	isSymlink, err := utils.IsPathSymlink(tgt)
 	if err != nil {
 		return false, err
 	}
 
-	// If its a link and it points to an existing file then its a mount point.
-	if stat.Mode()&os.ModeSymlink != 0 {
+	// mounted folder created by SetVolumeMountPoint may still report ModeSymlink == 0
+	mountedFolder, err := utils.IsMountedFolder(tgt)
+	if err != nil {
+		return false, err
+	}
+
+	if isSymlink || mountedFolder {
 		target, err := os.Readlink(tgt)
 		if err != nil {
 			return false, fmt.Errorf("readlink error: %v", err)
 		}
-		exists, err := pathExists(target)
+		exists, err := utils.PathExists(target)
 		if err != nil {
 			return false, err
 		}

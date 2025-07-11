@@ -109,3 +109,15 @@ func CreateSymlink(link, target string, isDir bool) error {
 	)
 	return err
 }
+
+// PathExists checks whether the given `path` exists.
+func PathExists(path string) (bool, error) {
+	_, err := os.Lstat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
