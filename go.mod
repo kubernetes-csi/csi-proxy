@@ -3,9 +3,11 @@ module github.com/kubernetes-csi/csi-proxy
 // NOTE: This project must be built with go < 1.23
 // `make build` will error if go1.23 or higher is used.
 
-go 1.22.0
+go 1.24.3
 
-toolchain go1.22.3
+godebug winsymlink=0
+
+toolchain go1.24.4
 
 require (
 	github.com/Microsoft/go-winio v0.6.2
@@ -14,13 +16,13 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kubernetes-csi/csi-proxy/client v1.1.3
-	github.com/microsoft/wmi v0.25.1
+	github.com/microsoft/wmi v0.34.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sys v0.28.0
+	golang.org/x/sys v0.32.0
 	google.golang.org/grpc v1.69.2
 	google.golang.org/protobuf v1.36.0
 	k8s.io/component-base v0.28.4
