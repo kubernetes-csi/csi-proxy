@@ -102,8 +102,8 @@ github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta1
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta2
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v1beta3
 github.com/kubernetes-csi/csi-proxy/client/groups/volume/v2alpha1
-# github.com/microsoft/wmi v0.25.1
-## explicit; go 1.22
+# github.com/microsoft/wmi v0.34.0
+## explicit; go 1.24.3
 github.com/microsoft/wmi/go/wmi
 github.com/microsoft/wmi/pkg/base/credential
 github.com/microsoft/wmi/pkg/base/host
@@ -174,8 +174,8 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.10.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.28.0
-## explicit; go 1.18
+# golang.org/x/sys v0.32.0
+## explicit; go 1.23.0
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/svc

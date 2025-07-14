@@ -49,7 +49,7 @@ For example, the property `PartitionStyle` on [MSFT_Disk](https://learn.microsof
 | Qualifiers      | Required                              |
 | Description     | The partition style used by the disk. |
 
-You may use `GetProperty` to get the value of `PartitionStyle` to get the value from the `VARAINT` and
+You may use `GetProperty` to get the value of `PartitionStyle` to get the value from the `VARIANT` and
 converts it back to Go types.
 
 ```go
