@@ -16,6 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run Windows Integration Tests
+        shell: powershell
         run: |
           # required for running Volume and Disk tests
           Install-WindowsFeature -name Hyper-V-PowerShell
