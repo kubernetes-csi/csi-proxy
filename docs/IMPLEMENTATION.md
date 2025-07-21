@@ -135,6 +135,17 @@ can be used to retrieve a volume (`MSFT_Volume`) from a partition (`MSFT_Partiti
 collection, err := part.GetAssociated("MSFT_PartitionToVolume", "MSFT_Volume", "Volume", "Partition")
 ```
 
+### Disable checkptr
+
+COM APIs (like IDispatch.Invoke, Variant, BSTR, IUnknown**, etc.) frequently use:
+* Double pointers (e.g., BSTR*, IUnknown**)
+* Pointers passed as int64 or uintptr
+* In-place modification via reference
+
+These patterns are common and valid in C/C++, but violate Go’s unsafe.Pointer rules when interpreted literally - even if they are functionally correct.
+
+Therefore, you should make sure `-gcflags=all=-d=checkptr=0` when calling `microsoft/wmi`.
+
 <a name="debug-powershell"></a>
 ## Debug with PowerShell
 
