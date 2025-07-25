@@ -1,10 +1,12 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/cim"
+	"k8s.io/klog/v2"
 )
 
 // Implements the iSCSI OS API calls. All code here should be very simple
@@ -34,157 +36,210 @@ func New() HostAPI {
 }
 
 func (iscsiAPI) AddTargetPortal(portal *TargetPortal) error {
-	cmdLine := fmt.Sprintf(
-		`New-IscsiTargetPortal -TargetPortalAddress ${Env:iscsi_tp_address} ` +
-			`-TargetPortalPortNumber ${Env:iscsi_tp_port}`)
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port))
-	if err != nil {
-		return fmt.Errorf("error adding target portal. cmd %s, output: %s, err: %v", cmdLine, string(out), err)
-	}
+	return cim.WithCOMThread(func() error {
+		existing, err := cim.QueryISCSITargetPortal(portal.Address, portal.Port, nil)
+		if cim.IgnoreNotFound(err) != nil {
+			return fmt.Errorf("error query target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
+		}
 
-	return nil
+		if existing != nil {
+			klog.V(2).Infof("target portal at (%s:%d) already exists", portal.Address, portal.Port)
+			return nil
+		}
+
+		_, err = cim.NewISCSITargetPortal(portal.Address, portal.Port, nil, nil, nil, nil)
+		if err != nil {
+			return fmt.Errorf("error adding target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
+		}
+
+		return nil
+	})
 }
 
 func (iscsiAPI) DiscoverTargetPortal(portal *TargetPortal) ([]string, error) {
-	// ConvertTo-Json is not part of the pipeline because powershell converts an
-	// array with one element to a single element
-	cmdLine := fmt.Sprintf(
-		`ConvertTo-Json -InputObject @(Get-IscsiTargetPortal -TargetPortalAddress ` +
-			`${Env:iscsi_tp_address} -TargetPortalPortNumber ${Env:iscsi_tp_port} | ` +
-			`Get-IscsiTarget | Select-Object -ExpandProperty NodeAddress)`)
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port))
-	if err != nil {
-		return nil, fmt.Errorf("error discovering target portal. cmd: %s, output: %s, err: %w", cmdLine, string(out), err)
-	}
-
 	var iqns []string
-	err = json.Unmarshal(out, &iqns)
-	if err != nil {
-		return nil, fmt.Errorf("failed parsing IQN list. cmd: %s output: %s, err: %w", cmdLine, string(out), err)
-	}
+	err := cim.WithCOMThread(func() error {
+		targets, err := cim.ListISCSITargetsByTargetPortalAddressAndPort(portal.Address, portal.Port, nil)
+		if err != nil {
+			return fmt.Errorf("error list targets by target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
+		}
 
-	return iqns, nil
+		for _, target := range targets {
+			iqn, err := cim.GetISCSITargetNodeAddress(target)
+			if err != nil {
+				return fmt.Errorf("failed parsing node address of target %v to target portal at (%s:%d). err: %w", target, portal.Address, portal.Port, err)
+			}
+
+			iqns = append(iqns, iqn)
+		}
+
+		return nil
+	})
+	return iqns, err
 }
 
 func (iscsiAPI) ListTargetPortals() ([]TargetPortal, error) {
-	cmdLine := fmt.Sprintf(
-		`ConvertTo-Json -InputObject @(Get-IscsiTargetPortal | ` +
-			`Select-Object TargetPortalAddress, TargetPortalPortNumber)`)
-
-	out, err := utils.RunPowershellCmd(cmdLine)
-	if err != nil {
-		return nil, fmt.Errorf("error listing target portals. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
-	}
-
 	var portals []TargetPortal
-	err = json.Unmarshal(out, &portals)
-	if err != nil {
-		return nil, fmt.Errorf("failed parsing target portal list. cmd: %s output: %s, err: %w", cmdLine, string(out), err)
-	}
+	err := cim.WithCOMThread(func() error {
+		instances, err := cim.ListISCSITargetPortals(cim.ISCSITargetPortalDefaultSelectorList)
+		if err != nil {
+			return fmt.Errorf("error list target portals. err: %v", err)
+		}
 
-	return portals, nil
+		for _, instance := range instances {
+			address, port, err := cim.ParseISCSITargetPortal(instance)
+			if err != nil {
+				return fmt.Errorf("failed parsing target portal %v. err: %w", instance, err)
+			}
+
+			portals = append(portals, TargetPortal{
+				Address: address,
+				Port:    port,
+			})
+		}
+
+		return nil
+	})
+	return portals, err
 }
 
 func (iscsiAPI) RemoveTargetPortal(portal *TargetPortal) error {
-	cmdLine := fmt.Sprintf(
-		`Get-IscsiTargetPortal -TargetPortalAddress ${Env:iscsi_tp_address} ` +
-			`-TargetPortalPortNumber ${Env:iscsi_tp_port} | Remove-IscsiTargetPortal ` +
-			`-Confirm:$false`)
+	return cim.WithCOMThread(func() error {
+		instance, err := cim.QueryISCSITargetPortal(portal.Address, portal.Port, nil)
+		if err != nil {
+			return fmt.Errorf("error query target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
+		}
 
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port))
-	if err != nil {
-		return fmt.Errorf("error removing target portal. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
-	}
+		result, err := cim.RemoveISCSITargetPortal(instance)
+		if result != 0 || err != nil {
+			return fmt.Errorf("error removing target portal at (%s:%d). result: %d, err: %w", portal.Address, portal.Port, result, err)
+		}
 
-	return nil
+		return nil
+	})
 }
 
-func (iscsiAPI) ConnectTarget(portal *TargetPortal, iqn string,
-	authType string, chapUser string, chapSecret string) error {
-	// Not using InputObject as Connect-IscsiTarget's InputObject does not work.
-	// This is due to being a static WMI method together with a bug in the
-	// powershell version of the API.
-	cmdLine := fmt.Sprintf(
-		`Connect-IscsiTarget -TargetPortalAddress ${Env:iscsi_tp_address}` +
-			` -TargetPortalPortNumber ${Env:iscsi_tp_port} -NodeAddress ${Env:iscsi_target_iqn}` +
-			` -AuthenticationType ${Env:iscsi_auth_type}`)
+func (iscsiAPI) ConnectTarget(portal *TargetPortal, iqn string, authType string, chapUser string, chapSecret string) error {
+	return cim.WithCOMThread(func() error {
+		target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
+		if err != nil {
+			return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
 
-	if chapUser != "" {
-		cmdLine += ` -ChapUsername ${Env:iscsi_chap_user}`
-	}
+		connected, err := cim.IsISCSITargetConnected(target)
+		if err != nil {
+			return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
 
-	if chapSecret != "" {
-		cmdLine += ` -ChapSecret ${Env:iscsi_chap_secret}`
-	}
+		if connected {
+			klog.V(2).Infof("target %s from target portal at (%s:%d) is connected.", iqn, portal.Address, portal.Port)
+			return nil
+		}
 
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port),
-		fmt.Sprintf("iscsi_target_iqn=%s", iqn),
-		fmt.Sprintf("iscsi_auth_type=%s", authType),
-		fmt.Sprintf("iscsi_chap_user=%s", chapUser),
-		fmt.Sprintf("iscsi_chap_secret=%s", chapSecret))
-	if err != nil {
-		return fmt.Errorf("error connecting to target portal. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
-	}
+		targetAuthType := strings.ToUpper(strings.ReplaceAll(authType, "_", ""))
 
-	return nil
+		result, err := cim.ConnectISCSITarget(portal.Address, portal.Port, iqn, targetAuthType, &chapUser, &chapSecret)
+		if err != nil {
+			return fmt.Errorf("error connecting to target portal. result: %d, err: %w", result, err)
+		}
+
+		return nil
+	})
 }
 
 func (iscsiAPI) DisconnectTarget(portal *TargetPortal, iqn string) error {
-	// Using InputObject instead of pipe to verify input is not empty
-	cmdLine := fmt.Sprintf(
-		`Disconnect-IscsiTarget -InputObject (Get-IscsiTargetPortal ` +
-			`-TargetPortalAddress ${Env:iscsi_tp_address} -TargetPortalPortNumber ${Env:iscsi_tp_port} ` +
-			` | Get-IscsiTarget | Where-Object { $_.NodeAddress -eq ${Env:iscsi_target_iqn} }) ` +
-			`-Confirm:$false`)
+	return cim.WithCOMThread(func() error {
+		target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
+		if err != nil {
+			return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
 
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port),
-		fmt.Sprintf("iscsi_target_iqn=%s", iqn))
-	if err != nil {
-		return fmt.Errorf("error disconnecting from target portal. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
-	}
+		connected, err := cim.IsISCSITargetConnected(target)
+		if err != nil {
+			return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
 
-	return nil
+		if !connected {
+			klog.V(2).Infof("target %s from target portal at (%s:%d) is not connected.", iqn, portal.Address, portal.Port)
+			return nil
+		}
+
+		// get session
+		session, err := cim.QueryISCSISessionByTarget(target)
+		if err != nil {
+			return fmt.Errorf("error query session of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
+
+		sessionIdentifier, err := cim.GetISCSISessionIdentifier(session)
+		if err != nil {
+			return fmt.Errorf("error query session identifier of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
+
+		persistent, err := cim.IsISCSISessionPersistent(session)
+		if err != nil {
+			return fmt.Errorf("error query session persistency of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
+
+		if persistent {
+			result, err := cim.UnregisterISCSISession(session)
+			if err != nil {
+				return fmt.Errorf("error unregister session on target %s from target portal at (%s:%d). result: %d, err: %w", iqn, portal.Address, portal.Port, result, err)
+			}
+		}
+
+		result, err := cim.DisconnectISCSITarget(target, sessionIdentifier)
+		if err != nil {
+			return fmt.Errorf("error disconnecting target %s from target portal at (%s:%d). result: %d, err: %w", iqn, portal.Address, portal.Port, result, err)
+		}
+
+		return nil
+	})
 }
 
 func (iscsiAPI) GetTargetDisks(portal *TargetPortal, iqn string) ([]string, error) {
-	// Converting DiskNumber to string for compatibility with disk api group
-	// Not using pipeline in order to validate that items are non-empty
-	cmdLine := fmt.Sprintf(
-		`$ErrorActionPreference = "Stop"; ` +
-			`$tp = Get-IscsiTargetPortal -TargetPortalAddress ${Env:iscsi_tp_address} -TargetPortalPortNumber ${Env:iscsi_tp_port}; ` +
-			`$t = $tp | Get-IscsiTarget | Where-Object { $_.NodeAddress -eq ${Env:iscsi_target_iqn} }; ` +
-			`$c = Get-IscsiConnection -IscsiTarget $t; ` +
-			`$ids = $c | Get-Disk | Select -ExpandProperty Number | Out-String -Stream; ` +
-			`ConvertTo-Json -InputObject @($ids)`)
-
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_tp_address=%s", portal.Address),
-		fmt.Sprintf("iscsi_tp_port=%d", portal.Port),
-		fmt.Sprintf("iscsi_target_iqn=%s", iqn))
-	if err != nil {
-		return nil, fmt.Errorf("error getting target disks. cmd %s, output: %s, err: %w", cmdLine, string(out), err)
-	}
-
 	var ids []string
-	err = json.Unmarshal(out, &ids)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing iqn target disks. cmd: %s output: %s, err: %w", cmdLine, string(out), err)
-	}
+	err := cim.WithCOMThread(func() error {
+		target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
+		if err != nil {
+			return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
 
-	return ids, nil
+		connected, err := cim.IsISCSITargetConnected(target)
+		if err != nil {
+			return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
+
+		if !connected {
+			klog.V(2).Infof("target %s from target portal at (%s:%d) is not connected.", iqn, portal.Address, portal.Port)
+			return nil
+		}
+
+		disks, err := cim.ListDisksByTarget(target)
+		if err != nil {
+			return fmt.Errorf("error getting target disks on target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+		}
+
+		for _, disk := range disks {
+			number, err := cim.GetDiskNumber(disk)
+			if err != nil {
+				return fmt.Errorf("error getting number of disk %v on target %s from target portal at (%s:%d). err: %w", disk, iqn, portal.Address, portal.Port, err)
+			}
+
+			ids = append(ids, strconv.Itoa(int(number)))
+		}
+
+		return nil
+	})
+	return ids, err
 }
 
 func (iscsiAPI) SetMutualChapSecret(mutualChapSecret string) error {
-	cmdLine := `Set-IscsiChapSecret -ChapSecret ${Env:iscsi_mutual_chap_secret}`
-	out, err := utils.RunPowershellCmd(cmdLine, fmt.Sprintf("iscsi_mutual_chap_secret=%s", mutualChapSecret))
-	if err != nil {
-		return fmt.Errorf("error setting mutual chap secret. cmd %s,"+
-			" output: %s, err: %v", cmdLine, string(out), err)
-	}
+	return cim.WithCOMThread(func() error {
+		result, err := cim.SetISCSISessionChapSecret(mutualChapSecret)
+		if err != nil {
+			return fmt.Errorf("error setting mutual chap secret. result: %d, err: %v", result, err)
+		}
 
-	return nil
+		return nil
+	})
 }
