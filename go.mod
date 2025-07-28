@@ -1,13 +1,17 @@
 module github.com/kubernetes-csi/csi-proxy/v2
 
-go 1.22
+go 1.24.3
+
+godebug winsymlink=0
+
+toolchain go1.24.4
 
 require (
 	github.com/go-ole/go-ole v1.3.0
-	github.com/microsoft/wmi v0.25.1
+	github.com/microsoft/wmi v0.34.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/sys v0.25.0
+	golang.org/x/sys v0.32.0
 	k8s.io/klog/v2 v2.9.0
 )
 
