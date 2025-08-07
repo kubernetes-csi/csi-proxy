@@ -40,7 +40,7 @@ func IsPathValid(path string) (bool, error) {
 		return false, fmt.Errorf("failed to get path %s attribute: %w", path, err)
 	}
 
-	klog.V(6).Infof("Path %s attribute: %d", path, attrs)
+	klog.V(6).Infof("Path %s attribute: %O", path, attrs)
 	return attrs != windows.INVALID_FILE_ATTRIBUTES, nil
 }
 

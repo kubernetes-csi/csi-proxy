@@ -397,6 +397,7 @@ func (imp DiskAPI) SetDiskState(diskNumber uint32, isOnline bool) error {
 		}
 
 		if isOnline == !isOffline {
+			klog.V(2).Infof("Disk %d is already in the desired state", diskNumber)
 			return nil
 		}
 
