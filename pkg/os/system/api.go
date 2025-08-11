@@ -71,7 +71,7 @@ var (
 
 	serviceStateCheckInternal = 200 * time.Millisecond
 	serviceStateCheckTimeout  = 30 * time.Second
-	errTimedOut               = errors.New("Timed out")
+	errTimedOut               = errors.New("timed out")
 )
 
 func serviceStartModeToStartType(startMode string) uint32 {
