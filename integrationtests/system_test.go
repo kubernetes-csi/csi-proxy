@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"strings"
 	"testing"
 
@@ -25,13 +24,13 @@ func TestGetBIOSSerialNumber(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, response)
 
-		result, err := exec.Command("wmic", "bios", "get", "serialnumber").Output()
-		require.Nil(t, err)
+		serialNumber, err := runPowershellCmd(t, fmt.Sprintf(`(Get-CimInstance -ClassName Win32_BIOS).SerialNumber`))
+		if err != nil {
+			t.Fatalf("command to get serial number failed: %v", err)
+		}
+		t.Logf("The serial number is %s", serialNumber)
 
-		t.Logf("The serial number is %s", response.SerialNumber)
-
-		resultString := string(result)
-		require.True(t, strings.Contains(resultString, response.SerialNumber))
+		require.True(t, strings.Contains(serialNumber, response.SerialNumber))
 	})
 }
 
@@ -57,7 +56,7 @@ func TestServiceCommands(t *testing.T) {
 			ServiceName))
 		require.NoError(t, err)
 
-		var serviceInfo = struct {
+		serviceInfo := struct {
 			DisplayName string `json:"DisplayName"`
 			Status      uint32 `json:"Status"`
 			StartType   uint32 `json:"StartType"`
@@ -96,7 +95,6 @@ func TestServiceCommands(t *testing.T) {
 		assert.NotNil(t, stopResp)
 		assertServiceStopped(t, ServiceName)
 	})
-
 }
 
 func assertServiceStarted(t *testing.T, serviceName string) {
