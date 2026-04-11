@@ -2,18 +2,15 @@ package disk
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 	"syscall"
 	"unsafe"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
+	wmi "github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	shared "github.com/kubernetes-csi/csi-proxy/pkg/shared/disk"
 	"k8s.io/klog/v2"
-)
-
-var (
-	kernel32DLL = syscall.NewLazyDLL("kernel32.dll")
 )
 
 const (
@@ -65,160 +62,175 @@ func New() DiskAPI {
 // as the value. The DiskLocation struct has various fields like the Adapter, Bus, Target and LUNID.
 func (imp DiskAPI) ListDiskLocations() (map[uint32]shared.DiskLocation, error) {
 	m := make(map[uint32]shared.DiskLocation)
-	err := cim.WithCOMThread(func() error {
-		// "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
-		disks, err := cim.ListDisks(cim.DiskSelectorListForDiskNumberAndLocation)
-		if err != nil {
-			return fmt.Errorf("could not query disk locations")
-		}
-
-		for _, disk := range disks {
-			num, err := cim.GetDiskNumber(disk)
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			// "location":  "PCI Slot 3 : Adapter 0 : Port 0 : Target 1 : LUN 0"
+			disks, err := wmi.ListDisks(scope, wmi.DiskSelectorListForDiskNumberAndLocation)
 			if err != nil {
-				return fmt.Errorf("failed to query disk number: %v, %w", disk, err)
+				return fmt.Errorf("failed to list disks: %w", err)
 			}
 
-			location, err := cim.GetDiskLocation(disk)
-			if err != nil {
-				return fmt.Errorf("failed to query disk location: %v, %w", disk, err)
-			}
+			err = wmi.ForEach(disks, func(disk *wmi.COMDispatchObject) error {
+				num, err := wmi.GetDiskNumber(disk)
+				if err != nil {
+					return fmt.Errorf("failed to query disk number: %v, %w", disk, err)
+				}
 
-			found := false
-			s := strings.Split(location, ":")
-			if len(s) >= 5 {
-				var d shared.DiskLocation
-				for _, item := range s {
-					item = strings.TrimSpace(item)
-					itemSplit := strings.Split(item, " ")
-					if len(itemSplit) == 2 {
-						found = true
-						switch strings.TrimSpace(itemSplit[0]) {
-						case "Adapter":
-							d.Adapter = strings.TrimSpace(itemSplit[1])
-						case "Target":
-							d.Target = strings.TrimSpace(itemSplit[1])
-						case "LUN":
-							d.LUNID = strings.TrimSpace(itemSplit[1])
-						default:
-							klog.Warningf("Got unknown field : %s=%s", itemSplit[0], itemSplit[1])
+				location, err := wmi.GetDiskLocation(disk)
+				if err != nil {
+					return fmt.Errorf("failed to query disk location: %v, %w", disk, err)
+				}
+
+				found := false
+				s := strings.Split(location, ":")
+				if len(s) >= 5 {
+					var d shared.DiskLocation
+					for _, item := range s {
+						item = strings.TrimSpace(item)
+						itemSplit := strings.Split(item, " ")
+						if len(itemSplit) == 2 {
+							found = true
+							switch strings.TrimSpace(itemSplit[0]) {
+							case "Adapter":
+								d.Adapter = strings.TrimSpace(itemSplit[1])
+							case "Target":
+								d.Target = strings.TrimSpace(itemSplit[1])
+							case "LUN":
+								d.LUNID = strings.TrimSpace(itemSplit[1])
+							case "Bus":
+								d.Bus = strings.TrimSpace(itemSplit[1])
+							default:
+								klog.Warningf("Got unknown field : %s=%s", itemSplit[0], itemSplit[1])
+							}
 						}
 					}
-				}
 
-				if found {
-					m[num] = d
+					if found {
+						m[num] = d
+					}
 				}
-			}
-		}
-
-		return nil
+				return nil
+			})
+			return err
+		})
 	})
 	return m, err
 }
 
 func (imp DiskAPI) Rescan() error {
-	return cim.WithCOMThread(func() error {
-		result, err := cim.RescanDisks()
+	return wmi.WithCOMThread(func() error {
+		err := wmi.RescanDisks()
 		if err != nil {
-			return fmt.Errorf("error updating host storage cache output. result: %d, err: %v", result, err)
+			return fmt.Errorf("error updating host storage cache output. err: %w", err)
 		}
 		return nil
 	})
 }
 
 func (imp DiskAPI) IsDiskInitialized(diskNumber uint32) (bool, error) {
-	var partitionStyle int32
-	err := cim.WithCOMThread(func() error {
-		disk, err := cim.QueryDiskByNumber(diskNumber, cim.DiskSelectorListForPartitionStyle)
-		if err != nil {
-			return fmt.Errorf("error checking initialized status of disk %d: %v", diskNumber, err)
-		}
+	var partitionStyle uint16
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForPartitionStyle)
+			if err != nil {
+				return fmt.Errorf("error checking initialized status of disk %d: %w", diskNumber, err)
+			}
 
-		partitionStyle, err = cim.GetDiskPartitionStyle(disk)
-		if err != nil {
-			return fmt.Errorf("failed to query partition style of disk %d: %v", diskNumber, err)
-		}
+			partitionStyle, err = wmi.GetDiskPartitionStyle(disk)
+			if err != nil {
+				return fmt.Errorf("failed to query partition style of disk %d: %w", diskNumber, err)
+			}
 
-		return nil
+			return nil
+		})
 	})
-	return partitionStyle != cim.PartitionStyleUnknown, err
+	return partitionStyle != wmi.PartitionStyleUnknown, err
 }
 
 func (imp DiskAPI) InitializeDisk(diskNumber uint32) error {
-	return cim.WithCOMThread(func() error {
-		disk, err := cim.QueryDiskByNumber(diskNumber, nil)
-		if err != nil {
-			return fmt.Errorf("failed to initializing disk %d. error: %w", diskNumber, err)
-		}
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, nil)
+			if err != nil {
+				return fmt.Errorf("failed to initializing disk %d. error: %w", diskNumber, err)
+			}
 
-		result, err := cim.InitializeDisk(disk, cim.PartitionStyleGPT)
-		if result != 0 || err != nil {
-			return fmt.Errorf("failed to initializing disk %d: result %d, error: %w", diskNumber, result, err)
-		}
+			err = wmi.InitializeDisk(disk, wmi.PartitionStyleGPT)
+			if err != nil {
+				return fmt.Errorf("failed to initializing disk %d: error: %w", diskNumber, err)
+			}
 
-		return nil
+			return nil
+		})
 	})
 }
 
 func (imp DiskAPI) BasicPartitionsExist(diskNumber uint32) (bool, error) {
 	var exist bool
-	err := cim.WithCOMThread(func() error {
-		partitions, err := cim.ListPartitionsWithFilters(nil, cim.FilterForPartitionOnDisk(diskNumber), cim.FilterForPartitionsOfTypeNormal())
-		if cim.IgnoreNotFound(err) != nil {
-			return fmt.Errorf("error checking presence of partitions on disk %d:, %v", diskNumber, err)
-		}
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			partitions, err := wmi.ListPartitionsWithFilters(scope, nil, wmi.FilterForPartitionOnDisk(diskNumber), wmi.FilterForPartitionsOfTypeNormal())
+			if err != nil {
+				return fmt.Errorf("error checking presence of partitions on disk %d:, %w", diskNumber, err)
+			}
 
-		exist = len(partitions) > 0
-		return nil
+			exist = len(partitions) > 0
+			return nil
+		})
 	})
 	return exist, err
 }
 
 func (imp DiskAPI) CreateBasicPartition(diskNumber uint32) error {
-	return cim.WithCOMThread(func() error {
-		disk, err := cim.QueryDiskByNumber(diskNumber, nil)
-		if err != nil {
-			return err
-		}
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, nil)
+			if err != nil {
+				return err
+			}
 
-		result, err := cim.CreatePartition(
-			disk,
-			nil,                           // Size
-			true,                          // UseMaximumSize
-			nil,                           // Offset
-			nil,                           // Alignment
-			nil,                           // DriveLetter
-			false,                         // AssignDriveLetter
-			nil,                           // MbrType,
-			cim.GPTPartitionTypeBasicData, // GPT Type
-			false,                         // IsHidden
-			false,                         // IsActive,
-		)
-		if (result != 0 && result != cim.ErrorCodeCreatePartitionAccessPathAlreadyInUse) || err != nil {
-			return fmt.Errorf("error creating partition on disk %d. result: %d, err: %v", diskNumber, result, err)
-		}
+			err = wmi.CreatePartition(
+				disk,
+				nil,                           // Size
+				true,                          // UseMaximumSize
+				nil,                           // Offset
+				nil,                           // Alignment
+				nil,                           // DriveLetter
+				false,                         // AssignDriveLetter
+				nil,                           // MbrType,
+				wmi.GPTPartitionTypeBasicData, // GPT Type
+				false,                         // IsHidden
+				false,                         // IsActive,
+			)
+			if err != nil {
+				var werr *wmi.WMIError
+				if !errors.As(err, &werr) || werr.Code != wmi.ErrorCodeCreatePartitionAccessPathAlreadyInUse {
+					return fmt.Errorf("error creating partition on disk %d. err: %w", diskNumber, err)
+				}
+			}
 
-		result, _, err = cim.RefreshDisk(disk)
-		if result != 0 || err != nil {
-			return fmt.Errorf("error rescan disk (%d). result %d, error: %v", diskNumber, result, err)
-		}
+			_, err = wmi.RefreshDisk(disk)
+			if err != nil {
+				return fmt.Errorf("error rescan disk (%d). error: %w", diskNumber, err)
+			}
 
-		partitions, err := cim.ListPartitionsWithFilters(nil, cim.FilterForPartitionOnDisk(diskNumber), cim.FilterForPartitionsOfTypeNormal())
-		if err != nil {
-			return fmt.Errorf("error query basic partition on disk %d:, %v", diskNumber, err)
-		}
+			partitions, err := wmi.ListPartitionsWithFilters(scope, nil, wmi.FilterForPartitionOnDisk(diskNumber), wmi.FilterForPartitionsOfTypeNormal())
+			if err != nil {
+				return fmt.Errorf("error query basic partition on disk %d:, %w", diskNumber, err)
+			}
 
-		if len(partitions) == 0 {
-			return fmt.Errorf("failed to create basic partition on disk %d:, %v", diskNumber, err)
-		}
+			if len(partitions) == 0 {
+				return fmt.Errorf("failed to create basic partition on disk %d:, %w", diskNumber, err)
+			}
 
-		partition := partitions[0]
-		result, status, err := cim.SetPartitionState(partition, true)
-		if result != 0 || err != nil {
-			return fmt.Errorf("error bring partition %v on disk %d online. result: %d, status %s, err: %v", partition, diskNumber, result, status, err)
-		}
+			partition := partitions[0]
+			status, err := wmi.SetPartitionState(partition, true)
+			if err != nil {
+				return fmt.Errorf("error bring partition %v on disk %d online. status %s, err: %w", partition, diskNumber, status, err)
+			}
 
-		return nil
+			return nil
+		})
 	})
 }
 
@@ -252,7 +264,7 @@ func (imp DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 	querySize := uint32(unsafe.Sizeof(query))
 	err := syscall.DeviceIoControl(disk, IOCTL_STORAGE_QUERY_PROPERTY, (*byte)(unsafe.Pointer(&query)), querySize, (*byte)(unsafe.Pointer(&buffer[0])), bufferSize, &size, nil)
 	if err != nil {
-		return "", fmt.Errorf("IOCTL_STORAGE_QUERY_PROPERTY failed: %v", err)
+		return "", fmt.Errorf("IOCTL_STORAGE_QUERY_PROPERTY failed: %w", err)
 	}
 
 	devIDDesc := (*StorageDeviceIDDescriptor)(unsafe.Pointer(&buffer[0]))
@@ -280,30 +292,41 @@ func (imp DiskAPI) GetDiskPage83ID(disk syscall.Handle) (string, error) {
 
 func (imp DiskAPI) GetDiskNumberWithID(page83ID string) (uint32, error) {
 	var diskNumberResult uint32
-	err := cim.WithCOMThread(func() error {
-		disks, err := cim.ListDisks(cim.DiskSelectorListForPathAndSerialNumber)
-		if err != nil {
-			return err
-		}
-
-		for _, disk := range disks {
-			path, err := cim.GetDiskPath(disk)
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disks, err := wmi.ListDisks(scope, wmi.DiskSelectorListForPathAndSerialNumber)
 			if err != nil {
-				return fmt.Errorf("failed to query disk path: %v, %w", disk, err)
+				return fmt.Errorf("failed to list disks: %w", err)
 			}
 
-			diskNumber, diskPage83ID, err := imp.GetDiskNumberAndPage83ID(path)
+			found := false
+			err = wmi.ForEach(disks, func(disk *wmi.COMDispatchObject) error {
+				path, err := wmi.GetDiskPath(disk)
+				if err != nil {
+					return fmt.Errorf("failed to query disk path: %v, %w", disk, err)
+				}
+
+				diskNumber, diskPage83ID, err := imp.GetDiskNumberAndPage83ID(path)
+				if err != nil {
+					return err
+				}
+
+				if diskPage83ID == page83ID {
+					diskNumberResult = diskNumber
+					found = true
+					return wmi.ErrStopIteration
+				}
+				return nil
+			})
 			if err != nil {
 				return err
 			}
 
-			if diskPage83ID == page83ID {
-				diskNumberResult = diskNumber
-				return nil
+			if !found {
+				return fmt.Errorf("could not find disk with Page83 ID %s: %w", page83ID, wmi.ErrNotFound)
 			}
-		}
-
-		return fmt.Errorf("could not find disk with Page83 ID %s", page83ID)
+			return nil
+		})
 	})
 	return diskNumberResult, err
 }
@@ -332,98 +355,107 @@ func (imp DiskAPI) GetDiskNumberAndPage83ID(path string) (uint32, string, error)
 // as the value. The DiskID struct has a field for the page83 ID.
 func (imp DiskAPI) ListDiskIDs() (map[uint32]shared.DiskIDs, error) {
 	m := make(map[uint32]shared.DiskIDs)
-	err := cim.WithCOMThread(func() error {
-		disks, err := cim.ListDisks(cim.DiskSelectorListForPathAndSerialNumber)
-		if err != nil {
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disks, err := wmi.ListDisks(scope, wmi.DiskSelectorListForPathAndSerialNumber)
+			if err != nil {
+				return fmt.Errorf("failed to list disks: %w", err)
+			}
+
+			err = wmi.ForEach(disks, func(disk *wmi.COMDispatchObject) error {
+				path, err := wmi.GetDiskPath(disk)
+				if err != nil {
+					return fmt.Errorf("failed to query disk path: %v, %w", disk, err)
+				}
+
+				sn, err := wmi.GetDiskSerialNumber(disk)
+				if err != nil {
+					return fmt.Errorf("failed to query disk serial number: %v, %w", disk, err)
+				}
+
+				diskNumber, page83, err := imp.GetDiskNumberAndPage83ID(path)
+				if err != nil {
+					return err
+				}
+
+				m[diskNumber] = shared.DiskIDs{
+					Page83:       page83,
+					SerialNumber: sn,
+				}
+				return nil
+			})
 			return err
-		}
-
-		for _, disk := range disks {
-			path, err := cim.GetDiskPath(disk)
-			if err != nil {
-				return fmt.Errorf("failed to query disk path: %v, %w", disk, err)
-			}
-
-			sn, err := cim.GetDiskSerialNumber(disk)
-			if err != nil {
-				return fmt.Errorf("failed to query disk serial number: %v, %w", disk, err)
-			}
-
-			diskNumber, page83, err := imp.GetDiskNumberAndPage83ID(path)
-			if err != nil {
-				return err
-			}
-
-			m[diskNumber] = shared.DiskIDs{
-				Page83:       page83,
-				SerialNumber: sn,
-			}
-		}
-
-		return nil
+		})
 	})
 	return m, err
 }
 
-func (imp DiskAPI) GetDiskStats(diskNumber uint32) (int64, error) {
+func (imp DiskAPI) GetDiskStats(diskNumber uint32) (size int64, err error) {
 	// TODO: change to uint64 as it does not make sense to use int64 for size
-	size := int64(-1)
-	err := cim.WithCOMThread(func() error {
-		disk, err := cim.QueryDiskByNumber(diskNumber, cim.DiskSelectorListForSize)
-		if err != nil {
-			return err
-		}
+	size = -1
+	err = wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForSize)
+			if err != nil {
+				return err
+			}
 
-		size, err = cim.GetDiskSize(disk)
-		if err != nil {
-			return fmt.Errorf("failed to query size of disk %d. %v", diskNumber, err)
-		}
+			sz, err := wmi.GetDiskSize(disk)
+			if err != nil {
+				return fmt.Errorf("failed to query size of disk %d. %w", diskNumber, err)
+			}
 
-		return nil
+			size = int64(sz)
+			return nil
+		})
 	})
 	return size, err
 }
 
 func (imp DiskAPI) SetDiskState(diskNumber uint32, isOnline bool) error {
-	return cim.WithCOMThread(func() error {
-		disk, err := cim.QueryDiskByNumber(diskNumber, cim.DiskSelectorListForIsOffline)
-		if err != nil {
-			return err
-		}
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForIsOffline)
+			if err != nil {
+				return err
+			}
 
-		isOffline, err := cim.IsDiskOffline(disk)
-		if err != nil {
-			return fmt.Errorf("error setting disk %d attach state. error: %v", diskNumber, err)
-		}
+			isOffline, err := wmi.IsDiskOffline(disk)
+			if err != nil {
+				return fmt.Errorf("error setting disk %d attach state. error: %w", diskNumber, err)
+			}
 
-		if isOnline == !isOffline {
-			klog.V(2).Infof("Disk %d is already in the desired state", diskNumber)
+			if isOnline == !isOffline {
+				klog.V(2).Infof("Disk %d is already in the desired state", diskNumber)
+				return nil
+			}
+
+			_, err = wmi.SetDiskState(disk, isOnline)
+			if err != nil {
+				return fmt.Errorf("setting disk %d attach state (isOnline: %v): error: %w", diskNumber, isOnline, err)
+			}
+
 			return nil
-		}
-
-		result, _, err := cim.SetDiskState(disk, isOnline)
-		if result != 0 || err != nil {
-			return fmt.Errorf("setting disk %d attach state (isOnline: %v): result %d, error: %w", diskNumber, isOnline, result, err)
-		}
-
-		return nil
+		})
 	})
 }
 
 func (imp DiskAPI) GetDiskState(diskNumber uint32) (bool, error) {
 	var isOffline bool
-	err := cim.WithCOMThread(func() error {
-		disk, err := cim.QueryDiskByNumber(diskNumber, cim.DiskSelectorListForIsOffline)
-		if err != nil {
-			return err
-		}
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForIsOffline)
+			if err != nil {
+				return err
+			}
 
-		isOffline, err = cim.IsDiskOffline(disk)
-		if err != nil {
-			return fmt.Errorf("error parsing disk %d state. error: %v", diskNumber, err)
-		}
+			isOffline, err = wmi.IsDiskOffline(disk)
+			if err != nil {
+				return fmt.Errorf("error parsing disk %d state. error: %w", diskNumber, err)
+			}
 
-		return nil
+			return nil
+		})
 	})
 	return !isOffline, err
 }
