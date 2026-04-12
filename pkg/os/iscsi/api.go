@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	wmi "github.com/kubernetes-csi/csi-proxy/pkg/cim"
+	"github.com/kubernetes-csi/csi-proxy/pkg/wmi"
 	"k8s.io/klog/v2"
 )
 

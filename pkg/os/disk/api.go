@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	wmi "github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	shared "github.com/kubernetes-csi/csi-proxy/pkg/shared/disk"
+	"github.com/kubernetes-csi/csi-proxy/pkg/wmi"
 	"k8s.io/klog/v2"
 )
 

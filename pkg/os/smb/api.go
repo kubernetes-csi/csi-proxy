@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	wmi "github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/pkg/wmi"
 )
 
 type API interface {
