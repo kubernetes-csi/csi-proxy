@@ -5,8 +5,6 @@ module github.com/kubernetes-csi/csi-proxy
 
 go 1.24.3
 
-godebug winsymlink=0
-
 toolchain go1.24.4
 
 require (
