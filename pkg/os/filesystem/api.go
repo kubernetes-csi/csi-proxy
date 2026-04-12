@@ -115,7 +115,7 @@ func (filesystemAPI) IsSymlink(tgt string) (bool, error) {
 	if isSymlink || mountedFolder {
 		target, err := os.Readlink(tgt)
 		if err != nil {
-			return false, fmt.Errorf("readlink error: %v", err)
+			return false, fmt.Errorf("readlink error: %w", err)
 		}
 		exists, err := utils.PathExists(target)
 		if err != nil {

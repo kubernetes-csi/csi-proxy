@@ -25,6 +25,9 @@ $ProgressPreference = "SilentlyContinue"
 # Install iSCSI Target
 Install-WindowsFeature FS-iSCSITarget-Server
 
+# Start iSCSI initiator
+Start-Service "MsiSCSI"
+
 # Setup for loopback usage
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\iSCSI Target" -Name AllowLoopBack -Value 1
 Restart-Service WinTarget
