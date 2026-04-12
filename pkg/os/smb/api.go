@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/pkg/cim"
+	wmi "github.com/kubernetes-csi/csi-proxy/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/pkg/utils"
 )
 
@@ -29,21 +29,23 @@ func New(requirePrivacy bool) *SmbAPI {
 
 func (*SmbAPI) IsSmbMapped(remotePath string) (bool, error) {
 	var isMapped bool
-	err := cim.WithCOMThread(func() error {
-		inst, err := cim.QuerySmbGlobalMappingByRemotePath(remotePath)
-		if err != nil {
-			return err
-		}
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			inst, err := wmi.QuerySmbGlobalMappingByRemotePath(scope, remotePath)
+			if err != nil {
+				return err
+			}
 
-		status, err := cim.GetSmbGlobalMappingStatus(inst)
-		if err != nil {
-			return err
-		}
+			status, err := wmi.GetSmbGlobalMappingStatus(inst)
+			if err != nil {
+				return err
+			}
 
-		isMapped = status == cim.SmbMappingStatusOK
-		return nil
+			isMapped = status == wmi.SmbMappingStatusOK
+			return nil
+		})
 	})
-	return isMapped, cim.IgnoreNotFound(err)
+	return isMapped, wmi.IgnoreNotFound(err)
 }
 
 // NewSmbLink - creates a directory symbolic link to the remote share.
@@ -60,28 +62,30 @@ func (*SmbAPI) NewSmbLink(remotePath, localPath string) error {
 
 	err := utils.CreateSymlink(longLocalPath, longRemotePath, true)
 	if err != nil {
-		return fmt.Errorf("error linking %s to %s. err: %v", remotePath, localPath, err)
+		return fmt.Errorf("error linking %s to %s. err: %w", remotePath, localPath, err)
 	}
 
 	return nil
 }
 
 func (api *SmbAPI) NewSmbGlobalMapping(remotePath, username, password string) error {
-	return cim.WithCOMThread(func() error {
-		result, err := cim.NewSmbGlobalMapping(remotePath, username, password, api.RequirePrivacy)
+	return wmi.WithCOMThread(func() error {
+		err := wmi.NewSmbGlobalMapping(remotePath, username, password, api.RequirePrivacy)
 		if err != nil {
-			return fmt.Errorf("NewSmbGlobalMapping failed. result: %d, err: %v", result, err)
+			return fmt.Errorf("NewSmbGlobalMapping failed. err: %w", err)
 		}
 		return nil
 	})
 }
 
 func (*SmbAPI) RemoveSmbGlobalMapping(remotePath string) error {
-	return cim.WithCOMThread(func() error {
-		err := cim.RemoveSmbGlobalMappingByRemotePath(remotePath)
-		if err != nil {
-			return fmt.Errorf("error remove smb mapping '%s'. err: %v", remotePath, err)
-		}
-		return nil
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			err := wmi.RemoveSmbGlobalMappingByRemotePath(scope, remotePath)
+			if err != nil {
+				return fmt.Errorf("error remove smb mapping '%s'. err: %w", remotePath, err)
+			}
+			return nil
+		})
 	})
 }
