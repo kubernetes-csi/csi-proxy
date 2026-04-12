@@ -4,7 +4,7 @@
 ## Table of Contents
 
 - [Windows Management Instrumentation](#wmi)
-- [microsoft/wmi library](#microsoft-wmi-library)
+- [WMI implementation in csi-proxy](#wmi-implementation)
 - [How to make WMI queries and debug with PowerShell](#debug-powershell)
 
 
@@ -16,27 +16,25 @@ Refer to [WMI start page](https://learn.microsoft.com/en-us/windows/win32/wmisdk
 
 The purpose of WMI is to define a proprietary set of environment-independent specifications that enable sharing management information between management apps.
 
-CSI-proxy makes WMI queries using `microsoft/wmi` library. Refer to for the call graph below.
+CSI-proxy makes WMI queries using `go-ole` library. Refer to for the call graph below.
 
-<a name="microsoft-wmi-library"></a>
-## microsoft/wmi library
+<a name="wmi-implementation"></a>
+## WMI implementation in csi-proxy
 
 ![WMI based implementation](./WMI.png)
 
-`microsoft/wmi` library leverages the traditional COM interfaces (`IDispatch`) to call the WMI.
+CSI-proxy leverages the traditional COM interfaces (`IDispatch`) via `github.com/go-ole/go-ole` to call the WMI.
 
 COM interfaces wrap the parameters and return value in a `VARIANT` struct.
-`microsoft/wmi` library converts the `VARIANT` to native Go types and struct.
+The `pkg/wmi` package provides helpers to convert the `VARIANT` to native Go types and structs.
 
-A typical WMI query may need to obtain a WMI session of the target machine first, which
-can be done by the helper methods `NewWMISession` and `QueryFromWMI` in `pkg/cim`.
+A typical WMI query can be performed using the helper methods `QueryObjectsWithBuilder` or `QueryFirstObjectWithBuilder` in `pkg/wmi`.
 
 A query like `SELECT * FROM MSFT_Volume` may return all the volumes on the current node.
 
 ### Queries
 
-The query may return a list of WMI objects of the generic type `cim.WmiInstance`. You may further cast
-the object down to a specific WMI class (e.g. `MSFT_Disk`). You may find the WMI class definition
+The query may return a list of WMI objects of the generic type `wmi.COMDispatchObject`. You may find the WMI class definition
 from the API doc.
 
 For example, the property `PartitionStyle` on [MSFT_Disk](https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-disk#properties) is defined as
@@ -61,17 +59,15 @@ if err != nil {
 partitionStyle = retValue.(int32)
 ```
 
-Note that some auto-generated wrapper methods in `microsoft/wmi` may have wrong data types mapping to Go native types.
-It's always recommended to use `GetProperty` instead of these pre-defined wrapper methods.
 
 ### Class Method
 
 A WMI class may have some Class Method to call for a specific operation (e.g., creating a new partition).
 
-You may use the method `InvokeMethodWithReturn`.
+You may use the method `CallMethod`.
 
 ```go
-result, err := disk.InvokeMethodWithReturn(
+resultVariant, err := disk.CallMethod(
     "CreatePartition",
     nil,                           // Size
     true,                          // UseMaximumSize
@@ -84,9 +80,13 @@ result, err := disk.InvokeMethodWithReturn(
     false,                         // IsHidden
     false,                         // IsActive,
 )
+if err != nil {
+    return fmt.Errorf("error creating partition on disk %d: %v", diskNumber, err)
+}
+result := int(resultVariant.Value().(int32))
 // 42002 is returned by driver letter failed to assign after partition
-if (result != 0 && result != 42002) || err != nil {
-    return fmt.Errorf("error creating partition on disk %d. result: %d, err: %v", diskNumber, result, err)
+if result != 0 && result != 42002 {
+    return fmt.Errorf("error creating partition on disk %d. result: %d", diskNumber, result)
 }
 ```
 
@@ -133,6 +133,13 @@ can be used to retrieve a volume (`MSFT_Volume`) from a partition (`MSFT_Partiti
 
 ```go
 collection, err := part.GetAssociated("MSFT_PartitionToVolume", "MSFT_Volume", "Volume", "Partition")
+if err != nil {
+    return err
+}
+// collection is a []*COMDispatchObject
+for _, vol := range collection {
+    // ...
+}
 ```
 
 ### Disable checkptr
@@ -144,14 +151,14 @@ COM APIs (like IDispatch.Invoke, Variant, BSTR, IUnknown**, etc.) frequently use
 
 These patterns are common and valid in C/C++, but violate Go’s unsafe.Pointer rules when interpreted literally - even if they are functionally correct.
 
-Therefore, you should make sure `-gcflags=all=-d=checkptr=0` when calling `microsoft/wmi`.
+Therefore, you should make sure `-gcflags=all=-d=checkptr=0` when calling `go-ole`.
 
 <a name="debug-powershell"></a>
 ## Debug with PowerShell
 
 ### How to make WMI call with PowerShell
 
-You will find the `Query` for each method in `pkg/cim` package.
+You will find the `Query` for each method in `pkg/wmi` package.
 For example, this is the comment of `ListVolume`
 
 ```go
