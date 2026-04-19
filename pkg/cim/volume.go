@@ -1,6 +1,22 @@
 //go:build windows
 // +build windows
 
+/*
+Copyright 2025 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package cim
 
 import (
@@ -8,13 +24,13 @@ import (
 	"strconv"
 
 	"github.com/go-ole/go-ole"
-	"github.com/microsoft/wmi/pkg/base/query"
-	"github.com/microsoft/wmi/pkg/errors"
-	"github.com/microsoft/wmi/server2019/root/microsoft/windows/storage"
 	"k8s.io/klog/v2"
 )
 
 const (
+	MSFTVolumeClass    = "MSFT_Volume"
+	MSFTPartitionClass = "MSFT_Partition"
+
 	FileSystemUnknown = 0
 )
 
@@ -35,33 +51,38 @@ var (
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-volume
 // for the WMI class definition.
-func QueryVolumeByUniqueID(volumeID string, selectorList []string) (*storage.MSFT_Volume, error) {
-	var selectors []string
-	selectors = append(selectors, selectorList...)
-	selectors = append(selectors, "UniqueId")
-	volumeQuery := query.NewWmiQueryWithSelectList("MSFT_Volume", selectors)
-	instances, err := QueryInstances(WMINamespaceStorage, volumeQuery)
+func QueryVolumeByUniqueID(scope *Scope, volumeID string, selectorList []string) (*COMDispatchObject, error) {
+	q := NewQuery(MSFTVolumeClass).WithNamespace(WMINamespaceStorage).
+		Select(selectorList...).
+		Select("UniqueId")
+
+	instances, err := QueryObjectsWithBuilder(scope, q)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, instance := range instances {
-		volume, err := storage.NewMSFT_VolumeEx1(instance)
+	var result *COMDispatchObject
+	err = ForEach(instances, func(volume *COMDispatchObject) error {
+		uniqueID, err := GetVolumeUniqueID(volume)
 		if err != nil {
-			return nil, fmt.Errorf("failed to query volume (%s). error: %w", volumeID, err)
+			return fmt.Errorf("failed to query volume unique ID (%s). error: %w", volumeID, err)
 		}
-
-		uniqueID, err := volume.GetPropertyUniqueId()
-		if err != nil {
-			return nil, fmt.Errorf("failed to query volume unique ID (%s). error: %w", volumeID, err)
-		}
-
 		if uniqueID == volumeID {
-			return volume, nil
+			result = volume
+			return ErrStopIteration
 		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, errors.NotFound
+	if result == nil {
+		return nil, ErrNotFound
+	}
+
+	return result, nil
 }
 
 // ListVolumes retrieves all available volumes on the system.
@@ -72,83 +93,99 @@ func QueryVolumeByUniqueID(volumeID string, selectorList []string) (*storage.MSF
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-volume
 // for the WMI class definition.
-func ListVolumes(selectorList []string) ([]*storage.MSFT_Volume, error) {
-	diskQuery := query.NewWmiQueryWithSelectList("MSFT_Volume", selectorList)
-	instances, err := QueryInstances(WMINamespaceStorage, diskQuery)
-	if IgnoreNotFound(err) != nil {
+func ListVolumes(scope *Scope, selectorList []string) ([]*COMDispatchObject, error) {
+	q := NewQuery(MSFTVolumeClass).WithNamespace(WMINamespaceStorage).Select(selectorList...)
+	instances, err := QueryObjectsWithBuilder(scope, q)
+	if err != nil {
 		return nil, err
 	}
 
-	var volumes []*storage.MSFT_Volume
-	for _, instance := range instances {
-		volume, err := storage.NewMSFT_VolumeEx1(instance)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query volume %v. error: %v", instance, err)
-		}
-
-		volumes = append(volumes, volume)
-	}
-
-	return volumes, nil
+	return instances, nil
 }
 
 // FormatVolume formats the specified volume.
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/format-msft-volume
 // for the WMI method definition.
-func FormatVolume(volume *storage.MSFT_Volume, params ...interface{}) (int, error) {
-	result, err := volume.InvokeMethodWithReturn("Format", params...)
-	return int(result), err
+func FormatVolume(volume *COMDispatchObject, params ...interface{}) error {
+	result, err := volume.CallUint32("Format", params...)
+	if err != nil {
+		return fmt.Errorf("failed to format volume %v. error: %w", volume, err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTVolumeClass, "Format", volume.Dispatch(), result)
+	}
+	return nil
 }
 
 // FlushVolume flushes the cached data in the volume's file system to disk.
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-volume-flush
 // for the WMI method definition.
-func FlushVolume(volume *storage.MSFT_Volume) (int, error) {
-	result, err := volume.Flush()
-	return int(result), err
+func FlushVolume(volume *COMDispatchObject) error {
+	result, err := volume.CallUint32("Flush")
+	if err != nil {
+		return fmt.Errorf("failed to flush volume %v. error: %w", volume, err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTVolumeClass, "Flush", volume.Dispatch(), result)
+	}
+	return nil
 }
 
 // GetVolumeUniqueID returns the unique ID (object ID) of a volume.
-func GetVolumeUniqueID(volume *storage.MSFT_Volume) (string, error) {
-	return volume.GetPropertyUniqueId()
+func GetVolumeUniqueID(volume *COMDispatchObject) (string, error) {
+	uniqueID, err := volume.GetProperty("UniqueId")
+	if err != nil {
+		return "", err
+	}
+	return NewSafeVariant(uniqueID).String(), nil
 }
 
 // GetVolumeFileSystemType returns the file system type of a volume.
-func GetVolumeFileSystemType(volume *storage.MSFT_Volume) (int32, error) {
+func GetVolumeFileSystemType(volume *COMDispatchObject) (uint16, error) {
 	fsType, err := volume.GetProperty("FileSystemType")
 	if err != nil {
 		return 0, err
 	}
-	return fsType.(int32), nil
+	return NewSafeVariant(fsType).Uint16(), nil
 }
 
 // GetVolumeSize returns the size of a volume.
-func GetVolumeSize(volume *storage.MSFT_Volume) (int64, error) {
+func GetVolumeSize(volume *COMDispatchObject) (uint64, error) {
 	volumeSizeVal, err := volume.GetProperty("Size")
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 
-	volumeSize, err := strconv.ParseInt(volumeSizeVal.(string), 10, 64)
+	val := NewSafeVariant(volumeSizeVal).String()
+	if val == "" {
+		return 0, fmt.Errorf("volume size is empty")
+	}
+
+	volumeSize, err := strconv.ParseUint(val, 10, 64)
 	if err != nil {
-		return -1, err
+		return 0, fmt.Errorf("failed to get volume size %v. error: %w", volume, err)
 	}
 
-	return volumeSize, err
+	return volumeSize, nil
 }
 
 // GetVolumeSizeRemaining returns the remaining size of a volume.
-func GetVolumeSizeRemaining(volume *storage.MSFT_Volume) (int64, error) {
+func GetVolumeSizeRemaining(volume *COMDispatchObject) (uint64, error) {
 	volumeSizeRemainingVal, err := volume.GetProperty("SizeRemaining")
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 
-	volumeSizeRemaining, err := strconv.ParseInt(volumeSizeRemainingVal.(string), 10, 64)
+	val := NewSafeVariant(volumeSizeRemainingVal).String()
+	if val == "" {
+		return 0, fmt.Errorf("volume size remaining is empty")
+	}
+
+	volumeSizeRemaining, err := strconv.ParseUint(val, 10, 64)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 
 	return volumeSizeRemaining, err
@@ -164,14 +201,14 @@ func GetVolumeSizeRemaining(volume *storage.MSFT_Volume) (int64, error) {
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition
 // for the WMI class definition.
-func ListPartitionsOnDisk(diskNumber, partitionNumber uint32, selectorList []string) ([]*storage.MSFT_Partition, error) {
-	filters := []*query.WmiQueryFilter{
-		query.NewWmiQueryFilter("DiskNumber", strconv.Itoa(int(diskNumber)), query.Equals),
+func ListPartitionsOnDisk(scope *Scope, diskNumber, partitionNumber uint32, selectorList []string) ([]*COMDispatchObject, error) {
+	filters := []Condition{
+		WithCondition("DiskNumber", "=", strconv.FormatUint(uint64(diskNumber), 10)),
 	}
 	if partitionNumber > 0 {
-		filters = append(filters, query.NewWmiQueryFilter("PartitionNumber", strconv.Itoa(int(partitionNumber)), query.Equals))
+		filters = append(filters, WithCondition("PartitionNumber", "=", strconv.FormatUint(uint64(partitionNumber), 10)))
 	}
-	return ListPartitionsWithFilters(selectorList, filters...)
+	return ListPartitionsWithFilters(scope, selectorList, filters...)
 }
 
 // ListPartitionsWithFilters retrieves all partitions matching with the conditions specified by query filters.
@@ -183,25 +220,14 @@ func ListPartitionsOnDisk(diskNumber, partitionNumber uint32, selectorList []str
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition
 // for the WMI class definition.
-func ListPartitionsWithFilters(selectorList []string, filters ...*query.WmiQueryFilter) ([]*storage.MSFT_Partition, error) {
-	partitionQuery := query.NewWmiQueryWithSelectList("MSFT_Partition", selectorList)
-	partitionQuery.Filters = append(partitionQuery.Filters, filters...)
-	instances, err := QueryInstances(WMINamespaceStorage, partitionQuery)
-	if IgnoreNotFound(err) != nil {
+func ListPartitionsWithFilters(scope *Scope, selectorList []string, filters ...Condition) ([]*COMDispatchObject, error) {
+	q := NewQuery(MSFTPartitionClass).WithNamespace(WMINamespaceStorage).Select(selectorList...)
+	q.WithConditions(filters...)
+	instances, err := QueryObjectsWithBuilder(scope, q)
+	if err != nil {
 		return nil, err
 	}
-
-	var partitions []*storage.MSFT_Partition
-	for _, instance := range instances {
-		part, err := storage.NewMSFT_PartitionEx1(instance)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query partition %v. error: %v", instance, err)
-		}
-
-		partitions = append(partitions, part)
-	}
-
-	return partitions, nil
+	return instances, nil
 }
 
 // FindPartitionsByVolume finds all partitions associated with the given volumes
@@ -215,25 +241,23 @@ func ListPartitionsWithFilters(selectorList []string, filters ...*query.WmiQuery
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partitiontovolume
 // for the WMI class definition.
-func FindPartitionsByVolume(volumes []*storage.MSFT_Volume) ([]*storage.MSFT_Partition, error) {
-	var result []*storage.MSFT_Partition
-	for _, vol := range volumes {
-		collection, err := vol.GetAssociated("MSFT_PartitionToVolume", "MSFT_Partition", "Partition", "Volume")
+func FindPartitionsByVolume(scope *Scope, volumes []*COMDispatchObject) ([]*COMDispatchObject, error) {
+	partitions := make([]*COMDispatchObject, 0)
+	err := ForEach(volumes, func(volume *COMDispatchObject) error {
+		collection, err := volume.GetAssociated(scope, "MSFT_PartitionToVolume", MSFTPartitionClass, "Partition", "Volume")
 		if err != nil {
-			return nil, fmt.Errorf("failed to query associated partition for %v. error: %v", vol, err)
+			return fmt.Errorf("failed to query associated partition for %v. error: %w", volume, err)
 		}
 
-		for _, instance := range collection {
-			part, err := storage.NewMSFT_PartitionEx1(instance)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query partition %v. error: %v", instance, err)
-			}
+		partitions = append(partitions, collection...)
+		return nil
+	})
 
-			result = append(result, part)
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	return result, nil
+	return partitions, nil
 }
 
 // FindVolumesByPartition finds all volumes associated with the given partitions
@@ -247,79 +271,77 @@ func FindPartitionsByVolume(volumes []*storage.MSFT_Volume) ([]*storage.MSFT_Par
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partitiontovolume
 // for the WMI class definition.
-func FindVolumesByPartition(partitions []*storage.MSFT_Partition) ([]*storage.MSFT_Volume, error) {
-	var result []*storage.MSFT_Volume
-	for _, part := range partitions {
-		collection, err := part.GetAssociated("MSFT_PartitionToVolume", "MSFT_Volume", "Volume", "Partition")
+func FindVolumesByPartition(scope *Scope, partitions []*COMDispatchObject) ([]*COMDispatchObject, error) {
+	volumes := make([]*COMDispatchObject, 0)
+	err := ForEach(partitions, func(part *COMDispatchObject) error {
+		collection, err := part.GetAssociated(scope, "MSFT_PartitionToVolume", MSFTVolumeClass, "Volume", "Partition")
 		if err != nil {
-			return nil, fmt.Errorf("failed to query associated volumes for %v. error: %v", part, err)
+			return fmt.Errorf("failed to query associated volumes for %v. error: %w", part, err)
 		}
 
-		for _, instance := range collection {
-			volume, err := storage.NewMSFT_VolumeEx1(instance)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query volume %v. error: %v", instance, err)
-			}
+		volumes = append(volumes, collection...)
+		return nil
+	})
 
-			result = append(result, volume)
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	return result, nil
+	return volumes, nil
 }
 
 // GetPartitionByVolumeUniqueID retrieves a specific partition from a volume identified by its unique ID.
-func GetPartitionByVolumeUniqueID(volumeID string) (*storage.MSFT_Partition, error) {
-	volume, err := QueryVolumeByUniqueID(volumeID, []string{"ObjectId"})
+func GetPartitionByVolumeUniqueID(scope *Scope, volumeID string) (*COMDispatchObject, error) {
+	volume, err := QueryVolumeByUniqueID(scope, volumeID, []string{"ObjectId"})
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := FindPartitionsByVolume([]*storage.MSFT_Volume{volume})
+	partitions, err := FindPartitionsByVolume(scope, []*COMDispatchObject{volume})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(result) == 0 {
-		return nil, errors.NotFound
+	if len(partitions) == 0 {
+		return nil, ErrNotFound
 	}
 
-	return result[0], nil
+	return partitions[0], nil
 }
 
 // GetVolumeByDriveLetter retrieves a volume associated with a specific drive letter.
-func GetVolumeByDriveLetter(driveLetter string, partitionSelectorList []string) (*storage.MSFT_Volume, error) {
+func GetVolumeByDriveLetter(scope *Scope, driveLetter string, partitionSelectorList []string) (*COMDispatchObject, error) {
 	var selectorsForPart []string
 	selectorsForPart = append(selectorsForPart, partitionSelectorList...)
 	selectorsForPart = append(selectorsForPart, "ObjectId")
-	partitions, err := ListPartitionsWithFilters(selectorsForPart, query.NewWmiQueryFilter("DriveLetter", driveLetter, query.Equals))
+	partitions, err := ListPartitionsWithFilters(scope, selectorsForPart, WithCondition("DriveLetter", "=", driveLetter))
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := FindVolumesByPartition(partitions)
+	volumes, err := FindVolumesByPartition(scope, partitions)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(result) == 0 {
-		return nil, errors.NotFound
+	if len(volumes) == 0 {
+		return nil, ErrNotFound
 	}
 
-	return result[0], nil
+	return volumes[0], nil
 }
 
 // GetPartitionDiskNumber retrieves the disk number associated with a given partition.
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition
 // for the WMI class definitions.
-func GetPartitionDiskNumber(part *storage.MSFT_Partition) (uint32, error) {
+func GetPartitionDiskNumber(part *COMDispatchObject) (uint32, error) {
 	diskNumber, err := part.GetProperty("DiskNumber")
 	if err != nil {
 		return 0, err
 	}
 
-	return uint32(diskNumber.(int32)), nil
+	return NewSafeVariant(diskNumber).Uint32(), nil
 }
 
 // SetPartitionState takes a partition online or offline.
@@ -327,72 +349,95 @@ func GetPartitionDiskNumber(part *storage.MSFT_Partition) (uint32, error) {
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition-online and
 // https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition-offline
 // for the WMI method definition.
-func SetPartitionState(part *storage.MSFT_Partition, online bool) (int, string, error) {
+func SetPartitionState(part *COMDispatchObject, online bool) (string, error) {
 	method := "Offline"
 	if online {
 		method = "Online"
 	}
 
 	var status string
-	result, err := part.InvokeMethodWithReturn(method, &status)
-	return int(result), status, err
+	result, err := part.CallUint32(method, &status)
+	if err != nil {
+		return "", err
+	}
+	if result != 0 {
+		return status, NewWMIError(MSFTVolumeClass, method, part.Dispatch(), result)
+	}
+	return status, err
 }
 
 // GetPartitionSupportedSize retrieves the minimum and maximum sizes that the partition can be resized to using the ResizePartition method.
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition-getsupportedsizes
 // for the WMI method definition.
-func GetPartitionSupportedSize(part *storage.MSFT_Partition) (result int, sizeMin, sizeMax int64, status string, err error) {
-	sizeMin = -1
-	sizeMax = -1
-
+func GetPartitionSupportedSize(part *COMDispatchObject) (sizeMin, sizeMax uint64, status string, err error) {
 	var sizeMinVar, sizeMaxVar ole.VARIANT
-	invokeResult, err := part.InvokeMethodWithReturn("GetSupportedSize", &sizeMinVar, &sizeMaxVar, &status)
-	if invokeResult != 0 || err != nil {
-		result = int(invokeResult)
+	result, err := part.CallUint32("GetSupportedSize", &sizeMinVar, &sizeMaxVar, &status)
+	if err != nil {
+		return
 	}
+	if result != 0 {
+		err = NewWMIError(MSFTPartitionClass, "GetSupportedSize", part.Dispatch(), result)
+		return
+	}
+
 	klog.V(5).Infof("got sizeMin (%v) sizeMax (%v) from partition (%v), status: %s", sizeMinVar, sizeMaxVar, part, status)
 
-	sizeMin, err = strconv.ParseInt(sizeMinVar.ToString(), 10, 64)
+	sizeMin, err = strconv.ParseUint(NewSafeVariant(&sizeMinVar).String(), 10, 64)
 	if err != nil {
 		return
 	}
 
-	sizeMax, err = strconv.ParseInt(sizeMaxVar.ToString(), 10, 64)
-	return
+	sizeMax, err = strconv.ParseUint(NewSafeVariant(&sizeMaxVar).String(), 10, 64)
+	if err != nil {
+		return
+	}
+
+	return sizeMin, sizeMax, status, nil
 }
 
 // ResizePartition resizes a partition.
 //
 // Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-partition-resize
 // for the WMI method definition.
-func ResizePartition(part *storage.MSFT_Partition, size int64) (int, string, error) {
+func ResizePartition(part *COMDispatchObject, size uint64) (string, error) {
 	var status string
-	result, err := part.InvokeMethodWithReturn("Resize", strconv.Itoa(int(size)), &status)
-	return int(result), status, err
+	result, err := part.CallUint32("Resize", strconv.FormatUint(size, 10), &status)
+	if err != nil {
+		return "", fmt.Errorf("failed to resize partition %v. error: %w", part, err)
+	}
+	if result != 0 {
+		return status, NewWMIError(MSFTPartitionClass, "Resize", part.Dispatch(), result)
+	}
+	return status, nil
 }
 
 // GetPartitionSize returns the size of a partition.
-func GetPartitionSize(part *storage.MSFT_Partition) (int64, error) {
+func GetPartitionSize(part *COMDispatchObject) (uint64, error) {
 	sizeProp, err := part.GetProperty("Size")
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 
-	size, err := strconv.ParseInt(sizeProp.(string), 10, 64)
+	val := NewSafeVariant(sizeProp).String()
+	if val == "" {
+		return 0, fmt.Errorf("size is empty")
+	}
+
+	size, err := strconv.ParseUint(val, 10, 64)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 
-	return size, err
+	return size, nil
 }
 
 // FilterForPartitionOnDisk creates a WMI query filter to query a disk by its number.
-func FilterForPartitionOnDisk(diskNumber uint32) *query.WmiQueryFilter {
-	return query.NewWmiQueryFilter("DiskNumber", strconv.Itoa(int(diskNumber)), query.Equals)
+func FilterForPartitionOnDisk(diskNumber uint32) Condition {
+	return WithCondition("DiskNumber", "=", strconv.FormatUint(uint64(diskNumber), 10))
 }
 
 // FilterForPartitionsOfTypeNormal creates a WMI query filter for all non-reserved partitions.
-func FilterForPartitionsOfTypeNormal() *query.WmiQueryFilter {
-	return query.NewWmiQueryFilter("GptType", GPTPartitionTypeMicrosoftReserved, query.NotEquals)
+func FilterForPartitionsOfTypeNormal() Condition {
+	return WithCondition("GptType", "<>", GPTPartitionTypeMicrosoftReserved)
 }

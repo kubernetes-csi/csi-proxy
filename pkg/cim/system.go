@@ -1,13 +1,30 @@
 //go:build windows
 // +build windows
 
+/*
+Copyright 2025 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package cim
 
 import (
 	"fmt"
+)
 
-	"github.com/microsoft/wmi/pkg/base/query"
-	"github.com/microsoft/wmi/server2019/root/cimv2"
+const (
+	Win32ServiceClass = "Win32_Service"
 )
 
 var (
@@ -20,10 +37,10 @@ type ServiceInterface interface {
 	GetPropertyDisplayName() (string, error)
 	GetPropertyState() (string, error)
 	GetPropertyStartMode() (string, error)
-	GetDependents() ([]ServiceInterface, error)
+	GetDependents(scope *Scope) ([]ServiceInterface, error)
 	StartService() (result uint32, err error)
 	StopService() (result uint32, err error)
-	Refresh() error
+	Refresh(scope *Scope) error
 }
 
 // QueryBIOSElement retrieves the BIOS element.
@@ -34,24 +51,24 @@ type ServiceInterface interface {
 //
 // Refer to https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/cim-bioselement
 // for the WMI class definition.
-func QueryBIOSElement(selectorList []string) (*cimv2.CIM_BIOSElement, error) {
-	biosQuery := query.NewWmiQueryWithSelectList("CIM_BIOSElement", selectorList)
-	instances, err := QueryInstances("", biosQuery)
+func QueryBIOSElement(scope *Scope, selectorList []string) (*COMDispatchObject, error) {
+	biosQuery := NewQuery("CIM_BIOSElement").Select(selectorList...)
+
+	bios, err := QueryFirstObjectWithBuilder(scope, biosQuery)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query BIOS element: %w", err)
 	}
 
-	bios, err := cimv2.NewCIM_BIOSElementEx1(instances[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to get BIOS element: %w", err)
-	}
-
-	return bios, err
+	return bios, nil
 }
 
 // GetBIOSSerialNumber returns the BIOS serial number.
-func GetBIOSSerialNumber(bios *cimv2.CIM_BIOSElement) (string, error) {
-	return bios.GetPropertySerialNumber()
+func GetBIOSSerialNumber(bios *COMDispatchObject) (string, error) {
+	serialNumber, err := bios.GetProperty("SerialNumber")
+	if err != nil {
+		return "", fmt.Errorf("failed to get BIOS serial number: %w", err)
+	}
+	return NewSafeVariant(serialNumber).String(), nil
 }
 
 // QueryServiceByName retrieves a specific service by its name.
@@ -62,19 +79,17 @@ func GetBIOSSerialNumber(bios *cimv2.CIM_BIOSElement) (string, error) {
 //
 // Refer to https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-service
 // for the WMI class definition.
-func QueryServiceByName(name string, selectorList []string) (*cimv2.Win32_Service, error) {
-	serviceQuery := query.NewWmiQueryWithSelectList("Win32_Service", selectorList, "Name", name)
-	instances, err := QueryInstances("", serviceQuery)
+func QueryServiceByName(scope *Scope, name string, selectorList []string) (*COMDispatchObject, error) {
+	serviceQuery := NewQuery(Win32ServiceClass).
+		Select(selectorList...).
+		WithCondition("Name", "=", name)
+
+	service, err := QueryFirstObjectWithBuilder(scope, serviceQuery)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query service %s: %w", name, err)
 	}
 
-	service, err := cimv2.NewWin32_ServiceEx1(instances[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to get service %s: %w", name, err)
-	}
-
-	return service, err
+	return service, nil
 }
 
 // GetServiceName returns the name of a service.
@@ -99,37 +114,92 @@ func GetServiceStartMode(service ServiceInterface) (string, error) {
 
 // Win32Service wraps the WMI class Win32_Service (mainly for testing)
 type Win32Service struct {
-	*cimv2.Win32_Service
+	*COMDispatchObject
 }
 
-func (s *Win32Service) GetDependents() ([]ServiceInterface, error) {
-	collection, err := s.GetAssociated("Win32_DependentService", "Win32_Service", "Dependent", "Antecedent")
+func (s *Win32Service) GetDependents(scope *Scope) ([]ServiceInterface, error) {
+	collection, err := s.GetAssociated(scope, "Win32_DependentService", Win32ServiceClass, "Dependent", "Antecedent")
 	if err != nil {
 		return nil, err
 	}
 
 	var result []ServiceInterface
-	for _, coll := range collection {
-		service, err := cimv2.NewWin32_ServiceEx1(coll)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, &Win32Service{
-			service,
-		})
+	err = ForEach(collection, func(coll *COMDispatchObject) error {
+		result = append(result, &Win32Service{COMDispatchObject: coll})
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
+
 	return result, nil
+}
+
+func (s *Win32Service) GetPropertyName() (string, error) {
+	name, err := s.GetProperty("Name")
+	if err != nil {
+		return "", err
+	}
+	return NewSafeVariant(name).String(), nil
+}
+
+func (s *Win32Service) GetPropertyDisplayName() (string, error) {
+	displayName, err := s.GetProperty("DisplayName")
+	if err != nil {
+		return "", err
+	}
+	return NewSafeVariant(displayName).String(), nil
+}
+
+func (s *Win32Service) GetPropertyState() (string, error) {
+	state, err := s.GetProperty("State")
+	if err != nil {
+		return "", err
+	}
+	return NewSafeVariant(state).String(), nil
+}
+
+func (s *Win32Service) GetPropertyStartMode() (string, error) {
+	startMode, err := s.GetProperty("StartMode")
+	if err != nil {
+		return "", err
+	}
+	return NewSafeVariant(startMode).String(), nil
+}
+
+func (s *Win32Service) Refresh(scope *Scope) error {
+	name, err := s.GetPropertyName()
+	if err != nil {
+		return err
+	}
+
+	serviceQuery := NewQuery(Win32ServiceClass).WithCondition("Name", "=", name)
+
+	object, err := QueryFirstObjectWithBuilder(scope, serviceQuery)
+	if err != nil {
+		return err
+	}
+
+	s.COMDispatchObject = object
+	return nil
+}
+
+func (s *Win32Service) StartService() (uint32, error) {
+	return s.CallUint32("StartService")
+}
+
+func (s *Win32Service) StopService() (uint32, error) {
+	return s.CallUint32("StopService")
 }
 
 type Win32ServiceFactory struct {
 }
 
-func (impl Win32ServiceFactory) GetService(name string) (ServiceInterface, error) {
-	service, err := QueryServiceByName(name, ServiceSelectorList)
+func (impl Win32ServiceFactory) GetService(scope *Scope, name string) (ServiceInterface, error) {
+	service, err := QueryServiceByName(scope, name, ServiceSelectorList)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Win32Service{Win32_Service: service}, nil
+	return &Win32Service{COMDispatchObject: service}, nil
 }

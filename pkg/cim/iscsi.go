@@ -1,14 +1,33 @@
 //go:build windows
 // +build windows
 
+/*
+Copyright 2025 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package cim
 
 import (
 	"fmt"
 	"strconv"
+)
 
-	"github.com/microsoft/wmi/pkg/base/query"
-	"github.com/microsoft/wmi/server2019/root/microsoft/windows/storage"
+const (
+	MSFTiSCSITargetPortalClass = "MSFT_iSCSITargetPortal"
+	MSFTiSCSITargetClass       = "MSFT_iSCSITarget"
+	MSFTiSCSISessionClass      = "MSFT_iSCSISession"
 )
 
 var (
@@ -23,24 +42,14 @@ var (
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargetportal
 // for the WMI class definition.
-func ListISCSITargetPortals(selectorList []string) ([]*storage.MSFT_iSCSITargetPortal, error) {
-	q := query.NewWmiQueryWithSelectList("MSFT_IscsiTargetPortal", selectorList)
-	instances, err := QueryInstances(WMINamespaceStorage, q)
-	if IgnoreNotFound(err) != nil {
+func ListISCSITargetPortals(scope *Scope, selectorList []string) ([]*COMDispatchObject, error) {
+	q := NewQuery(MSFTiSCSITargetPortalClass).WithNamespace(WMINamespaceStorage).Select(selectorList...)
+	instances, err := QueryObjectsWithBuilder(scope, q)
+	if err != nil {
 		return nil, err
 	}
 
-	var targetPortals []*storage.MSFT_iSCSITargetPortal
-	for _, instance := range instances {
-		portal, err := storage.NewMSFT_iSCSITargetPortalEx1(instance)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query iSCSI target portal %v. error: %v", instance, err)
-		}
-
-		targetPortals = append(targetPortals, portal)
-	}
-
-	return targetPortals, nil
+	return instances, nil
 }
 
 // QueryISCSITargetPortal retrieves information about a specific iSCSI target portal
@@ -54,45 +63,41 @@ func ListISCSITargetPortals(selectorList []string) ([]*storage.MSFT_iSCSITargetP
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargetportal
 // for the WMI class definition.
-func QueryISCSITargetPortal(address string, port uint32, selectorList []string) (*storage.MSFT_iSCSITargetPortal, error) {
-	portalQuery := query.NewWmiQueryWithSelectList(
-		"MSFT_iSCSITargetPortal", selectorList,
-		"TargetPortalAddress", address,
-		"TargetPortalPortNumber", strconv.Itoa(int(port)))
-	instances, err := QueryInstances(WMINamespaceStorage, portalQuery)
+func QueryISCSITargetPortal(scope *Scope, address string, port uint16, selectorList []string) (*COMDispatchObject, error) {
+	portalQuery := NewQuery(MSFTiSCSITargetPortalClass).
+		WithNamespace(WMINamespaceStorage).
+		Select(selectorList...).
+		WithCondition("TargetPortalAddress", "=", address).
+		WithCondition("TargetPortalPortNumber", "=", strconv.FormatUint(uint64(port), 10))
+
+	instance, err := QueryFirstObjectWithBuilder(scope, portalQuery)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query iSCSI target portal at (%s:%d). error: %w", address, port, err)
 	}
 
-	targetPortal, err := storage.NewMSFT_iSCSITargetPortalEx1(instances[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to query iSCSI target portal at (%s:%d). error: %v", address, port, err)
-	}
-
-	return targetPortal, nil
+	return instance, nil
 }
 
 // ListISCSITargetsByTargetPortalAddressAndPort retrieves ISCSI targets by address and port of an iSCSI target portal.
-func ListISCSITargetsByTargetPortalAddressAndPort(address string, port uint32, selectorList []string) ([]*storage.MSFT_iSCSITarget, error) {
-	instance, err := QueryISCSITargetPortal(address, port, selectorList)
+func ListISCSITargetsByTargetPortalAddressAndPort(scope *Scope, address string, port uint16, selectorList []string) ([]*COMDispatchObject, error) {
+	instance, err := QueryISCSITargetPortal(scope, address, port, selectorList)
 	if err != nil {
 		return nil, err
 	}
 
-	targets, err := ListISCSITargetsByTargetPortal([]*storage.MSFT_iSCSITargetPortal{instance})
-	return targets, err
+	targets, err := ListISCSITargetsByTargetPortal(scope, []*COMDispatchObject{instance})
+	if err != nil {
+		return nil, err
+	}
+
+	return targets, nil
 }
 
 // NewISCSITargetPortal creates a new iSCSI target portal.
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargetportal-new
 // for the WMI method definition.
-func NewISCSITargetPortal(targetPortalAddress string,
-	targetPortalPortNumber uint32,
-	initiatorInstanceName *string,
-	initiatorPortalAddress *string,
-	isHeaderDigest *bool,
-	isDataDigest *bool) (*storage.MSFT_iSCSITargetPortal, error) {
+func NewISCSITargetPortal(targetPortalAddress string, targetPortalPortNumber uint16, initiatorInstanceName *string, initiatorPortalAddress *string, isHeaderDigest *bool, isDataDigest *bool) error {
 	params := map[string]interface{}{
 		"TargetPortalAddress":    targetPortalAddress,
 		"TargetPortalPortNumber": targetPortalPortNumber,
@@ -109,46 +114,52 @@ func NewISCSITargetPortal(targetPortalAddress string,
 	if isDataDigest != nil {
 		params["IsDataDigest"] = *isDataDigest
 	}
-	result, _, err := InvokeCimMethod(WMINamespaceStorage, "MSFT_iSCSITargetPortal", "New", params)
+	result, _, err := CallMethodOnWMIClass(WMINamespaceStorage, MSFTiSCSITargetPortalClass, "New", params, DiscardOutputParameter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create iSCSI target portal with %v. result: %d, error: %v", params, result, err)
+		return fmt.Errorf("failed to create iSCSI target portal with %v. result: %d, error: %w", params, result, err)
 	}
 
-	return QueryISCSITargetPortal(targetPortalAddress, targetPortalPortNumber, nil)
+	return nil
 }
 
 // ParseISCSITargetPortal retrieves the portal address and port number of an iSCSI target portal.
-func ParseISCSITargetPortal(instance *storage.MSFT_iSCSITargetPortal) (string, uint32, error) {
-	portalAddress, err := instance.GetPropertyTargetPortalAddress()
+func ParseISCSITargetPortal(instance *COMDispatchObject) (string, uint16, error) {
+	portalAddressProp, err := instance.GetProperty("TargetPortalAddress")
 	if err != nil {
 		return "", 0, fmt.Errorf("failed parsing target portal address %v. err: %w", instance, err)
 	}
 
-	portalPort, err := instance.GetProperty("TargetPortalPortNumber")
+	portalPortProp, err := instance.GetProperty("TargetPortalPortNumber")
 	if err != nil {
 		return "", 0, fmt.Errorf("failed parsing target portal port number %v. err: %w", instance, err)
 	}
 
-	return portalAddress, uint32(portalPort.(int32)), nil
+	return NewSafeVariant(portalAddressProp).String(), NewSafeVariant(portalPortProp).Uint16(), nil
 }
 
 // RemoveISCSITargetPortal removes an iSCSI target portal.
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitargetportal-remove
 // for the WMI method definition.
-func RemoveISCSITargetPortal(instance *storage.MSFT_iSCSITargetPortal) (int, error) {
+func RemoveISCSITargetPortal(instance *COMDispatchObject) error {
 	address, port, err := ParseISCSITargetPortal(instance)
 	if err != nil {
-		return 0, fmt.Errorf("failed to parse target portal %v. error: %v", instance, err)
+		return fmt.Errorf("failed to parse target portal %v. error: %w", instance, err)
 	}
 
-	result, err := instance.InvokeMethodWithReturn("Remove",
+	result, err := instance.CallUint32("Remove",
 		nil,
 		nil,
 		int(port),
 		address,
 	)
-	return int(result), err
+	if err != nil {
+		return fmt.Errorf("failed to remove iSCSI target portal %v. error: %w", instance, err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTiSCSITargetPortalClass, "Remove", instance.Dispatch(), result)
+	}
+	return nil
 }
 
 // ListISCSITargetsByTargetPortal retrieves all iSCSI targets from the specified iSCSI target portal
@@ -162,66 +173,75 @@ func RemoveISCSITargetPortal(instance *storage.MSFT_iSCSITargetPortal) (int, err
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitarget
 // for the WMI class definition.
-func ListISCSITargetsByTargetPortal(portals []*storage.MSFT_iSCSITargetPortal) ([]*storage.MSFT_iSCSITarget, error) {
-	var targets []*storage.MSFT_iSCSITarget
-	for _, portal := range portals {
-		collection, err := portal.GetAssociated("MSFT_iSCSITargetToiSCSITargetPortal", "MSFT_iSCSITarget", "iSCSITarget", "iSCSITargetPortal")
+func ListISCSITargetsByTargetPortal(scope *Scope, portals []*COMDispatchObject) ([]*COMDispatchObject, error) {
+	targets := make([]*COMDispatchObject, 0)
+	err := ForEach(portals, func(portal *COMDispatchObject) error {
+		collection, err := portal.GetAssociated(scope, "MSFT_iSCSITargetToiSCSITargetPortal", MSFTiSCSITargetClass, "iSCSITarget", "iSCSITargetPortal")
 		if err != nil {
-			return nil, fmt.Errorf("failed to query associated iSCSITarget for %v. error: %v", portal, err)
+			return fmt.Errorf("failed to query associated iSCSITarget for %v. error: %w", portal, err)
 		}
 
-		for _, instance := range collection {
-			target, err := storage.NewMSFT_iSCSITargetEx1(instance)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query iSCSI target %v. error: %v", instance, err)
-			}
-
-			targets = append(targets, target)
-		}
+		targets = append(targets, collection...)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return targets, nil
 }
 
 // QueryISCSITarget retrieves the iSCSI target from the specified portal address, portal and node address.
-func QueryISCSITarget(address string, port uint32, nodeAddress string) (*storage.MSFT_iSCSITarget, error) {
-	portal, err := QueryISCSITargetPortal(address, port, nil)
+func QueryISCSITarget(scope *Scope, address string, port uint16, nodeAddress string) (*COMDispatchObject, error) {
+	portal, err := QueryISCSITargetPortal(scope, address, port, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	targets, err := ListISCSITargetsByTargetPortal([]*storage.MSFT_iSCSITargetPortal{portal})
+	targets, err := ListISCSITargetsByTargetPortal(scope, []*COMDispatchObject{portal})
 	if err != nil {
 		return nil, err
 	}
 
-	for _, target := range targets {
+	var result *COMDispatchObject
+	err = ForEach(targets, func(target *COMDispatchObject) error {
 		targetNodeAddress, err := GetISCSITargetNodeAddress(target)
 		if err != nil {
-			return nil, fmt.Errorf("failed to query iSCSI target %v. error: %v", target, err)
+			return fmt.Errorf("failed to query iSCSI target %v. error: %w", target, err)
 		}
 
 		if targetNodeAddress == nodeAddress {
-			return target, nil
+			result = target
+			return ErrStopIteration
 		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	return nil, nil
+	if result == nil {
+		return nil, ErrNotFound
+	}
+	return result, nil
 }
 
 // GetISCSITargetNodeAddress returns the node address of an iSCSI target.
-func GetISCSITargetNodeAddress(target *storage.MSFT_iSCSITarget) (string, error) {
+func GetISCSITargetNodeAddress(target *COMDispatchObject) (string, error) {
 	nodeAddress, err := target.GetProperty("NodeAddress")
 	if err != nil {
 		return "", err
 	}
 
-	return nodeAddress.(string), err
+	return NewSafeVariant(nodeAddress).String(), nil
 }
 
 // IsISCSITargetConnected returns whether the iSCSI target is connected.
-func IsISCSITargetConnected(target *storage.MSFT_iSCSITarget) (bool, error) {
-	return target.GetPropertyIsConnected()
+func IsISCSITargetConnected(target *COMDispatchObject) (bool, error) {
+	connected, err := target.GetProperty("IsConnected")
+	if err != nil {
+		return false, err
+	}
+	return NewSafeVariant(connected).Bool(), nil
 }
 
 // QueryISCSISessionByTarget retrieves the iSCSI session from the specified iSCSI target
@@ -235,46 +255,65 @@ func IsISCSITargetConnected(target *storage.MSFT_iSCSITarget) (bool, error) {
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsisession
 // for the WMI class definition.
-func QueryISCSISessionByTarget(target *storage.MSFT_iSCSITarget) (*storage.MSFT_iSCSISession, error) {
-	collection, err := target.GetAssociated("MSFT_iSCSITargetToiSCSISession", "MSFT_iSCSISession", "iSCSISession", "iSCSITarget")
+func QueryISCSISessionByTarget(scope *Scope, target *COMDispatchObject) (*COMDispatchObject, error) {
+	collection, err := target.GetAssociated(scope, "MSFT_iSCSITargetToiSCSISession", MSFTiSCSISessionClass, "iSCSISession", "iSCSITarget")
 	if err != nil {
-		return nil, fmt.Errorf("failed to query associated iSCSISession for %v. error: %v", target, err)
+		return nil, fmt.Errorf("failed to query associated iSCSISession for %v. error: %w", target, err)
 	}
 
 	if len(collection) == 0 {
 		return nil, nil
 	}
 
-	session, err := storage.NewMSFT_iSCSISessionEx1(collection[0])
-	return session, err
+	return collection[0], nil
 }
 
 // UnregisterISCSISession unregisters the iSCSI session so that it is no longer persistent.
 //
 // Refer https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsisession-unregister
 // for the WMI method definition.
-func UnregisterISCSISession(session *storage.MSFT_iSCSISession) (int, error) {
-	result, err := session.InvokeMethodWithReturn("Unregister")
-	return int(result), err
+func UnregisterISCSISession(session *COMDispatchObject) error {
+	result, err := session.CallUint32("Unregister")
+	if err != nil {
+		return fmt.Errorf("failed to unregister iSCSI session %v. error: %w", session, err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTiSCSISessionClass, "Unregister", session.Dispatch(), result)
+	}
+	return nil
 }
 
 // SetISCSISessionChapSecret sets a CHAP secret key for use with iSCSI initiator connections.
 //
 // Refer https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitarget-disconnect
 // for the WMI method definition.
-func SetISCSISessionChapSecret(mutualChapSecret string) (int, error) {
-	result, _, err := InvokeCimMethod(WMINamespaceStorage, "MSFT_iSCSISession", "SetCHAPSecret", map[string]interface{}{"ChapSecret": mutualChapSecret})
-	return result, err
+func SetISCSISessionChapSecret(mutualChapSecret string) error {
+	result, _, err := CallMethodOnWMIClass(WMINamespaceStorage, MSFTiSCSISessionClass, "SetCHAPSecret", map[string]interface{}{"ChapSecret": mutualChapSecret}, DiscardOutputParameter)
+	if err != nil {
+		return fmt.Errorf("failed to set iSCSI session CHAP secret. error: %w", err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTiSCSISessionClass, "SetCHAPSecret", nil, result)
+	}
+	return err
 }
 
 // GetISCSISessionIdentifier returns the identifier of an iSCSI session.
-func GetISCSISessionIdentifier(session *storage.MSFT_iSCSISession) (string, error) {
-	return session.GetPropertySessionIdentifier()
+func GetISCSISessionIdentifier(session *COMDispatchObject) (string, error) {
+	id, err := session.GetProperty("SessionIdentifier")
+	if err != nil {
+		return "", err
+	}
+	return NewSafeVariant(id).String(), nil
 }
 
 // IsISCSISessionPersistent returns whether an iSCSI session is persistent.
-func IsISCSISessionPersistent(session *storage.MSFT_iSCSISession) (bool, error) {
-	return session.GetPropertyIsPersistent()
+func IsISCSISessionPersistent(session *COMDispatchObject) (bool, error) {
+	persistent, err := session.GetProperty("IsPersistent")
+	if err != nil {
+		return false, err
+	}
+	return NewSafeVariant(persistent).Bool(), nil
 }
 
 // ListDisksByTarget find all disks associated with an iSCSITarget.
@@ -295,46 +334,44 @@ func IsISCSISessionPersistent(session *storage.MSFT_iSCSISession) (bool, error) 
 //
 // Refer to https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsiconnection
 // for the WMI class definition.
-func ListDisksByTarget(target *storage.MSFT_iSCSITarget) ([]*storage.MSFT_Disk, error) {
+func ListDisksByTarget(scope *Scope, target *COMDispatchObject) ([]*COMDispatchObject, error) {
 	// list connections to the given iSCSI target
-	collection, err := target.GetAssociated("MSFT_iSCSITargetToiSCSIConnection", "MSFT_iSCSIConnection", "iSCSIConnection", "iSCSITarget")
+	collection, err := target.GetAssociated(scope, "MSFT_iSCSITargetToiSCSIConnection", "MSFT_iSCSIConnection", "iSCSIConnection", "iSCSITarget")
 	if err != nil {
-		return nil, fmt.Errorf("failed to query associated iSCSISession for %v. error: %v", target, err)
+		return nil, fmt.Errorf("failed to query associated iSCSISession for %v. error: %w", target, err)
 	}
 
 	if len(collection) == 0 {
 		return nil, nil
 	}
 
-	var result []*storage.MSFT_Disk
-	for _, conn := range collection {
-		instances, err := conn.GetAssociated("MSFT_iSCSIConnectionToDisk", "MSFT_Disk", "Disk", "iSCSIConnection")
+	disks := make([]*COMDispatchObject, 0)
+	err = ForEach(collection, func(conn *COMDispatchObject) error {
+		instances, err := conn.GetAssociated(scope, "MSFT_iSCSIConnectionToDisk", MSFTDiskClass, "Disk", "iSCSIConnection")
 		if err != nil {
-			return nil, fmt.Errorf("failed to query associated disk for %v. error: %v", target, err)
+			return fmt.Errorf("failed to query associated disk for %v. error: %w", target, err)
 		}
 
-		for _, instance := range instances {
-			disk, err := storage.NewMSFT_DiskEx1(instance)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query associated disk %v. error: %v", instance, err)
-			}
+		disks = append(disks, instances...)
+		return nil
+	})
 
-			result = append(result, disk)
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	return result, err
+	return disks, nil
 }
 
 // ConnectISCSITarget establishes a connection to an iSCSI target with optional CHAP authentication credential.
 //
 // Refer https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitarget-connect
 // for the WMI method definition.
-func ConnectISCSITarget(portalAddress string, portalPortNumber uint32, nodeAddress string, authType string, chapUsername *string, chapSecret *string) (int, error) {
+func ConnectISCSITarget(portalAddress string, portalPortNumber uint16, nodeAddress string, authType string, chapUsername *string, chapSecret *string) error {
 	inParams := map[string]interface{}{
 		"NodeAddress":            nodeAddress,
 		"TargetPortalAddress":    portalAddress,
-		"TargetPortalPortNumber": int(portalPortNumber),
+		"TargetPortalPortNumber": portalPortNumber,
 		"AuthenticationType":     authType,
 	}
 	// InitiatorPortalAddress
@@ -348,15 +385,27 @@ func ConnectISCSITarget(portalAddress string, portalPortNumber uint32, nodeAddre
 		inParams["ChapSecret"] = *chapSecret
 	}
 
-	result, _, err := InvokeCimMethod(WMINamespaceStorage, "MSFT_iSCSITarget", "Connect", inParams)
-	return result, err
+	result, _, err := CallMethodOnWMIClass(WMINamespaceStorage, MSFTiSCSITargetClass, "Connect", inParams, DiscardOutputParameter)
+	if err != nil {
+		return fmt.Errorf("failed to connect iSCSI target %s:%d. error: %w", portalAddress, portalPortNumber, err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTiSCSITargetClass, "Connect", nil, result)
+	}
+	return nil
 }
 
 // DisconnectISCSITarget disconnects the specified session between an iSCSI initiator and an iSCSI target.
 //
 // Refer https://learn.microsoft.com/en-us/previous-versions/windows/desktop/iscsidisc/msft-iscsitarget-disconnect
 // for the WMI method definition.
-func DisconnectISCSITarget(target *storage.MSFT_iSCSITarget, sessionIdentifier string) (int, error) {
-	result, err := target.InvokeMethodWithReturn("Disconnect", sessionIdentifier)
-	return int(result), err
+func DisconnectISCSITarget(target *COMDispatchObject, sessionIdentifier string) error {
+	result, err := target.CallUint32("Disconnect", sessionIdentifier)
+	if err != nil {
+		return fmt.Errorf("failed to disconnect iSCSI target %v. error: %w", target, err)
+	}
+	if result != 0 {
+		return NewWMIError(MSFTiSCSITargetClass, "Disconnect", target.Dispatch(), result)
+	}
+	return nil
 }
