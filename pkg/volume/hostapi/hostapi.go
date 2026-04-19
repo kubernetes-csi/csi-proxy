@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	wmi "github.com/kubernetes-csi/csi-proxy/v2/pkg/cim"
 	"github.com/kubernetes-csi/csi-proxy/v2/pkg/utils"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/wmi"
 	"golang.org/x/sys/windows"
 	"k8s.io/klog/v2"
 )
