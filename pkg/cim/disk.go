@@ -30,6 +30,8 @@ const (
 
 	// PartitionStyleUnknown indicates an unknown partition table format
 	PartitionStyleUnknown = 0
+	// PartitionStyleMBR indicates the disk uses Master Boot Record (MBR) format
+	PartitionStyleMBR = 1
 	// PartitionStyleGPT indicates the disk uses GUID Partition Table (GPT) format
 	PartitionStyleGPT = 2
 
