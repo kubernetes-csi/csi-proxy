@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	wmi "github.com/kubernetes-csi/csi-proxy/v2/pkg/cim"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/wmi"
 )
 
 type MockService struct {
