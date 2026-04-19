@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // API version names follow k8s style version names:
@@ -103,7 +101,7 @@ func IsValidVersion(name string) bool {
 func toUint(s, name string) (uint, error) {
 	i, err := strconv.ParseUint(s, 10, 0)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to convert %q from version name %q to int", s, name)
+		return 0, fmt.Errorf("unable to convert %q from version name %q to int: %w", s, name, err)
 	}
 	return uint(i), nil
 }
