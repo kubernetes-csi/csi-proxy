@@ -223,6 +223,9 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 				}
 
 			} else {
+				if size < 0 {
+					return fmt.Errorf("invalid negative size %d for volume (%s)", size, volumeID)
+				}
 				finalSize = uint64(size)
 			}
 
@@ -232,7 +235,7 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 			}
 
 			// only resize if finalSize - currentSize is greater than 100MB
-			if finalSize-currentSize < minimumResizeSize {
+			if finalSize < uint64(currentSize)+minimumResizeSize {
 				klog.V(2).Infof("minimum resize difference (100MB) not met, skipping resize. volumeID=%s currentSize=%d finalSize=%d", volumeID, currentSize, finalSize)
 				return nil
 			}

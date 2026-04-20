@@ -1,8 +1,5 @@
 module github.com/kubernetes-csi/csi-proxy
 
-// NOTE: This project must be built with go < 1.23
-// `make build` will error if go1.23 or higher is used.
-
 go 1.24.3
 
 toolchain go1.24.4

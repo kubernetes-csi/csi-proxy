@@ -73,12 +73,7 @@ func QuerySmbGlobalMappingByRemotePath(scope *Scope, remotePath string) (*COMDis
 
 // GetSmbGlobalMappingStatus returns the status of an SMB global mapping.
 func GetSmbGlobalMappingStatus(smb *COMDispatchObject) (uint32, error) {
-	statusProp, err := smb.GetProperty("Status")
-	if err != nil {
-		return SmbMappingStatusUnavailable, fmt.Errorf("failed to get SMB global mapping status %v. error: %w", smb, err)
-	}
-
-	return NewSafeVariant(statusProp).Uint32(), nil
+	return smb.GetUint32Property("Status")
 }
 
 // RemoveSmbGlobalMappingByRemotePath removes an SMB global mapping matching to the remote path.

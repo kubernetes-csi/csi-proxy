@@ -22,8 +22,12 @@ package wmi
 import (
 	"errors"
 	"fmt"
+	"math"
+	"os"
 	"runtime"
+	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
@@ -35,7 +39,16 @@ const (
 	WMINamespaceCimV2   = "Root\\CimV2"
 	WMINamespaceStorage = "Root\\Microsoft\\Windows\\Storage"
 	WMINamespaceSmb     = "Root\\Microsoft\\Windows\\Smb"
+
+	WBEM_S_FALSE = 0x00000001
+
+	// rpcETooLate is returned when CoInitializeSecurity has already been called.
+	rpcETooLate = 0x80010119
+
+	envWMIComSecurity = "WMI_COM_SECURITY"
 )
+
+var initCOMSecurity sync.Once
 
 var (
 	ErrNotFound      = errors.New("not found")
@@ -61,6 +74,11 @@ func IgnoreNotFound(err error) error {
 		return nil
 	}
 	return err
+}
+
+func IsEndOfEnum(err error) bool {
+	var oleErr *ole.OleError
+	return errors.As(err, &oleErr) && oleErr.Code() == WBEM_S_FALSE
 }
 
 // QueryBuilder is a builder for WMI queries.
@@ -132,13 +150,7 @@ func (q *QueryBuilder) Build() string {
 	selectPart := "*"
 
 	if len(q.Selectors) > 0 {
-		selectPart = ""
-		for i, s := range q.Selectors {
-			if i > 0 {
-				selectPart += ", "
-			}
-			selectPart += string(s)
-		}
+		selectPart = strings.Join(q.Selectors, ", ")
 	}
 
 	query := "SELECT " + selectPart + " FROM " + q.Class
@@ -155,6 +167,7 @@ func formatValue(v any) string {
 	switch x := v.(type) {
 
 	case string:
+		// WQL escaping: double single quotes and escape backslashes
 		escaped := strings.ReplaceAll(x, "'", "''")
 		escaped = strings.ReplaceAll(escaped, "\\", "\\\\")
 		return "'" + escaped + "'"
@@ -173,6 +186,48 @@ func formatValue(v any) string {
 	}
 }
 
+func comSecurityEnabled() bool {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv(envWMIComSecurity)))
+	switch v {
+	case "0", "false", "no", "off":
+		return false
+	default:
+		return true
+	}
+}
+
+// InitializeCOMSecurity registers process-wide COM security for WMI/DCOM.
+//
+// It is enabled by default and runs at most once per process (including from init).
+// Set WMI_COM_SECURITY to false/0/no/off to skip. Errors (including missing permissions or an already
+// initialized process) are logged and ignored; this function never panics.
+func InitializeCOMSecurity() {
+	initCOMSecurity.Do(func() {
+		if !comSecurityEnabled() {
+			klog.V(6).Infof("COM security initialization disabled via %s", envWMIComSecurity)
+			return
+		}
+
+		err := ole.CoInitializeSecurity(-1, 0, 3, 0)
+		if err == nil {
+			klog.V(10).Infof("COM security initialized for WMI/DCOM")
+			return
+		}
+
+		var oleErr *ole.OleError
+		if errors.As(err, &oleErr) && oleErr.Code() == rpcETooLate {
+			klog.V(10).Infof("COM security already initialized for this process")
+			return
+		}
+
+		klog.V(4).Infof("CoInitializeSecurity failed (non-fatal): %v", err)
+	})
+}
+
+func init() {
+	InitializeCOMSecurity()
+}
+
 // WithCOMThread runs the given function `fn` on a locked OS thread
 // with COM initialized using COINIT_MULTITHREADED.
 //
@@ -185,6 +240,8 @@ func formatValue(v any) string {
 //   - Executes the user-provided function
 //   - Uninitializes COM
 //   - Unlocks the thread
+//
+// Process-wide COM security is initialized once at package init (best-effort).
 //
 // If COM initialization fails, or if the user's function returns an error,
 // that error is returned by WithCOMThread.
@@ -212,7 +269,8 @@ func WithCOMThread(fn func() error) error {
 // WithWMIService runs the given function with a WMI service.
 //
 // It creates a new WMI service and calls the given function with it.
-// It returns the error from the function.
+// The callback fn receives an *ole.IDispatch that is only valid for the duration
+// of the callback; callers must NOT store or use it after fn returns.
 func WithWMIService(namespace string, fn func(*ole.IDispatch) error) error {
 	locatorUnknown, err := oleutil.CreateObject("WbemScripting.SWbemLocator")
 	if err != nil {
@@ -230,13 +288,18 @@ func WithWMIService(namespace string, fn func(*ole.IDispatch) error) error {
 	if err != nil {
 		return err
 	}
+	defer serviceRaw.Clear()
+	// serviceRaw.Clear() releases the underlying IDispatch via VariantClear;
+	// do NOT call service.Release() separately (double-release).
 	service := serviceRaw.ToIDispatch()
-	defer service.Release()
 
 	return fn(service)
 }
 
 // Query queries the WMI objects with the given namespace and query.
+// Callers must ensure COM is initialized on the current OS thread (e.g., via WithCOMThread).
+// The callback fn receives an *ole.IDispatch that is only valid for the duration
+// of the callback; callers must NOT store or use it after fn returns.
 func Query(namespace, query string, fn func(item *ole.IDispatch) error) error {
 	err := WithWMIService(namespace, func(service *ole.IDispatch) error {
 		resultRaw, err := oleutil.CallMethod(service, "ExecQuery", query)
@@ -244,40 +307,22 @@ func Query(namespace, query string, fn func(item *ole.IDispatch) error) error {
 			klog.V(4).Infof("ExecQuery: (namespace: %s, query: %s), error: %v", namespace, query, err)
 			return err
 		}
+		defer resultRaw.Clear()
+		// resultRaw.Clear() releases the underlying IDispatch via VariantClear;
+		// do NOT call result.Release() separately (double-release).
 		result := resultRaw.ToIDispatch()
-		defer result.Release()
 
-		countVar, err := oleutil.GetProperty(result, "Count")
+		klog.V(10).Infof("ExecQuery: (namespace: %s, query: %s) -> enumerating results", namespace, query)
+
+		err = Enumerate(result, func(item *ole.VARIANT) error {
+			return fn(item.ToIDispatch())
+		})
 		if err != nil {
+			if errors.Is(err, ErrStopIteration) {
+				return nil // stop early
+			}
+
 			return err
-		}
-		count := NewSafeVariant(countVar).Int()
-		klog.V(10).Infof("ExecQuery: (namespace: %s, query: %s) -> count: %d", namespace, query, count)
-
-		if count == 0 {
-			return nil
-		}
-
-		for i := 0; i < count; i++ {
-			itemRaw, err := oleutil.CallMethod(result, "ItemIndex", i)
-			if err != nil {
-				return fmt.Errorf("wmi query item retrieval failed (namespace: %s, query: %s, index: %d): %w", namespace, query, i, err)
-			}
-
-			err = func() error {
-				defer itemRaw.Clear()
-				item := itemRaw.ToIDispatch()
-
-				return fn(item)
-			}()
-
-			if err != nil {
-				if errors.Is(err, ErrStopIteration) {
-					return nil // stop early
-				}
-
-				return err
-			}
 		}
 
 		return nil
@@ -287,11 +332,6 @@ func Query(namespace, query string, fn func(item *ole.IDispatch) error) error {
 
 func QueryWithBuilder(builder *QueryBuilder, fn func(item *ole.IDispatch) error) error {
 	return Query(builder.Namespace, builder.Build(), fn)
-}
-
-// GetProperty gets the property of the given name from the given object.
-func GetProperty(item *ole.IDispatch, name string) (*ole.VARIANT, error) {
-	return oleutil.GetProperty(item, name)
 }
 
 // Associators gets the associators of the given object.
@@ -327,27 +367,30 @@ func Enumerate(obj *ole.IDispatch, fn func(item *ole.VARIANT) error) error {
 	// --- Get _NewEnum ---
 	enumProp, err := obj.GetProperty("_NewEnum")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get _NewEnum from IDispatch %v: %w", obj, err)
 	}
 	defer enumProp.Clear()
 
 	// --- Get IEnumVARIANT ---
 	enum, err := enumProp.ToIUnknown().IEnumVARIANT(ole.IID_IEnumVariant)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get IEnumVARIANT from IDispatch %v: %w", obj, err)
 	}
 	if enum == nil {
-		return fmt.Errorf("enum is nil")
+		return fmt.Errorf("IEnumVARIANT is nil for IDispatch %v", obj)
 	}
 	defer enum.Release()
 
 	for {
 		item, length, err := enum.Next(1)
+		if err != nil {
+			if IsEndOfEnum(err) {
+				break
+			}
+			return err
+		}
 		if length == 0 {
 			break
-		}
-		if err != nil {
-			return err
 		}
 
 		err = func() error {
@@ -371,8 +414,8 @@ func CallMethodOnWMIClass(namespace, class, methodName string, input map[string]
 		if err != nil {
 			return fmt.Errorf("get class %s failed: %w", class, err)
 		}
-		classInst := classRaw.ToIDispatch()
-		defer classInst.Release()
+		defer classRaw.Clear()
+		classInst := classRaw.ToIDispatch() // Release is not required as no AddRef is called
 
 		methodsRaw, err := oleutil.GetProperty(classInst, "Methods_")
 		if err != nil {
@@ -409,10 +452,7 @@ func CallMethodOnWMIClass(namespace, class, methodName string, input map[string]
 					if err != nil {
 						return fmt.Errorf("set param %s failed: %w", k, err)
 					}
-					err = putResult.Clear()
-					if err != nil {
-						return fmt.Errorf("clear putResult failed: %w", err)
-					}
+					putResult.Clear()
 				}
 
 				params = append(params, inParamsInst)
@@ -425,7 +465,7 @@ func CallMethodOnWMIClass(namespace, class, methodName string, input map[string]
 		}
 		defer outParamsRaw.Clear()
 
-		outParams := outParamsRaw.ToIDispatch()
+		outParams := outParamsRaw.ToIDispatch() // Release is not required as no AddRef is called
 
 		rv, err := outParams.GetProperty("ReturnValue")
 		if err != nil {
@@ -444,7 +484,7 @@ func CallMethodOnWMIClass(namespace, class, methodName string, input map[string]
 
 		output = make(map[string]interface{})
 		err = Enumerate(props, func(item *ole.VARIANT) error {
-			prop := item.ToIDispatch()
+			prop := item.ToIDispatch() // Release is not required as no AddRef is called
 
 			nameVar, err := prop.GetProperty("Name")
 			if err != nil {
@@ -495,8 +535,77 @@ func (c *COMDispatchObject) Dispatch() *ole.IDispatch {
 	return c.obj
 }
 
-func (c *COMDispatchObject) GetProperty(name string) (*ole.VARIANT, error) {
-	return GetProperty(c.Dispatch(), name)
+func (c *COMDispatchObject) GetPropertyWithHandler(name string, fn func(*ole.VARIANT) error) error {
+	v, err := oleutil.GetProperty(c.Dispatch(), name)
+	if err != nil {
+		return fmt.Errorf("failed to get property %s: %w", name, err)
+	}
+	defer v.Clear()
+
+	return fn(v)
+}
+
+func (c *COMDispatchObject) GetStringProperty(name string) (string, error) {
+	var result string
+	err := c.GetPropertyWithHandler(name, func(v *ole.VARIANT) error {
+		result = NewSafeVariant(v).String()
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (c *COMDispatchObject) GetUint32Property(name string) (uint32, error) {
+	var result uint32
+	err := c.GetPropertyWithHandler(name, func(v *ole.VARIANT) error {
+		result = NewSafeVariant(v).Uint32()
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
+func (c *COMDispatchObject) GetUint16Property(name string) (uint16, error) {
+	var result uint16
+	err := c.GetPropertyWithHandler(name, func(v *ole.VARIANT) error {
+		result = NewSafeVariant(v).Uint16()
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
+func (c *COMDispatchObject) GetBoolProperty(name string) (bool, error) {
+	var result bool
+	err := c.GetPropertyWithHandler(name, func(v *ole.VARIANT) error {
+		result = NewSafeVariant(v).Bool()
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return result, nil
+}
+
+func (c *COMDispatchObject) GetStringPropertyAsUint64(name string) (uint64, error) {
+	str, err := c.GetStringProperty(name)
+	if err != nil {
+		return 0, err
+	}
+	if str == "" {
+		return 0, fmt.Errorf("WMI property %q is empty; cannot parse as uint64", name)
+	}
+	result, err := strconv.ParseUint(str, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse WMI property %q value %q as uint64: %w", name, str, err)
+	}
+	return result, nil
 }
 
 func (c *COMDispatchObject) CallMethod(name string, fn func(*ole.VARIANT) error, params ...interface{}) error {
@@ -583,7 +692,7 @@ func QueryFirstObjectWithBuilder(scope *Scope, q *QueryBuilder) (*COMDispatchObj
 		return ErrStopIteration
 	})
 
-	if err != nil && !errors.Is(err, ErrStopIteration) {
+	if err != nil {
 		return nil, err
 	}
 
@@ -640,9 +749,22 @@ func isInteger(vt ole.VT) bool {
 	return false
 }
 
+func isUnsigned(vt ole.VT) bool {
+	switch vt {
+	case ole.VT_UI1, ole.VT_UI2, ole.VT_UI4, ole.VT_UI8, ole.VT_UINT:
+		return true
+	}
+	return false
+}
+
 func (s SafeVariant) Int() int {
 	if s.v == nil || !isInteger(s.v.VT) {
 		return 0
+	}
+	// For unsigned types with high bit set, clamp to max int to avoid
+	// negative values from sign interpretation.
+	if isUnsigned(s.v.VT) && (s.v.Val < 0 || s.v.Val > math.MaxInt) {
+		return math.MaxInt
 	}
 	return int(s.v.Val)
 }
@@ -650,6 +772,9 @@ func (s SafeVariant) Int() int {
 func (s SafeVariant) Int32() int32 {
 	if s.v == nil || !isInteger(s.v.VT) {
 		return 0
+	}
+	if isUnsigned(s.v.VT) && (s.v.Val < 0 || s.v.Val > math.MaxInt32) {
+		return math.MaxInt32
 	}
 	return int32(s.v.Val)
 }
@@ -746,7 +871,7 @@ func WithScope(fn func(*Scope) error) error {
 type WMIError struct {
 	Method  string
 	Class   string
-	Target  *ole.IDispatch
+	Target  string
 	Code    uint32
 	Details string
 }
@@ -756,7 +881,7 @@ func NewWMIError(class, method string, target *ole.IDispatch, code uint32) *WMIE
 	return &WMIError{
 		Class:  class,
 		Method: method,
-		Target: target,
+		Target: fmt.Sprintf("%v", target),
 		Code:   code,
 	}
 }
