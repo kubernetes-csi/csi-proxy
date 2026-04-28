@@ -12,7 +12,7 @@ toolchain go1.24.4
 require (
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/go-ole/go-ole v1.3.0
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kubernetes-csi/csi-proxy/client v1.1.3
