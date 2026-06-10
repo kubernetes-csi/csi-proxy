@@ -3,6 +3,17 @@ version: 2
 updates:
 - package-ecosystem: gomod
   directory: "/"
+  target-branch: "master"
+  schedule:
+    interval: daily
+  labels:
+    - "area/dependency"
+    - "release-note-none"
+    - "ok-to-test"
+  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/"
+  target-branch: "library-development"
   schedule:
     interval: daily
   labels:
@@ -12,6 +23,17 @@ updates:
   open-pull-requests-limit: 10
 - package-ecosystem: "github-actions"
   directory: "/"
+  target-branch: "master"
+  schedule:
+      interval: "daily"
+  labels:
+    - "area/dependency"
+    - "release-note-none"
+    - "ok-to-test"
+  open-pull-requests-limit: 10
+- package-ecosystem: "github-actions"
+  directory: "/"
+  target-branch: "library-development"
   schedule:
       interval: "daily"
   labels:
