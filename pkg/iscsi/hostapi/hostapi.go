@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubernetes-csi/csi-proxy/v2/pkg/cim"
+	"github.com/kubernetes-csi/csi-proxy/v2/pkg/wmi"
 	"k8s.io/klog/v2"
 )
 
@@ -36,208 +36,219 @@ func New() HostAPI {
 }
 
 func (iscsiAPI) AddTargetPortal(portal *TargetPortal) error {
-	return cim.WithCOMThread(func() error {
-		existing, err := cim.QueryISCSITargetPortal(portal.Address, portal.Port, nil)
-		if cim.IgnoreNotFound(err) != nil {
-			return fmt.Errorf("error query target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
-		}
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			existing, err := wmi.QueryISCSITargetPortal(scope, portal.Address, uint16(portal.Port), nil)
+			if wmi.IgnoreNotFound(err) != nil {
+				return fmt.Errorf("error query target portal at (%s:%d). err: %w", portal.Address, portal.Port, err)
+			}
 
-		if existing != nil {
-			klog.V(2).Infof("target portal at (%s:%d) already exists", portal.Address, portal.Port)
+			if existing != nil {
+				klog.V(2).Infof("target portal at (%s:%d) already exists", portal.Address, portal.Port)
+				return nil
+			}
+
+			err = wmi.NewISCSITargetPortal(portal.Address, uint16(portal.Port), nil, nil, nil, nil)
+			if err != nil {
+				return fmt.Errorf("error adding target portal at (%s:%d). err: %w", portal.Address, portal.Port, err)
+			}
+
 			return nil
-		}
-
-		_, err = cim.NewISCSITargetPortal(portal.Address, portal.Port, nil, nil, nil, nil)
-		if err != nil {
-			return fmt.Errorf("error adding target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
-		}
-
-		return nil
+		})
 	})
 }
 
 func (iscsiAPI) DiscoverTargetPortal(portal *TargetPortal) ([]string, error) {
 	var iqns []string
-	err := cim.WithCOMThread(func() error {
-		targets, err := cim.ListISCSITargetsByTargetPortalAddressAndPort(portal.Address, portal.Port, nil)
-		if err != nil {
-			return fmt.Errorf("error list targets by target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
-		}
-
-		for _, target := range targets {
-			iqn, err := cim.GetISCSITargetNodeAddress(target)
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			targets, err := wmi.ListISCSITargetsByTargetPortalAddressAndPort(scope, portal.Address, uint16(portal.Port), nil)
 			if err != nil {
-				return fmt.Errorf("failed parsing node address of target %v to target portal at (%s:%d). err: %w", target, portal.Address, portal.Port, err)
+				return fmt.Errorf("error list targets by target portal at (%s:%d). err: %w", portal.Address, portal.Port, err)
 			}
 
-			iqns = append(iqns, iqn)
-		}
+			err = wmi.ForEach(targets, func(target *wmi.COMDispatchObject) error {
+				iqn, err := wmi.GetISCSITargetNodeAddress(target)
+				if err != nil {
+					return fmt.Errorf("failed parsing node address of target %v to target portal at (%s:%d). err: %w", target, portal.Address, portal.Port, err)
+				}
 
-		return nil
+				iqns = append(iqns, iqn)
+				return nil
+			})
+			return err
+		})
 	})
 	return iqns, err
 }
 
 func (iscsiAPI) ListTargetPortals() ([]TargetPortal, error) {
 	var portals []TargetPortal
-	err := cim.WithCOMThread(func() error {
-		instances, err := cim.ListISCSITargetPortals(cim.ISCSITargetPortalDefaultSelectorList)
-		if err != nil {
-			return fmt.Errorf("error list target portals. err: %v", err)
-		}
-
-		for _, instance := range instances {
-			address, port, err := cim.ParseISCSITargetPortal(instance)
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			instances, err := wmi.ListISCSITargetPortals(scope, wmi.ISCSITargetPortalDefaultSelectorList)
 			if err != nil {
-				return fmt.Errorf("failed parsing target portal %v. err: %w", instance, err)
+				return fmt.Errorf("error list target portals. err: %w", err)
 			}
 
-			portals = append(portals, TargetPortal{
-				Address: address,
-				Port:    port,
-			})
-		}
+			err = wmi.ForEach(instances, func(instance *wmi.COMDispatchObject) error {
+				address, port, err := wmi.ParseISCSITargetPortal(instance)
+				if err != nil {
+					return fmt.Errorf("failed parsing target portal %v. err: %w", instance, err)
+				}
 
-		return nil
+				portals = append(portals, TargetPortal{
+					Address: address,
+					Port:    uint32(port),
+				})
+				return nil
+			})
+			return err
+		})
 	})
 	return portals, err
 }
 
 func (iscsiAPI) RemoveTargetPortal(portal *TargetPortal) error {
-	return cim.WithCOMThread(func() error {
-		instance, err := cim.QueryISCSITargetPortal(portal.Address, portal.Port, nil)
-		if err != nil {
-			return fmt.Errorf("error query target portal at (%s:%d). err: %v", portal.Address, portal.Port, err)
-		}
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			instance, err := wmi.QueryISCSITargetPortal(scope, portal.Address, uint16(portal.Port), nil)
+			if err != nil {
+				return fmt.Errorf("error query target portal at (%s:%d). err: %w", portal.Address, portal.Port, err)
+			}
 
-		result, err := cim.RemoveISCSITargetPortal(instance)
-		if result != 0 || err != nil {
-			return fmt.Errorf("error removing target portal at (%s:%d). result: %d, err: %w", portal.Address, portal.Port, result, err)
-		}
+			err = wmi.RemoveISCSITargetPortal(instance)
+			if err != nil {
+				return fmt.Errorf("error removing target portal at (%s:%d). err: %w", portal.Address, portal.Port, err)
+			}
 
-		return nil
+			return nil
+		})
 	})
 }
 
 func (iscsiAPI) ConnectTarget(portal *TargetPortal, iqn string, authType string, chapUser string, chapSecret string) error {
-	return cim.WithCOMThread(func() error {
-		target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
-		if err != nil {
-			return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			target, err := wmi.QueryISCSITarget(scope, portal.Address, uint16(portal.Port), iqn)
+			if err != nil {
+				return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
 
-		connected, err := cim.IsISCSITargetConnected(target)
-		if err != nil {
-			return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
+			connected, err := wmi.IsISCSITargetConnected(target)
+			if err != nil {
+				return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
 
-		if connected {
-			klog.V(2).Infof("target %s from target portal at (%s:%d) is connected.", iqn, portal.Address, portal.Port)
+			if connected {
+				klog.V(2).Infof("target %s from target portal at (%s:%d) is connected.", iqn, portal.Address, portal.Port)
+				return nil
+			}
+
+			targetAuthType := strings.ToUpper(strings.ReplaceAll(authType, "_", ""))
+
+			err = wmi.ConnectISCSITarget(portal.Address, uint16(portal.Port), iqn, targetAuthType, &chapUser, &chapSecret)
+			if err != nil {
+				return fmt.Errorf("error connecting to target portal. err: %w", err)
+			}
+
 			return nil
-		}
-
-		targetAuthType := strings.ToUpper(strings.ReplaceAll(authType, "_", ""))
-
-		result, err := cim.ConnectISCSITarget(portal.Address, portal.Port, iqn, targetAuthType, &chapUser, &chapSecret)
-		if err != nil {
-			return fmt.Errorf("error connecting to target portal. result: %d, err: %w", result, err)
-		}
-
-		return nil
+		})
 	})
 }
 
 func (iscsiAPI) DisconnectTarget(portal *TargetPortal, iqn string) error {
-	return cim.WithCOMThread(func() error {
-		target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
-		if err != nil {
-			return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		connected, err := cim.IsISCSITargetConnected(target)
-		if err != nil {
-			return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		if !connected {
-			klog.V(2).Infof("target %s from target portal at (%s:%d) is not connected.", iqn, portal.Address, portal.Port)
-			return nil
-		}
-
-		// get session
-		session, err := cim.QueryISCSISessionByTarget(target)
-		if err != nil {
-			return fmt.Errorf("error query session of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		sessionIdentifier, err := cim.GetISCSISessionIdentifier(session)
-		if err != nil {
-			return fmt.Errorf("error query session identifier of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		persistent, err := cim.IsISCSISessionPersistent(session)
-		if err != nil {
-			return fmt.Errorf("error query session persistency of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		if persistent {
-			result, err := cim.UnregisterISCSISession(session)
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			target, err := wmi.QueryISCSITarget(scope, portal.Address, uint16(portal.Port), iqn)
 			if err != nil {
-				return fmt.Errorf("error unregister session on target %s from target portal at (%s:%d). result: %d, err: %w", iqn, portal.Address, portal.Port, result, err)
+				return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 			}
-		}
 
-		result, err := cim.DisconnectISCSITarget(target, sessionIdentifier)
-		if err != nil {
-			return fmt.Errorf("error disconnecting target %s from target portal at (%s:%d). result: %d, err: %w", iqn, portal.Address, portal.Port, result, err)
-		}
+			connected, err := wmi.IsISCSITargetConnected(target)
+			if err != nil {
+				return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
+			if !connected {
+				klog.V(2).Infof("target %s from target portal at (%s:%d) is not connected.", iqn, portal.Address, portal.Port)
+				return nil
+			}
 
-		return nil
+			session, err := wmi.QueryISCSISessionByTarget(scope, target)
+			if err != nil {
+				return fmt.Errorf("error query session of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
+
+			sessionIdentifier, err := wmi.GetISCSISessionIdentifier(session)
+			if err != nil {
+				return fmt.Errorf("error query session identifier of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
+
+			persistent, err := wmi.IsISCSISessionPersistent(session)
+			if err != nil {
+				return fmt.Errorf("error query session persistency of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
+
+			if persistent {
+				if err = wmi.UnregisterISCSISession(session); err != nil {
+					return fmt.Errorf("error unregister session on target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+				}
+			}
+
+			err = wmi.DisconnectISCSITarget(target, sessionIdentifier)
+			if err != nil {
+				return fmt.Errorf("error disconnecting target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
+
+			return nil
+		})
 	})
 }
 
 func (iscsiAPI) GetTargetDisks(portal *TargetPortal, iqn string) ([]string, error) {
 	var ids []string
-	err := cim.WithCOMThread(func() error {
-		target, err := cim.QueryISCSITarget(portal.Address, portal.Port, iqn)
-		if err != nil {
-			return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		connected, err := cim.IsISCSITargetConnected(target)
-		if err != nil {
-			return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		if !connected {
-			klog.V(2).Infof("target %s from target portal at (%s:%d) is not connected.", iqn, portal.Address, portal.Port)
-			return nil
-		}
-
-		disks, err := cim.ListDisksByTarget(target)
-		if err != nil {
-			return fmt.Errorf("error getting target disks on target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
-		}
-
-		for _, disk := range disks {
-			number, err := cim.GetDiskNumber(disk)
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			target, err := wmi.QueryISCSITarget(scope, portal.Address, uint16(portal.Port), iqn)
 			if err != nil {
-				return fmt.Errorf("error getting number of disk %v on target %s from target portal at (%s:%d). err: %w", disk, iqn, portal.Address, portal.Port, err)
+				return fmt.Errorf("error query target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
 			}
 
-			ids = append(ids, strconv.Itoa(int(number)))
-		}
+			connected, err := wmi.IsISCSITargetConnected(target)
+			if err != nil {
+				return fmt.Errorf("error query connected of target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
 
-		return nil
+			if !connected {
+				klog.V(2).Infof("target %s from target portal at (%s:%d) is not connected.", iqn, portal.Address, portal.Port)
+				return nil
+			}
+
+			disks, err := wmi.ListDisksByTarget(scope, target)
+			if err != nil {
+				return fmt.Errorf("error getting target disks on target %s from target portal at (%s:%d). err: %w", iqn, portal.Address, portal.Port, err)
+			}
+
+			err = wmi.ForEach(disks, func(disk *wmi.COMDispatchObject) error {
+				number, err := wmi.GetDiskNumber(disk)
+				if err != nil {
+					return fmt.Errorf("error getting number of disk %v on target %s from target portal at (%s:%d). err: %w", disk, iqn, portal.Address, portal.Port, err)
+				}
+
+				ids = append(ids, strconv.FormatUint(uint64(number), 10))
+				return nil
+			})
+			return err
+		})
 	})
 	return ids, err
 }
 
 func (iscsiAPI) SetMutualChapSecret(mutualChapSecret string) error {
-	return cim.WithCOMThread(func() error {
-		result, err := cim.SetISCSISessionChapSecret(mutualChapSecret)
+	return wmi.WithCOMThread(func() error {
+		err := wmi.SetISCSISessionChapSecret(mutualChapSecret)
 		if err != nil {
-			return fmt.Errorf("error setting mutual chap secret. result: %d, err: %v", result, err)
+			return fmt.Errorf("error setting mutual chap secret. err: %w", err)
 		}
 
 		return nil
