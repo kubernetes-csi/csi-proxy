@@ -64,11 +64,7 @@ func QueryBIOSElement(scope *Scope, selectorList []string) (*COMDispatchObject, 
 
 // GetBIOSSerialNumber returns the BIOS serial number.
 func GetBIOSSerialNumber(bios *COMDispatchObject) (string, error) {
-	serialNumber, err := bios.GetProperty("SerialNumber")
-	if err != nil {
-		return "", fmt.Errorf("failed to get BIOS serial number: %w", err)
-	}
-	return NewSafeVariant(serialNumber).String(), nil
+	return bios.GetStringProperty("SerialNumber")
 }
 
 // QueryServiceByName retrieves a specific service by its name.
@@ -136,35 +132,19 @@ func (s *Win32Service) GetDependents(scope *Scope) ([]ServiceInterface, error) {
 }
 
 func (s *Win32Service) GetPropertyName() (string, error) {
-	name, err := s.GetProperty("Name")
-	if err != nil {
-		return "", err
-	}
-	return NewSafeVariant(name).String(), nil
+	return s.GetStringProperty("Name")
 }
 
 func (s *Win32Service) GetPropertyDisplayName() (string, error) {
-	displayName, err := s.GetProperty("DisplayName")
-	if err != nil {
-		return "", err
-	}
-	return NewSafeVariant(displayName).String(), nil
+	return s.GetStringProperty("DisplayName")
 }
 
 func (s *Win32Service) GetPropertyState() (string, error) {
-	state, err := s.GetProperty("State")
-	if err != nil {
-		return "", err
-	}
-	return NewSafeVariant(state).String(), nil
+	return s.GetStringProperty("State")
 }
 
 func (s *Win32Service) GetPropertyStartMode() (string, error) {
-	startMode, err := s.GetProperty("StartMode")
-	if err != nil {
-		return "", err
-	}
-	return NewSafeVariant(startMode).String(), nil
+	return s.GetStringProperty("StartMode")
 }
 
 func (s *Win32Service) Refresh(scope *Scope) error {

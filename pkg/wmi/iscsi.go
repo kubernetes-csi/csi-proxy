@@ -118,23 +118,26 @@ func NewISCSITargetPortal(targetPortalAddress string, targetPortalPortNumber uin
 	if err != nil {
 		return fmt.Errorf("failed to create iSCSI target portal with %v. result: %d, error: %w", params, result, err)
 	}
+	if result != 0 {
+		return NewWMIError(MSFTiSCSITargetPortalClass, "New", nil, result)
+	}
 
 	return nil
 }
 
 // ParseISCSITargetPortal retrieves the portal address and port number of an iSCSI target portal.
 func ParseISCSITargetPortal(instance *COMDispatchObject) (string, uint16, error) {
-	portalAddressProp, err := instance.GetProperty("TargetPortalAddress")
+	portalAddress, err := instance.GetStringProperty("TargetPortalAddress")
 	if err != nil {
 		return "", 0, fmt.Errorf("failed parsing target portal address %v. err: %w", instance, err)
 	}
 
-	portalPortProp, err := instance.GetProperty("TargetPortalPortNumber")
+	portalPort, err := instance.GetUint16Property("TargetPortalPortNumber")
 	if err != nil {
 		return "", 0, fmt.Errorf("failed parsing target portal port number %v. err: %w", instance, err)
 	}
 
-	return NewSafeVariant(portalAddressProp).String(), NewSafeVariant(portalPortProp).Uint16(), nil
+	return portalAddress, portalPort, nil
 }
 
 // RemoveISCSITargetPortal removes an iSCSI target portal.
@@ -227,21 +230,12 @@ func QueryISCSITarget(scope *Scope, address string, port uint16, nodeAddress str
 
 // GetISCSITargetNodeAddress returns the node address of an iSCSI target.
 func GetISCSITargetNodeAddress(target *COMDispatchObject) (string, error) {
-	nodeAddress, err := target.GetProperty("NodeAddress")
-	if err != nil {
-		return "", err
-	}
-
-	return NewSafeVariant(nodeAddress).String(), nil
+	return target.GetStringProperty("NodeAddress")
 }
 
 // IsISCSITargetConnected returns whether the iSCSI target is connected.
 func IsISCSITargetConnected(target *COMDispatchObject) (bool, error) {
-	connected, err := target.GetProperty("IsConnected")
-	if err != nil {
-		return false, err
-	}
-	return NewSafeVariant(connected).Bool(), nil
+	return target.GetBoolProperty("IsConnected")
 }
 
 // QueryISCSISessionByTarget retrieves the iSCSI session from the specified iSCSI target
@@ -300,20 +294,12 @@ func SetISCSISessionChapSecret(mutualChapSecret string) error {
 
 // GetISCSISessionIdentifier returns the identifier of an iSCSI session.
 func GetISCSISessionIdentifier(session *COMDispatchObject) (string, error) {
-	id, err := session.GetProperty("SessionIdentifier")
-	if err != nil {
-		return "", err
-	}
-	return NewSafeVariant(id).String(), nil
+	return session.GetStringProperty("SessionIdentifier")
 }
 
 // IsISCSISessionPersistent returns whether an iSCSI session is persistent.
 func IsISCSISessionPersistent(session *COMDispatchObject) (bool, error) {
-	persistent, err := session.GetProperty("IsPersistent")
-	if err != nil {
-		return false, err
-	}
-	return NewSafeVariant(persistent).Bool(), nil
+	return session.GetBoolProperty("IsPersistent")
 }
 
 // ListDisksByTarget find all disks associated with an iSCSITarget.
