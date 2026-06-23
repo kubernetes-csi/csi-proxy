@@ -141,6 +141,89 @@ func TestDisk(t *testing.T) {
 		assert.True(t, result, "Expected disk to be offline")
 	})
 
+	t.Run("Get/SetDiskReadOnly", func(t *testing.T) {
+		client, err := disk.New(diskapi.New())
+		require.Nil(t, err)
+
+		testPluginPath, testID := getTestPluginPath()
+		vhdxPath := fmt.Sprintf("%sdisk-%d.vhdx", testPluginPath, testID)
+
+		cmd := fmt.Sprintf("mkdir %s", testPluginPath)
+		if out, err := runPowershellCmd(t, cmd); err != nil {
+			t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
+		}
+
+		cmd = fmt.Sprintf("New-VHD -Path %s -SizeBytes %d", vhdxPath, 1*1024*1024*1024)
+		if out, err := runPowershellCmd(t, cmd); err != nil {
+			t.Fatalf("Error: %v. Command: %q. Out: %s.", err, cmd, out)
+		}
+
+		cmd = fmt.Sprintf("Mount-VHD -Path %s", vhdxPath)
+		if out, err := runPowershellCmd(t, cmd); err != nil {
+			t.Fatalf("Error: %v. Command: %q. Out: %s", err, cmd, out)
+		}
+
+		cmd = fmt.Sprintf("(Get-VHD -Path %s).DiskNumber", vhdxPath)
+		diskNumberOutput, err := runPowershellCmd(t, cmd)
+		if err != nil {
+			t.Fatalf("Error: %v. Command: %s", err, cmd)
+		}
+		diskNumber, err := strconv.ParseUint(strings.TrimSpace(diskNumberOutput), 10, 32)
+		require.NoError(t, err)
+
+		defer func() {
+			resetCmd := fmt.Sprintf("Get-Disk -Number %d | Set-Disk -IsReadOnly $false", diskNumber)
+			if out, err := runPowershellCmd(t, resetCmd); err != nil {
+				t.Logf("Error: %v. Command: %s. Out: %s", err, resetCmd, out)
+			}
+			dismountCmd := fmt.Sprintf("Dismount-VHD -Path %s", vhdxPath)
+			if out, err := runPowershellCmd(t, dismountCmd); err != nil {
+				t.Logf("Error: %v. Command: %s. Out: %s", err, dismountCmd, out)
+			}
+			removeVHDCmd := fmt.Sprintf("rm %s", vhdxPath)
+			if out, err := runPowershellCmd(t, removeVHDCmd); err != nil {
+				t.Logf("Error: %v. Command: %s. Out: %s", err, removeVHDCmd, out)
+			}
+			removeDirCmd := fmt.Sprintf("rmdir %s", testPluginPath)
+			if out, err := runPowershellCmd(t, removeDirCmd); err != nil {
+				t.Logf("Error: %v. Command: %s. Out: %s", err, removeDirCmd, out)
+			}
+		}()
+
+		getReq := &disk.GetDiskReadOnlyRequest{DiskNumber: uint32(diskNumber)}
+		getResp, err := client.GetDiskReadOnly(context.TODO(), getReq)
+		if assert.NoError(t, err) {
+			assert.False(t, getResp.IsReadOnly, "Expected disk not to be read-only")
+		}
+
+		setReq := &disk.SetDiskReadOnlyRequest{DiskNumber: uint32(diskNumber), IsReadOnly: true}
+		_, err = client.SetDiskReadOnly(context.TODO(), setReq)
+		require.NoError(t, err)
+
+		out, err := runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsReadOnly", diskNumber))
+		require.NoError(t, err)
+
+		result, err := strconv.ParseBool(strings.TrimSpace(out))
+		require.NoError(t, err)
+		assert.True(t, result, "Expected disk to be read-only")
+
+		getResp, err = client.GetDiskReadOnly(context.TODO(), getReq)
+		if assert.NoError(t, err) {
+			assert.True(t, getResp.IsReadOnly, "Expected disk to be read-only")
+		}
+
+		setReq = &disk.SetDiskReadOnlyRequest{DiskNumber: uint32(diskNumber), IsReadOnly: false}
+		_, err = client.SetDiskReadOnly(context.TODO(), setReq)
+		require.NoError(t, err)
+
+		out, err = runPowershellCmd(t, fmt.Sprintf("Get-Disk -Number %d | Select-Object -ExpandProperty IsReadOnly", diskNumber))
+		require.NoError(t, err)
+
+		result, err = strconv.ParseBool(strings.TrimSpace(out))
+		require.NoError(t, err)
+		assert.False(t, result, "Expected disk not to be read-only")
+	})
+
 	t.Run("PartitionDisk", func(t *testing.T) {
 
 		var err error

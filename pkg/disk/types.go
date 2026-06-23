@@ -70,6 +70,17 @@ type SetDiskStateRequest struct {
 type SetDiskStateResponse struct {
 }
 
+type SetDiskReadOnlyRequest struct {
+	// Disk device ID of the disk which read-only attribute will change
+	DiskNumber uint32
+
+	// Read-only attribute to set for the disk
+	IsReadOnly bool
+}
+
+type SetDiskReadOnlyResponse struct {
+}
+
 type GetDiskStateRequest struct {
 	// Disk device ID of the disk
 	DiskNumber uint32
@@ -78,4 +89,14 @@ type GetDiskStateRequest struct {
 type GetDiskStateResponse struct {
 	// Online state of the disk. true for online, false for offline
 	IsOnline bool
+}
+
+type GetDiskReadOnlyRequest struct {
+	// Disk device ID of the disk
+	DiskNumber uint32
+}
+
+type GetDiskReadOnlyResponse struct {
+	// Read-only attribute of the disk
+	IsReadOnly bool
 }

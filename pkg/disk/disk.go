@@ -12,6 +12,9 @@ type Disk struct {
 }
 
 type Interface interface {
+	// GetDiskReadOnly gets the read-only attribute of a disk.
+	GetDiskReadOnly(context.Context, *GetDiskReadOnlyRequest) (*GetDiskReadOnlyResponse, error)
+
 	// GetDiskState gets the offline/online state of a disk.
 	GetDiskState(context.Context, *GetDiskStateRequest) (*GetDiskStateResponse, error)
 
@@ -34,6 +37,9 @@ type Interface interface {
 
 	// SetDiskState sets the offline/online state of a disk.
 	SetDiskState(context.Context, *SetDiskStateRequest) (*SetDiskStateResponse, error)
+
+	// SetDiskReadOnly sets the read-only attribute of a disk.
+	SetDiskReadOnly(context.Context, *SetDiskReadOnlyRequest) (*SetDiskReadOnlyResponse, error)
 }
 
 // check that Disk implements Interface
@@ -162,6 +168,16 @@ func (d *Disk) SetDiskState(context context.Context, request *SetDiskStateReques
 	return &SetDiskStateResponse{}, nil
 }
 
+func (d *Disk) SetDiskReadOnly(context context.Context, request *SetDiskReadOnlyRequest) (*SetDiskReadOnlyResponse, error) {
+	klog.V(2).Infof("Request: SetDiskReadOnly with diskNumber=%d and isReadOnly=%v", request.DiskNumber, request.IsReadOnly)
+	err := d.hostAPI.SetDiskReadOnly(request.DiskNumber, request.IsReadOnly)
+	if err != nil {
+		klog.Errorf("SetDiskReadOnly failed: %v", err)
+		return nil, err
+	}
+	return &SetDiskReadOnlyResponse{}, nil
+}
+
 func (d *Disk) GetDiskState(context context.Context, request *GetDiskStateRequest) (*GetDiskStateResponse, error) {
 	klog.V(4).Infof("Request: GetDiskState with diskNumber=%d", request.DiskNumber)
 	isOnline, err := d.hostAPI.GetDiskState(request.DiskNumber)
@@ -170,4 +186,14 @@ func (d *Disk) GetDiskState(context context.Context, request *GetDiskStateReques
 		return nil, err
 	}
 	return &GetDiskStateResponse{IsOnline: isOnline}, nil
+}
+
+func (d *Disk) GetDiskReadOnly(context context.Context, request *GetDiskReadOnlyRequest) (*GetDiskReadOnlyResponse, error) {
+	klog.V(4).Infof("Request: GetDiskReadOnly with diskNumber=%d", request.DiskNumber)
+	isReadOnly, err := d.hostAPI.GetDiskReadOnly(request.DiskNumber)
+	if err != nil {
+		klog.Errorf("GetDiskReadOnly failed with: %v", err)
+		return nil, err
+	}
+	return &GetDiskReadOnlyResponse{IsReadOnly: isReadOnly}, nil
 }
