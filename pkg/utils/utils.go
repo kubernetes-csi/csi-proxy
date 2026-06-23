@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
 	"golang.org/x/sys/windows"
 	"k8s.io/klog/v2"
 )
