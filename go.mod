@@ -1,6 +1,6 @@
 module github.com/kubernetes-csi/csi-proxy
 
-go 1.25.0
+go 1.26
 
 godebug winsymlink=0
 
@@ -11,7 +11,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kubernetes-csi/csi-proxy/client v1.1.3
-	github.com/microsoft/wmi v0.34.0
+	github.com/microsoft/wmi v0.43.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.24.1
 	github.com/sergi/go-diff v1.4.0
