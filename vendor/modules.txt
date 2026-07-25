@@ -8,8 +8,8 @@ github.com/go-logr/logr
 ## explicit; go 1.12
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/microsoft/wmi v0.34.0
-## explicit; go 1.24.3
+# github.com/microsoft/wmi v0.43.0
+## explicit; go 1.26
 github.com/microsoft/wmi/go/wmi
 github.com/microsoft/wmi/pkg/base/credential
 github.com/microsoft/wmi/pkg/base/host
