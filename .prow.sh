@@ -6,6 +6,9 @@
 : ${CSI_PROW_TESTS:="unit"}
 : ${CSI_PROW_BUILD_PLATFORMS:="windows amd64 .exe"}
 
+# go.mod requires go >= 1.25.0; override the default Go version in release-tools.
+: ${CSI_PROW_GO_VERSION_BUILD:="1.25.0"}
+
 . release-tools/prow.sh
 
 # This creates the CSI_PROW_WORK directory that is needed by run_with_go.

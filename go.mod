@@ -1,10 +1,8 @@
 module github.com/kubernetes-csi/csi-proxy/v2
 
-go 1.24.3
+go 1.25.0
 
 godebug winsymlink=0
-
-toolchain go1.24.4
 
 require (
 	github.com/go-ole/go-ole v1.3.0
