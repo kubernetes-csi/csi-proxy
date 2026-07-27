@@ -4,16 +4,16 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.24']
+        go: ['1.25']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ matrix.go }}
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - name: Build
         shell: powershell
         run: |
@@ -51,16 +51,16 @@ jobs:
   unit_tests:
     strategy:
       matrix:
-        go: ['1.24']
+        go: ['1.25']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version: ${{ matrix.go }}
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - name: Run Windows Unit Tests
         run: |
           make all
@@ -69,12 +69,12 @@ jobs:
   bump_version_test:
     strategy:
       matrix:
-        go: ['1.24']
+        go: ['1.25']
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version: ${{ matrix.go }}
       - name: Install Tools
@@ -85,7 +85,7 @@ jobs:
           curl -LO $PB_REL/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip
           unzip protoc-3.15.8-linux-x86_64.zip -d $HOME/.local
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
           path: go/src/github.com/kubernetes-csi/csi-proxy
