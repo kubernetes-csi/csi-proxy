@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 	"golang.org/x/sys/windows"
 	"k8s.io/klog/v2"
 )

@@ -9,7 +9,6 @@ import (
 	"github.com/kubernetes-csi/csi-proxy/client"
 	"github.com/kubernetes-csi/csi-proxy/pkg/server/metrics"
 	srvtypes "github.com/kubernetes-csi/csi-proxy/pkg/server/types"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
@@ -143,7 +142,7 @@ func (s *Server) waitForGRPCServersToStop(doneChan chan *versionedAPIDone) (errs
 	processServerDoneEvent := func(event *versionedAPIDone) {
 		if event.err != nil {
 			versionedAPI := s.versionedAPIs[event.index]
-			err := errors.Wrapf(event.err, "GRPC server for API group %s version %s failed", versionedAPI.Group, versionedAPI.Version)
+			err := fmt.Errorf("GRPC server for API group %s version %s failed: %w", versionedAPI.Group, versionedAPI.Version, event.err)
 			errs = append(errs, err)
 		}
 	}

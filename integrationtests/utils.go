@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,7 +85,7 @@ func fileHashes(dir string, fileSuffixesToRemove ...string) (map[string]string, 
 
 	if walkErr := filepath.Walk(dir, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrapf(err, "unable to descend into %q", filePath)
+			return fmt.Errorf("unable to descend into %q: %w", filePath, err)
 		}
 		if info.IsDir() {
 			return nil
@@ -94,13 +93,13 @@ func fileHashes(dir string, fileSuffixesToRemove ...string) (map[string]string, 
 
 		file, err := os.Open(filePath)
 		if err != nil {
-			return errors.Wrapf(err, "unable to open %q", filePath)
+			return fmt.Errorf("unable to open %q: %w", filePath, err)
 		}
 		defer file.Close()
 
 		hasher := md5.New()
 		if _, err := io.Copy(hasher, file); err != nil {
-			return errors.Wrapf(err, "unable to read %q", filePath)
+			return fmt.Errorf("unable to read %q: %w", filePath, err)
 		}
 
 		hashBytes := hasher.Sum(nil)[:16]
