@@ -20,6 +20,7 @@ limitations under the License.
 package wmi
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -43,6 +44,8 @@ const (
 
 	// ErrorCodeCreatePartitionAccessPathAlreadyInUse is the error code (42002) returned when the driver letter failed to assign after partition created
 	ErrorCodeCreatePartitionAccessPathAlreadyInUse = 42002
+	// ErrorCodeDiskIsReadOnly is the error code (41006) returned when a disk is write-protected or physically locked
+	ErrorCodeDiskIsReadOnly = 41006
 )
 
 var (
@@ -50,6 +53,7 @@ var (
 	DiskSelectorListForPartitionStyle        = []string{"PartitionStyle"}
 	DiskSelectorListForPathAndSerialNumber   = []string{"Path", "SerialNumber"}
 	DiskSelectorListForIsOffline             = []string{"IsOffline"}
+	DiskSelectorListForIsReadOnly            = []string{"IsReadOnly"}
 	DiskSelectorListForSize                  = []string{"Size"}
 )
 
@@ -166,6 +170,28 @@ func SetDiskState(disk *COMDispatchObject, online bool) (string, error) {
 	return status, nil
 }
 
+// SetDiskReadOnly sets or clears the read-only disk attribute.
+//
+// Refer to https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-disk-setattributes
+// for the WMI method definition.
+func SetDiskReadOnly(disk *COMDispatchObject, isReadOnly bool) (string, error) {
+	var status string
+	result, err := disk.CallUint32("SetAttributes", isReadOnly, nil, nil, &status)
+	if err != nil {
+		return "", fmt.Errorf("failed to set disk read-only attribute: %w", err)
+	}
+	if result != 0 {
+		return "", NewWMIError(MSFTDiskClass, "SetAttributes", disk.Dispatch(), result)
+	}
+	return status, nil
+}
+
+// IsDiskReadOnlyError returns true when err is a WMI ERROR_DISK_IS_READ_ONLY error.
+func IsDiskReadOnlyError(err error) bool {
+	var wmiError *WMIError
+	return errors.As(err, &wmiError) && wmiError.Code == ErrorCodeDiskIsReadOnly
+}
+
 // RescanDisks rescans all changes by updating the internal cache of software objects (that is, Disks, Partitions, Volumes)
 // for the storage setting.
 //
@@ -200,6 +226,11 @@ func GetDiskPartitionStyle(disk *COMDispatchObject) (uint16, error) {
 // IsDiskOffline returns whether a disk is offline.
 func IsDiskOffline(disk *COMDispatchObject) (bool, error) {
 	return disk.GetBoolProperty("IsOffline")
+}
+
+// IsDiskReadOnly returns whether a disk is read-only.
+func IsDiskReadOnly(disk *COMDispatchObject) (bool, error) {
+	return disk.GetBoolProperty("IsReadOnly")
 }
 
 // GetDiskSize returns the size of a disk.

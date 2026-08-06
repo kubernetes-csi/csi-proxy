@@ -40,6 +40,10 @@ type HostAPI interface {
 	SetDiskState(diskNumber uint32, isOnline bool) error
 	// GetDiskState gets the offline/online state of the disk `diskNumber`.
 	GetDiskState(diskNumber uint32) (bool, error)
+	// SetDiskReadOnly sets the read-only attribute of the disk `diskNumber`.
+	SetDiskReadOnly(diskNumber uint32, isReadOnly bool) error
+	// GetDiskReadOnly gets the read-only attribute of the disk `diskNumber`.
+	GetDiskReadOnly(diskNumber uint32) (bool, error)
 }
 
 // DiskAPI implements the OS API calls related to Disk Devices. All code here should be very simple
@@ -450,4 +454,52 @@ func (imp DiskAPI) GetDiskState(diskNumber uint32) (bool, error) {
 		})
 	})
 	return !isOffline, err
+}
+
+func (imp DiskAPI) SetDiskReadOnly(diskNumber uint32, isReadOnly bool) error {
+	return wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForIsReadOnly)
+			if err != nil {
+				return err
+			}
+
+			currentIsReadOnly, err := wmi.IsDiskReadOnly(disk)
+			if err != nil {
+				return fmt.Errorf("error setting disk %d read-only attribute. error: %w", diskNumber, err)
+			}
+
+			if isReadOnly == currentIsReadOnly {
+				klog.V(2).Infof("Disk %d already has the desired read-only attribute", diskNumber)
+				return nil
+			}
+
+			_, err = wmi.SetDiskReadOnly(disk, isReadOnly)
+			if err != nil {
+				return fmt.Errorf("setting disk %d read-only attribute (isReadOnly: %v): error: %w", diskNumber, isReadOnly, err)
+			}
+
+			return nil
+		})
+	})
+}
+
+func (imp DiskAPI) GetDiskReadOnly(diskNumber uint32) (bool, error) {
+	var isReadOnly bool
+	err := wmi.WithCOMThread(func() error {
+		return wmi.WithScope(func(scope *wmi.Scope) error {
+			disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForIsReadOnly)
+			if err != nil {
+				return err
+			}
+
+			isReadOnly, err = wmi.IsDiskReadOnly(disk)
+			if err != nil {
+				return fmt.Errorf("error parsing disk %d read-only attribute. error: %w", diskNumber, err)
+			}
+
+			return nil
+		})
+	})
+	return isReadOnly, err
 }
