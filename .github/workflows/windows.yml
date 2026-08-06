@@ -5,14 +5,14 @@ jobs:
   integration_tests:
     strategy:
       matrix:
-        go: ['1.24']
+        go: ['1.25']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ matrix.go }}
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Windows Integration Tests
@@ -30,7 +30,7 @@ jobs:
   unit_tests:
     strategy:
       matrix:
-        go: ['1.24']
+        go: ['1.25']
         platform: [windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
