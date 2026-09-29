@@ -216,6 +216,17 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 
 			// If size is 0 then we will resize to the maximum size possible, otherwise just resize to size
 			if size == 0 {
+				// GetSupportedSize scans the file system to find the minimum size, which can take
+				// minutes on large NTFS volumes. Skip it when the disk has no room to grow into.
+				unallocated, err := unallocatedBytesAfterPartition(scope, part)
+				if err == nil && unallocated < minimumResizeSize {
+					klog.V(2).Infof("only %d bytes unallocated after volume (%s), less than the minimum resize difference (100MB), skipping resize", unallocated, volumeID)
+					return nil
+				}
+				if err != nil {
+					klog.V(4).Infof("could not compare partition and disk size of volume (%s), falling back to GetSupportedSize: %v", volumeID, err)
+				}
+
 				var status string
 				_, finalSize, status, err = wmi.GetPartitionSupportedSize(part)
 				if err != nil {
@@ -269,6 +280,45 @@ func (VolumeAPI) ResizeVolume(volumeID string, size int64) error {
 			return nil
 		})
 	})
+}
+
+// unallocatedBytesAfterPartition returns the disk space after the end of the partition. It only
+// reads partition and disk properties, unlike MSFT_Partition.GetSupportedSize.
+func unallocatedBytesAfterPartition(scope *wmi.Scope, part *wmi.COMDispatchObject) (uint64, error) {
+	offset, err := wmi.GetPartitionOffset(part)
+	if err != nil {
+		return 0, err
+	}
+
+	partSize, err := wmi.GetPartitionSize(part)
+	if err != nil {
+		return 0, err
+	}
+
+	diskNumber, err := wmi.GetPartitionDiskNumber(part)
+	if err != nil {
+		return 0, err
+	}
+
+	disk, err := wmi.QueryDiskByNumber(scope, diskNumber, wmi.DiskSelectorListForSize)
+	if err != nil {
+		return 0, err
+	}
+
+	diskSize, err := wmi.GetDiskSize(disk)
+	if err != nil {
+		return 0, err
+	}
+
+	return unallocatedAfter(offset, partSize, diskSize), nil
+}
+
+// unallocatedAfter returns the bytes between the end of a partition and the end of its disk.
+func unallocatedAfter(offset, partSize, diskSize uint64) uint64 {
+	if end := offset + partSize; end < diskSize {
+		return diskSize - end
+	}
+	return 0
 }
 
 // GetVolumeStats - retrieves the volume stats for a given volume
