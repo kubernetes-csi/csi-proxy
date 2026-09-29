@@ -10,10 +10,10 @@ const gib = 1024 * 1024 * 1024
 
 func TestUnallocatedAfter(t *testing.T) {
 	tests := []struct {
-		name                  string
+		name                   string
 		offset, partSize, disk uint64
-		want                  uint64
-		skipsGetSupportedSize bool
+		want                   uint64
+		skipsGetSupportedSize  bool
 	}{
 		{
 			// Values from a 128 GiB data disk whose partition already fills the disk:
