@@ -42,7 +42,7 @@ github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors
 ## explicit; go 1.16
 github.com/iancoleman/strcase
 # github.com/kubernetes-csi/csi-proxy/client v1.1.3 => ./client
-## explicit; go 1.25.0
+## explicit; go 1.26.0
 github.com/kubernetes-csi/csi-proxy/client
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1
 github.com/kubernetes-csi/csi-proxy/client/api/disk/v1alpha1
